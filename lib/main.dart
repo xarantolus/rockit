@@ -7,24 +7,43 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  static const _themeColor = Color.fromRGBO(0x3A, 0x88, 0xFF, 1.0);
+  static const _secondaryColor = Color.fromRGBO(0x70, 0xA2, 0xFF, 1.0);
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+      theme: ThemeData.from(
+        colorScheme: const ColorScheme.light().copyWith(
+          brightness: Brightness.light,
+          primary: _themeColor,
+          secondary: _secondaryColor,
+          surface: Colors.grey[200],
+        ),
+        textTheme: Typography.blackHelsinki.copyWith(
+          bodyText2: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 14,
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      darkTheme: ThemeData.from(
+        colorScheme: const ColorScheme.dark().copyWith(
+          brightness: Brightness.dark,
+          primary: _themeColor,
+          secondary: _secondaryColor,
+          surface: Colors.grey[900],
+        ),
+        textTheme: Typography.whiteHelsinki.copyWith(
+          bodyText2: TextStyle(
+            color: Colors.grey[400],
+            fontSize: 14,
+          ),
+        ),
+      ),
+      home: const MyHomePage(title: 'Rock It!'),
     );
   }
 }
