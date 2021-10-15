@@ -2,7 +2,7 @@ class UpcomingResponse {
   int? count;
   String? next;
   String? previous;
-  List<Results>? results;
+  List<Launch>? results;
 
   UpcomingResponse({count, next, previous, results});
 
@@ -12,7 +12,7 @@ class UpcomingResponse {
     previous = json["previous"];
     results = json["results"] == null
         ? null
-        : (json["results"] as List).map((e) => Results.fromJson(e)).toList();
+        : (json["results"] as List).map((e) => Launch.fromJson(e)).toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -27,7 +27,7 @@ class UpcomingResponse {
   }
 }
 
-class Results {
+class Launch {
   String? id;
   String? url;
   String? slug;
@@ -62,9 +62,9 @@ class Results {
   int? locationLaunchAttemptCountYear;
   int? padLaunchAttemptCountYear;
   int? agencyLaunchAttemptCountYear;
-  List<MissionPatches>? missionPatches;
+  List<MissionPatch>? missionPatches;
 
-  Results(
+  Launch(
       {id,
       url,
       slug,
@@ -101,7 +101,7 @@ class Results {
       agencyLaunchAttemptCountYear,
       missionPatches});
 
-  Results.fromJson(Map<String, dynamic> json) {
+  Launch.fromJson(Map<String, dynamic> json) {
     id = json["id"];
     url = json["url"];
     slug = json["slug"];
@@ -144,7 +144,7 @@ class Results {
     missionPatches = json["mission_patches"] == null
         ? null
         : (json["mission_patches"] as List)
-            .map((e) => MissionPatches.fromJson(e))
+            .map((e) => MissionPatch.fromJson(e))
             .toList();
   }
 
@@ -192,16 +192,16 @@ class Results {
   }
 }
 
-class MissionPatches {
+class MissionPatch {
   int? id;
   String? name;
   int? priority;
   String? imageUrl;
   Agency? agency;
 
-  MissionPatches({id, name, priority, imageUrl, agency});
+  MissionPatch({id, name, priority, imageUrl, agency});
 
-  MissionPatches.fromJson(Map<String, dynamic> json) {
+  MissionPatch.fromJson(Map<String, dynamic> json) {
     id = json["id"];
     name = json["name"];
     priority = json["priority"];
