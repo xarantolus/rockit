@@ -20,7 +20,7 @@ class LaunchLibraryAPI {
     query["format"] = "json";
 
     if (kReleaseMode) {
-      Uri.https('ll.thespacedevs.com', "/2.2.0" + path, query);
+      return Uri.https('ll.thespacedevs.com', "/2.2.0" + path, query);
     }
     return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
