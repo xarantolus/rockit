@@ -28,7 +28,8 @@ class LaunchLibraryAPI {
   Future<String> _fetch(Uri url) async {
     var response = await _httpClient.get(url);
 
-    return response.body;
+    // We need to decode utf8, else text like "äöü" will be decoded wrong
+    return utf8.decode(response.bodyBytes);
   }
 
   Future<UpcomingResponse> upcomingLaunches([String? next]) async {

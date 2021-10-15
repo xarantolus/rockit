@@ -28,6 +28,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
             } else {
               return ListView.builder(
                 itemCount: results!.length,
+                cacheExtent: MediaQuery.of(context).size.height * 2,
                 itemBuilder: (context, index) {
                   return LaunchWidget(results[index]);
                 },

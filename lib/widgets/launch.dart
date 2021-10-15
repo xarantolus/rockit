@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:rockit/launch_library/json_convert.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class LaunchWidget extends StatefulWidget {
   const LaunchWidget(this.launch, {Key? key}) : super(key: key);
@@ -16,12 +18,21 @@ class LaunchWidget extends StatefulWidget {
 class _LaunchWidgetState extends State<LaunchWidget> {
   Widget _image(BuildContext context, Launch launch) {
     if (launch.image != null) {
-      return Image.network(
-        launch.image!,
+      return CachedNetworkImage(
+        cacheManager: DefaultCacheManager(),
+        imageUrl: launch.image!,
         fit: BoxFit.cover,
+        progressIndicatorBuilder: (context, url, downloadProgress) => Center(
+          child: CircularProgressIndicator(value: downloadProgress.progress),
+        ),
+        errorWidget: (context, url, error) => _defaultImage(),
       );
     }
 
+    return _defaultImage();
+  }
+
+  Widget _defaultImage() {
     if (Theme.of(context).brightness == Brightness.light) {
       return Image.asset("assets/rocket-black.png");
     }
@@ -31,10 +42,9 @@ class _LaunchWidgetState extends State<LaunchWidget> {
   String _netText(Launch launch) {
     try {
       var launchDate = DateTime.parse(launch.net ?? launch.windowStart ?? "");
-      if (launchDate != null) {
-        final DateFormat formatter = DateFormat('yyyy-MM-dd');
-        return formatter.format(launchDate);
-      }
+
+      final DateFormat formatter = DateFormat('yyyy-MM-dd');
+      return formatter.format(launchDate);
     } catch (_) {}
     return "NET Unknown";
   }
