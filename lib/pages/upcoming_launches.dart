@@ -63,25 +63,23 @@ class _LaunchesListState extends State<LaunchesList> {
   late String? nextURL = widget.initialNextURL;
 
   Future<void> _updateLaunches([bool? refresh]) async {
-    var _launches = launches;
-
-    var _nextURL = nextURL;
-    if (refresh == true) {
-      _nextURL = null;
-      _launches.clear();
-    }
+    var _nextURL = refresh == true ? null : nextURL;
 
     var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
 
-    _launches.addAll(_newLaunches.results ?? []);
+    final newList = _newLaunches.results ?? [];
 
     setState(() {
-      launches = _launches;
+      // Refresh? => replace
+      if (refresh == true) {
+        launches = newList;
+      } else {
+        launches.addAll(newList);
+      }
+
       nextURL = _newLaunches.next;
     });
   }
-
-  bool loadingMore = false;
 
   Future<bool> _loadMore() async {
     try {
