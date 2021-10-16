@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/launch_library/api.dart';
 import 'package:rockit/launch_library/json_convert.dart';
+import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/launch.dart';
 import 'package:loadmore/loadmore.dart';
 
@@ -109,7 +110,16 @@ class _LaunchesListState extends State<LaunchesList> {
           itemCount: launches.length,
           cacheExtent: MediaQuery.of(context).size.height * 5,
           itemBuilder: (context, index) {
-            return LaunchWidget(launches[index]);
+            return GestureDetector(
+              child: LaunchWidget(launches[index]),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => LaunchDetailsPage(launches[index]),
+                  ),
+                );
+              },
+            );
           },
         ),
         textBuilder: _buildLoadingText,

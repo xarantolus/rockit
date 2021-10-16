@@ -38,6 +38,8 @@ dependencies:
   intl: ^0.17.0
   cached_network_image: ^3.1.0
   loadmore: ^2.0.1
+  pinch_zoom_image_last: ^0.4.1
+  easy_image_viewer: ^1.0.3
 
 dev_dependencies:
   flutter_test:
