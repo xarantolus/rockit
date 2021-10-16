@@ -62,7 +62,7 @@ class _LaunchesListState extends State<LaunchesList> {
   late List<Launch> launches = widget.initialLaunches;
   late String? nextURL = widget.initialNextURL;
 
-  Future<void> _updateLaunches([bool? refresh]) async {
+  Future<bool> _updateLaunches([bool? refresh]) async {
     var _nextURL = refresh == true ? null : nextURL;
 
     var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
@@ -79,15 +79,12 @@ class _LaunchesListState extends State<LaunchesList> {
 
       nextURL = _newLaunches.next;
     });
+
+    return newList.isNotEmpty;
   }
 
   Future<bool> _loadMore() async {
-    try {
-      await _updateLaunches(false);
-    } catch (_) {
-      return false;
-    }
-    return true;
+    return await _updateLaunches(false);
   }
 
   String _buildLoadingText(LoadMoreStatus status) =>
