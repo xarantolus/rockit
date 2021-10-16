@@ -11,10 +11,12 @@ class RockItApp extends StatelessWidget {
   static const _themeColor = Color.fromRGBO(0x3A, 0x88, 0xFF, 1.0);
   static const _secondaryColor = Color.fromRGBO(0x70, 0xA2, 0xFF, 1.0);
 
+  static const appName = 'Rock It!';
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: appName,
       theme: ThemeData.from(
         colorScheme: const ColorScheme.light().copyWith(
           brightness: Brightness.light,
@@ -43,7 +45,7 @@ class RockItApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const MyHomePage(title: 'Rock It!'),
+      home: const MyHomePage(title: appName),
     );
   }
 }
