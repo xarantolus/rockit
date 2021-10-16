@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:rockit/launch_library/json_convert.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class LaunchWidget extends StatefulWidget {
   const LaunchWidget(this.launch, {Key? key}) : super(key: key);
