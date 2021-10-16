@@ -19,8 +19,9 @@ class _LaunchWidgetState extends State<LaunchWidget> {
   Widget _image(BuildContext context, Launch launch) {
     if (launch.image != null) {
       return CachedNetworkImage(
-        cacheManager: DefaultCacheManager(),
         imageUrl: launch.image!,
+        fadeInDuration: const Duration(milliseconds: 125),
+        fadeOutDuration: const Duration(milliseconds: 250),
         fit: BoxFit.cover,
         progressIndicatorBuilder: (context, url, downloadProgress) => Center(
           child: CircularProgressIndicator(value: downloadProgress.progress),
