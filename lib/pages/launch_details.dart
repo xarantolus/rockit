@@ -26,6 +26,24 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
     );
   }
 
+  Widget _missionDetails(BuildContext context, Mission m) {
+    return ListTile(
+      title: Center(
+        child: Text(
+          m.name ?? "Unknown",
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      subtitle: Text(
+        m.description ?? "No description",
+        softWrap: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final launchName = widget.launch.name ?? "Unknown launch";
@@ -36,6 +54,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
       body: Column(
         children: [
           if (widget.launch.image != null) _zoomableImage(),
+          if (widget.launch.mission != null)
+            _missionDetails(context, widget.launch.mission!),
         ],
       ),
     );
