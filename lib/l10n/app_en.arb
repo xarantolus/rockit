@@ -16,6 +16,8 @@
   "launches": "Launches",
   "news": "News",
 
+  "inThePast": "Already over!",
+
   "netUnknown": "NET Unknown",
 
   "loadingLaunchFail": "Failed to load. Tap to try again.",

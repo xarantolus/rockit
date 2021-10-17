@@ -42,6 +42,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
       subtitle: Text(
         m.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
+        style: const TextStyle(
+          fontSize: 16,
+        ),
       ),
     );
   }
@@ -66,6 +69,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
             const Divider(),
           ],
           CountDownWidget(widget.launch),
+          const Divider(),
         ],
       ),
     );

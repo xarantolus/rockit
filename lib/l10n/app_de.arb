@@ -7,7 +7,7 @@
   "launchIsOn": "Der Start ist am",
   "windowIsOn": "Das Startfenster startet am",
   "oneDay": "Ein Tag",
-  "days": "Tage",
+  "days": "Tagen",
   "unknownLaunch": "Unbekannter Start",
   "noDescription": "Keine Beschreibung",
   "unknown": "Unbekannt",
@@ -16,6 +16,7 @@
   "launches": "Starts",
   "news": "Nachrichten",
 
+  "inThePast": "Schon vorbei!",
 
   "netUnknown": "NET Unbekannt",
 

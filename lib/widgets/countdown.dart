@@ -35,6 +35,8 @@ class _CountDownWidgetState extends State<CountDownWidget> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
+  bool forceCountdown = false;
+
   @override
   void dispose() {
     _timer.cancel();
@@ -47,7 +49,11 @@ class _CountDownWidgetState extends State<CountDownWidget> {
     return date.toUtc().difference(now);
   }
 
-  String displayTimeDiff(Duration d) {
+  String formatTimeDiff(Duration d) {
+    if (d.isNegative) {
+      return AppLocalizations.of(context)!.inThePast;
+    }
+
     var prefix = "";
 
     if (d.inDays == 1) {
@@ -56,7 +62,14 @@ class _CountDownWidgetState extends State<CountDownWidget> {
       prefix = "${d.inDays} ${AppLocalizations.of(context)!.days}, ";
     }
 
-    return "$prefix${d.inHours % 24}:${d.inMinutes % 60}:${d.inSeconds % 60}";
+    String twoDigits(int d) {
+      if (d < 10) {
+        return "0$d";
+      }
+      return "$d";
+    }
+
+    return "$prefix${d.inHours % 24}:${twoDigits(d.inMinutes % 60)}:${twoDigits(d.inSeconds % 60)}";
   }
 
   String formatDate(DateTime d) {
@@ -88,14 +101,14 @@ class _CountDownWidgetState extends State<CountDownWidget> {
 
     var timeUntil = timeDiff(displayedDate);
 
-    if (timeUntil < const Duration(days: 7)) {
+    if (timeUntil < const Duration(days: 7) || forceCountdown) {
       textAbove = net != null
           ? AppLocalizations.of(context)!.launchIsIn
           : windowStart != null
               ? AppLocalizations.of(context)!.windowIsIn
               : "";
 
-      dateText = displayTimeDiff(timeUntil);
+      dateText = formatTimeDiff(timeUntil);
       additionalNote = formatDate(displayedDate);
     } else {
       textAbove = net != null
@@ -108,15 +121,22 @@ class _CountDownWidgetState extends State<CountDownWidget> {
       additionalNote = AppLocalizations.of(context)!.inYourLocalTime;
     }
 
-    return Column(
-      children: [
-        Text(textAbove),
-        Text(
-          dateText,
-          style: bigTextStyle,
-        ),
-        Text(additionalNote),
-      ],
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          forceCountdown = !forceCountdown;
+        });
+      },
+      child: Column(
+        children: [
+          if (!timeUntil.isNegative) Text(textAbove),
+          Text(
+            dateText,
+            style: bigTextStyle,
+          ),
+          if (!timeUntil.isNegative) Text(additionalNote),
+        ],
+      ),
     );
   }
 }
