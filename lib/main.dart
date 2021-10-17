@@ -29,7 +29,7 @@ class RockItApp extends StatelessWidget {
         ),
         textTheme: Typography.blackHelsinki.copyWith(
           bodyText2: TextStyle(
-            color: Colors.grey[600],
+            color: Colors.grey[800],
             fontSize: 14,
           ),
         ),
@@ -43,7 +43,7 @@ class RockItApp extends StatelessWidget {
         ),
         textTheme: Typography.whiteHelsinki.copyWith(
           bodyText2: TextStyle(
-            color: Colors.grey[400],
+            color: Colors.grey[200],
             fontSize: 14,
           ),
         ),
@@ -65,11 +65,33 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        bottomNavigationBar: TabBar(
+          labelColor: Theme.of(context).textTheme.bodyText2!.color,
+          automaticIndicatorColorAdjustment: true,
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.home),
+              child: Text(AppLocalizations.of(context)!.launches),
+            ),
+            Tab(
+              icon: const Icon(Icons.article),
+              child: Text(AppLocalizations.of(context)!.news),
+            ),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            UpcomingLaunchesPage(),
+            Icon(Icons.article),
+          ],
+        ),
       ),
-      body: UpcomingLaunchesPage(),
     );
   }
 }

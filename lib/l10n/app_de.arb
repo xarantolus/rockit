@@ -13,6 +13,10 @@
   "unknown": "Unbekannt",
   "noLaunches": "Es gibt keine Starts, die angezeigt werden können",
 
+  "launches": "Starts",
+  "news": "Nachrichten",
+
+
   "netUnknown": "NET Unbekannt",
 
   "loadingLaunchFail":"Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",

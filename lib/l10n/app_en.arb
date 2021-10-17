@@ -13,6 +13,9 @@
   "unknown": "Unknown",
   "noLaunches": "There are no launches we could show here",
 
+  "launches": "Launches",
+  "news": "News",
+
   "netUnknown": "NET Unknown",
 
   "loadingLaunchFail": "Failed to load. Tap to try again.",

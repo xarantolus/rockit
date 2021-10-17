@@ -15,7 +15,12 @@ class UpcomingLaunchesPage extends StatefulWidget {
   _UpcomingLaunchesPageState createState() => _UpcomingLaunchesPageState();
 }
 
-class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
+class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
+    with AutomaticKeepAliveClientMixin {
+  // Make sure this page is cached, else it would reload often when switching between tabs
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
     return Center(
