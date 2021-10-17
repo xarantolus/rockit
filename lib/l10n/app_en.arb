@@ -1,0 +1,10 @@
+{
+  "dateTimeFormat": "MM/dd/yyyy hh:mm a",
+  "unknownLaunchTime": "Unknown launch time",
+  "launchIsIn": "The launch is in",
+  "windowIsIn": "The launch window starts in",
+  "launchIsOn": "The launch is on",
+  "windowIsOn": "The launch window starts on",
+  "oneDay": "one day",
+  "days": "days"
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/pages/upcoming_launches.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   runApp(const RockItApp());
@@ -17,6 +18,8 @@ class RockItApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appName,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.from(
         colorScheme: const ColorScheme.light().copyWith(
           brightness: Brightness.light,

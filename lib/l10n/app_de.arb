@@ -1,0 +1,11 @@
+{
+  "dateTimeFormat": "dd. MMMM yyyy, HH:mm 'Uhr'",
+    "unknownLaunchTime": "Unbekannte Startzeit",
+    "launchIsIn": "Der Start ist in",
+    "windowIsIn": "Das Startfenster startet in",
+    "launchIsOn": "Der Start ist am",
+    "windowIsOn": "Das Startfenster startet am",
+    "oneDay": "Ein Tag",
+    "days": "Tage"
+
+}

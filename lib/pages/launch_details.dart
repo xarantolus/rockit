@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/launch_library/json_convert.dart';
+import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
@@ -47,15 +48,22 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final launchName = widget.launch.name ?? "Unknown launch";
+
     return Scaffold(
       appBar: AppBar(
         title: Text(launchName),
       ),
       body: Column(
         children: [
-          if (widget.launch.image != null) _zoomableImage(),
-          if (widget.launch.mission != null)
+          if (widget.launch.image != null) ...[
+            _zoomableImage(),
+            const Divider(),
+          ],
+          if (widget.launch.mission != null) ...[
             _missionDetails(context, widget.launch.mission!),
+            const Divider(),
+          ],
+          CountDownWidget(widget.launch),
         ],
       ),
     );
