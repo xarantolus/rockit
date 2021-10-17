@@ -42,9 +42,9 @@ class _CountDownWidgetState extends State<CountDownWidget> {
   }
 
   Duration timeDiff(DateTime date) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
-    return date.difference(now);
+    return date.toUtc().difference(now);
   }
 
   String displayTimeDiff(Duration d) {
@@ -65,7 +65,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
     final DateFormat formatter =
         DateFormat(localization.dateTimeFormat, localization.localeName);
 
-    return formatter.format(d);
+    return formatter.format(d.toLocal());
   }
 
   @override
@@ -78,14 +78,17 @@ class _CountDownWidgetState extends State<CountDownWidget> {
     var displayedDate = net ?? windowStart;
 
     if (displayedDate == null) {
-      return Text(AppLocalizations.of(context)!.unknownLaunchTime);
+      return Text(
+        AppLocalizations.of(context)!.unknownLaunchTime,
+        style: bigTextStyle,
+      );
     }
 
-    var textAbove, dateText = "";
+    var textAbove = "", dateText = "", additionalNote = "";
 
     var timeUntil = timeDiff(displayedDate);
 
-    if (timeUntil < const Duration(days: 3)) {
+    if (timeUntil < const Duration(days: 7)) {
       textAbove = net != null
           ? AppLocalizations.of(context)!.launchIsIn
           : windowStart != null
@@ -93,6 +96,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
               : "";
 
       dateText = displayTimeDiff(timeUntil);
+      additionalNote = formatDate(displayedDate);
     } else {
       textAbove = net != null
           ? AppLocalizations.of(context)!.launchIsOn
@@ -101,6 +105,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
               : "";
 
       dateText = formatDate(displayedDate);
+      additionalNote = AppLocalizations.of(context)!.inYourLocalTime;
     }
 
     return Column(
@@ -110,6 +115,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
           dateText,
           style: bigTextStyle,
         ),
+        Text(additionalNote),
       ],
     );
   }

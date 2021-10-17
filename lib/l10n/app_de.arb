@@ -18,5 +18,6 @@
   "loadingLaunchFail":"Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",
   "loadingLaunchIdle": "Warten...",
   "loadingLaunchLoading": "Laden weiterer Starts...",
-  "loadingLaunchNoMore": "Du hast das Ende der Liste erreicht!"
+  "loadingLaunchNoMore": "Du hast das Ende der Liste erreicht!",
+  "inYourLocalTime": "in deiner Zeitzone"
 }

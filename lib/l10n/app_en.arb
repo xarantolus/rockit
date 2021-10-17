@@ -18,5 +18,6 @@
   "loadingLaunchFail": "Failed to load. Tap to try again.",
   "loadingLaunchIdle": "Waiting...",
   "loadingLaunchLoading": "Loading more launches...",
-  "loadingLaunchNoMore": "You've reached the end of the list!"
+  "loadingLaunchNoMore": "You've reached the end of the list!",
+  "inYourLocalTime": "in your local time"
 }
