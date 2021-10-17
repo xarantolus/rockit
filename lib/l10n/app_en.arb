@@ -1,10 +1,22 @@
 {
   "dateTimeFormat": "MM/dd/yyyy hh:mm a",
+  "dateFormat": "yyyy-MM-dd",
   "unknownLaunchTime": "Unknown launch time",
   "launchIsIn": "The launch is in",
   "windowIsIn": "The launch window starts in",
   "launchIsOn": "The launch is on",
   "windowIsOn": "The launch window starts on",
   "oneDay": "one day",
-  "days": "days"
+  "days": "days",
+  "unknownLaunch": "Unknown launch",
+  "noDescription": "No description",
+  "unknown": "Unknown",
+  "noLaunches": "There are no launches we could show here",
+
+  "netUnknown": "NET Unknown",
+
+  "loadingLaunchFail": "Failed to load. Tap to try again.",
+  "loadingLaunchIdle": "Waiting...",
+  "loadingLaunchLoading": "Loading more launches...",
+  "loadingLaunchNoMore": "You've reached the end of the list!"
 }

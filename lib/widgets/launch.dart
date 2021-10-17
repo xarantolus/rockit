@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rockit/launch_library/json_convert.dart';
 import 'package:intl/intl.dart';
 import 'package:rockit/widgets/launch_image.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LaunchWidget extends StatefulWidget {
   const LaunchWidget(this.launch, {Key? key}) : super(key: key);
@@ -19,17 +20,19 @@ class _LaunchWidgetState extends State<LaunchWidget> {
     try {
       var launchDate = DateTime.parse(launch.net ?? launch.windowStart ?? "");
 
-      final DateFormat formatter = DateFormat('yyyy-MM-dd');
+      final DateFormat formatter = DateFormat(
+          AppLocalizations.of(context)!.dateFormat,
+          AppLocalizations.of(context)!.localeName);
       return formatter.format(launchDate);
     } catch (_) {}
-    return "NET Unknown";
+    return AppLocalizations.of(context)!.netUnknown;
   }
 
   GridTileBar _infoBar(Launch launch) {
     return GridTileBar(
       backgroundColor: Colors.grey[800]!.withOpacity(0.75),
       title: Text(
-        launch.name ?? "Unknown launch",
+        launch.name ?? AppLocalizations.of(context)!.unknownLaunch,
         style: const TextStyle(
           overflow: TextOverflow.ellipsis,
           fontSize: 20.0,
@@ -38,7 +41,8 @@ class _LaunchWidgetState extends State<LaunchWidget> {
       ),
       trailing: Text(_netText(launch)),
       subtitle: Text(
-        launch.launchServiceProvider?.name ?? "Unknown",
+        launch.launchServiceProvider?.name ??
+            AppLocalizations.of(context)!.unknown,
         style: const TextStyle(
           overflow: TextOverflow.ellipsis,
           fontSize: 16.0,

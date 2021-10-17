@@ -4,6 +4,7 @@ import 'package:rockit/launch_library/json_convert.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/launch.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UpcomingLaunchesPage extends StatefulWidget {
   UpcomingLaunchesPage({Key? key}) : super(key: key);
@@ -24,8 +25,8 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
           if (snapshot.hasData) {
             final results = snapshot.data!.results;
             if (results?.isEmpty ?? true) {
-              return const Center(
-                child: Text("There are no items"),
+              return Center(
+                child: Text(AppLocalizations.of(context)!.noLaunches),
               );
             } else {
               return LaunchesList(
@@ -88,14 +89,20 @@ class _LaunchesListState extends State<LaunchesList> {
     return await _updateLaunches(false);
   }
 
-  String _buildLoadingText(LoadMoreStatus status) =>
-      const {
-        LoadMoreStatus.fail: "Failed to load. Tap to try again.",
-        LoadMoreStatus.idle: "Waiting...",
-        LoadMoreStatus.loading: "Loading more launches...",
-        LoadMoreStatus.nomore: "You've reached the end of the list.",
-      }[status] ??
-      "Unknown";
+  String _buildLoadingText(LoadMoreStatus status) {
+    switch (status) {
+      case LoadMoreStatus.fail:
+        return AppLocalizations.of(context)!.loadingLaunchFail;
+      case LoadMoreStatus.idle:
+        return AppLocalizations.of(context)!.loadingLaunchIdle;
+      case LoadMoreStatus.loading:
+        return AppLocalizations.of(context)!.loadingLaunchLoading;
+      case LoadMoreStatus.nomore:
+        return AppLocalizations.of(context)!.loadingLaunchNoMore;
+      default:
+        return AppLocalizations.of(context)!.unknown;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

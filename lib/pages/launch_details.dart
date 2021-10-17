@@ -5,6 +5,7 @@ import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/launch_library/json_convert.dart';
 import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
   const LaunchDetailsPage(this.launch, {Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
     return ListTile(
       title: Center(
         child: Text(
-          m.name ?? "Unknown",
+          m.name ?? AppLocalizations.of(context)!.unknown,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
         ),
       ),
       subtitle: Text(
-        m.description ?? "No description",
+        m.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
       ),
     );
@@ -47,7 +48,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final launchName = widget.launch.name ?? "Unknown launch";
+    final launchName =
+        widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
     return Scaffold(
       appBar: AppBar(

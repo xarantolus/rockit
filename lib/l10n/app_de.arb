@@ -1,11 +1,22 @@
 {
   "dateTimeFormat": "dd. MMMM yyyy, HH:mm 'Uhr'",
-    "unknownLaunchTime": "Unbekannte Startzeit",
-    "launchIsIn": "Der Start ist in",
-    "windowIsIn": "Das Startfenster startet in",
-    "launchIsOn": "Der Start ist am",
-    "windowIsOn": "Das Startfenster startet am",
-    "oneDay": "Ein Tag",
-    "days": "Tage"
+  "dateFormat": "dd. MMM yyyy",
+  "unknownLaunchTime": "Unbekannte Startzeit",
+  "launchIsIn": "Der Start ist in",
+  "windowIsIn": "Das Startfenster startet in",
+  "launchIsOn": "Der Start ist am",
+  "windowIsOn": "Das Startfenster startet am",
+  "oneDay": "Ein Tag",
+  "days": "Tage",
+  "unknownLaunch": "Unbekannter Start",
+  "noDescription": "Keine Beschreibung",
+  "unknown": "Unbekannt",
+  "noLaunches": "Es gibt keine Starts, die angezeigt werden können",
 
+  "netUnknown": "NET Unbekannt",
+
+  "loadingLaunchFail":"Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",
+  "loadingLaunchIdle": "Warten...",
+  "loadingLaunchLoading": "Laden weiterer Starts...",
+  "loadingLaunchNoMore": "Du hast das Ende der Liste erreicht!"
 }
