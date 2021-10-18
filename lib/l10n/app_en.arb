@@ -18,6 +18,18 @@
 
   "inThePast": "Already over!",
 
+  "info": "Info",
+  "status": "Status",
+  "statusDescription": "Status description",
+  "lastUpdate": "Last updated",
+  "windowStart": "Launch window start",
+  "windowEnd": "Launch window end",
+  "holdReason": "Hold reason",
+  "failReason": "Fail reason",
+  "startProbability": "Start probability",
+
+  "likeStartTime" : "like start time",
+
   "netUnknown": "NET Unknown",
 
   "loadingLaunchFail": "Failed to load. Tap to try again.",

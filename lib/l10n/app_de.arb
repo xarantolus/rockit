@@ -18,6 +18,19 @@
 
   "inThePast": "Schon vorbei!",
 
+  "info": "Infos",
+  "status": "Status",
+  "statusDescription": "Statusbeschreibung",
+  "lastUpdate": "Letzte Änderung",
+  "windowStart": "Anfang des Startfensters",
+  "windowEnd": "Ende des Startfensters",
+  "holdReason": "Grund für Verzögerung",
+  "failReason": "Grund für Fehlschlag",
+  "startProbability": "Startwahrscheinlichkeit",
+
+  "likeStartTime": "wie Startzeit",
+
+
   "netUnknown": "NET Unbekannt",
 
   "loadingLaunchFail":"Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",

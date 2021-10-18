@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:rockit/launch_library/json_convert.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/mixins/date_format.dart';
 
 class CountDownWidget extends StatefulWidget {
   const CountDownWidget(this.launch, {Key? key}) : super(key: key);
@@ -14,7 +14,7 @@ class CountDownWidget extends StatefulWidget {
   _CountDownWidgetState createState() => _CountDownWidgetState();
 }
 
-class _CountDownWidgetState extends State<CountDownWidget> {
+class _CountDownWidgetState extends State<CountDownWidget> with DateFormatter {
   late Timer _timer;
 
   late DateTime? net;
@@ -72,15 +72,6 @@ class _CountDownWidgetState extends State<CountDownWidget> {
     return "$prefix${d.inHours % 24}:${twoDigits(d.inMinutes % 60)}:${twoDigits(d.inSeconds % 60)}";
   }
 
-  String formatDate(DateTime d) {
-    final localization = AppLocalizations.of(context)!;
-
-    final DateFormat formatter =
-        DateFormat(localization.dateTimeFormat, localization.localeName);
-
-    return formatter.format(d.toLocal());
-  }
-
   @override
   Widget build(BuildContext context) {
     const bigTextStyle = TextStyle(
@@ -109,7 +100,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
               : "";
 
       dateText = formatTimeDiff(timeUntil);
-      additionalNote = formatDate(displayedDate);
+      additionalNote = formatDate(context, displayedDate);
     } else {
       textAbove = net != null
           ? AppLocalizations.of(context)!.launchIsOn
@@ -117,7 +108,7 @@ class _CountDownWidgetState extends State<CountDownWidget> {
               ? AppLocalizations.of(context)!.windowIsOn
               : "";
 
-      dateText = formatDate(displayedDate);
+      dateText = formatDate(context, displayedDate);
       additionalNote = AppLocalizations.of(context)!.inYourLocalTime;
     }
 

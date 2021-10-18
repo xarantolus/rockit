@@ -49,7 +49,7 @@ class Launch {
   Mission? mission;
   Pad? pad;
   List<dynamic>? infoUrls;
-  List<dynamic>? vidUrls;
+  List<VideoInfo>? vidUrls;
   bool? webcastLive;
   String? image;
   dynamic? infographic;
@@ -128,7 +128,9 @@ class Launch {
         json["mission"] == null ? null : Mission.fromJson(json["mission"]);
     pad = json["pad"] == null ? null : Pad.fromJson(json["pad"]);
     infoUrls = json["infoURLs"] ?? [];
-    vidUrls = json["vidURLs"] ?? [];
+    vidUrls = json["vidURLs"] == null
+        ? null
+        : (json["vidURLs"] as List).map((e) => VideoInfo.fromJson(e)).toList();
     webcastLive = json["webcast_live"];
     image = json["image"];
     infographic = json["infographic"];
@@ -857,6 +859,39 @@ class Status {
     data["name"] = name;
     data["abbrev"] = abbrev;
     data["description"] = description;
+    return data;
+  }
+}
+
+class VideoInfo {
+  int? priority;
+  String? title;
+  String? description;
+  String? featureImage;
+  String? url;
+
+  VideoInfo(
+      {this.priority,
+      this.title,
+      this.description,
+      this.featureImage,
+      this.url});
+
+  VideoInfo.fromJson(Map<String, dynamic> json) {
+    priority = json['priority'];
+    title = json['title'];
+    description = json['description'];
+    featureImage = json['feature_image'];
+    url = json['url'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['priority'] = this.priority;
+    data['title'] = this.title;
+    data['description'] = this.description;
+    data['feature_image'] = this.featureImage;
+    data['url'] = this.url;
     return data;
   }
 }
