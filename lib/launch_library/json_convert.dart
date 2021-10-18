@@ -48,7 +48,7 @@ class Launch {
   Rocket? rocket;
   Mission? mission;
   Pad? pad;
-  List<dynamic>? infoUrls;
+  List<ArticleInfo>? infoUrls;
   List<VideoInfo>? vidUrls;
   bool? webcastLive;
   String? image;
@@ -127,7 +127,13 @@ class Launch {
     mission =
         json["mission"] == null ? null : Mission.fromJson(json["mission"]);
     pad = json["pad"] == null ? null : Pad.fromJson(json["pad"]);
-    infoUrls = json["infoURLs"] ?? [];
+
+    infoUrls = json["infoURLs"] == []
+        ? null
+        : (json["infoURLs"] as List)
+            .map((e) => ArticleInfo.fromJson(e))
+            .toList();
+
     vidUrls = json["vidURLs"] == null
         ? null
         : (json["vidURLs"] as List).map((e) => VideoInfo.fromJson(e)).toList();
@@ -893,5 +899,31 @@ class VideoInfo {
     data['feature_image'] = this.featureImage;
     data['url'] = this.url;
     return data;
+  }
+}
+
+class ArticleInfo {
+  ArticleInfo({
+    required this.priority,
+    required this.title,
+    required this.description,
+    required this.featureImage,
+    required this.url,
+  });
+
+  final int? priority;
+  final String? title;
+  final String? description;
+  final String? featureImage;
+  final String? url;
+
+  factory ArticleInfo.fromJson(Map<String, dynamic> json) {
+    return ArticleInfo(
+      priority: json["priority"],
+      title: json["title"],
+      description: json["description"],
+      featureImage: json["feature_image"],
+      url: json["url"],
+    );
   }
 }
