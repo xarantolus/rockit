@@ -130,7 +130,7 @@ class _NewsListState extends State<NewsList> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        margin: const EdgeInsets.all(5),
+        margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: Column(
           children: [
             Padding(
@@ -144,24 +144,21 @@ class _NewsListState extends State<NewsList> {
               ),
             ),
             if ((article.imageUrl ?? "").isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(3, 0, 3, 0),
-                child: SizedBox(
-                  height: max(MediaQuery.of(context).size.height / 4, 200),
-                  width: double.infinity,
-                  child: CachedNetworkImage(
-                    imageUrl: article.imageUrl!,
-                    fadeInDuration: const Duration(milliseconds: 125),
-                    fadeOutDuration: const Duration(milliseconds: 250),
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder:
-                        (context, url, downloadProgress) => Center(
-                      child: CircularProgressIndicator(
-                          value: downloadProgress.progress),
-                    ),
-                    errorWidget: (context, url, error) => const Center(
-                      child: Icon(Icons.error),
-                    ),
+              SizedBox(
+                height: max(MediaQuery.of(context).size.height / 4, 200),
+                width: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: article.imageUrl!,
+                  fadeInDuration: const Duration(milliseconds: 125),
+                  fadeOutDuration: const Duration(milliseconds: 250),
+                  fit: BoxFit.cover,
+                  progressIndicatorBuilder: (context, url, downloadProgress) =>
+                      Center(
+                    child: CircularProgressIndicator(
+                        value: downloadProgress.progress),
+                  ),
+                  errorWidget: (context, url, error) => const Center(
+                    child: Icon(Icons.error),
                   ),
                 ),
               ),
