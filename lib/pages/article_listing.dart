@@ -47,7 +47,8 @@ class _ArticleListingPageState extends State<ArticleListingPage>
             }
           } else if (snapshot.hasError) {
             return GestureDetector(
-              child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+              child: ErrorWidget(
+                  "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
               onTap: () => setState(() {}),
             );
           } else {
