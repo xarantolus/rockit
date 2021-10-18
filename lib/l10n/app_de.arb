@@ -38,5 +38,13 @@
   "loadingLaunchIdle": "Warten...",
   "loadingLaunchLoading": "Laden weiterer Starts...",
   "loadingLaunchNoMore": "Du hast das Ende der Liste erreicht!",
-  "inYourLocalTime": "in deiner Zeitzone"
+
+  "loadingNewsFail": "Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",
+  "loadingNewsIdle": "Warten...",
+  "loadingNewsLoading": "Laden weiterer Nachrichten...",
+  "loadingNewsNoMore": "Du hast das Ende der Liste erreicht!",
+
+  "inYourLocalTime": "in deiner Zeitzone",
+
+  "tapToTryAgain": "Tippe, um es nochmal zu versuchen."
 }

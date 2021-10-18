@@ -21,7 +21,7 @@ class SpaceFlightNewsAPI extends APIClient {
     var query = <String, dynamic>{};
 
     if (_after != null) {
-      query["_start"] = _after;
+      query["_start"] = "$_after";
     }
 
     var uri = _endpoint("/articles", query);

@@ -43,7 +43,11 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
               );
             }
           } else if (snapshot.hasError) {
-            return ErrorWidget(snapshot.error!);
+            return GestureDetector(
+              child: ErrorWidget(
+                  "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+              onTap: () => setState(() {}),
+            );
           } else {
             return const CircularProgressIndicator();
           }
@@ -122,6 +126,7 @@ class _LaunchesListState extends State<LaunchesList> {
         onLoadMore: _loadMore,
         child: ListView.builder(
           itemCount: launches.length,
+          // We pre-load up to 5 screens of info, that way images load already
           cacheExtent: MediaQuery.of(context).size.height * 5,
           itemBuilder: (context, index) {
             return GestureDetector(

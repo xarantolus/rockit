@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
@@ -40,10 +42,14 @@ class _ArticleListingPageState extends State<ArticleListingPage>
             } else {
               return NewsList(
                 results,
+                widget.service,
               );
             }
           } else if (snapshot.hasError) {
-            return ErrorWidget(snapshot.error!);
+            return GestureDetector(
+              child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+              onTap: () => setState(() {}),
+            );
           } else {
             return const CircularProgressIndicator();
           }
@@ -54,20 +60,67 @@ class _ArticleListingPageState extends State<ArticleListingPage>
 }
 
 class NewsList extends StatefulWidget {
-  const NewsList(this.articles, {Key? key}) : super(key: key);
+  const NewsList(this.initialArticles, this.service, {Key? key})
+      : super(key: key);
 
-  final List<Article> articles;
+  final List<Article> initialArticles;
+  final SpaceFlightNewsAPI service;
 
   @override
   _NewsListState createState() => _NewsListState();
 }
 
 class _NewsListState extends State<NewsList> {
+  late List<Article> articles = widget.initialArticles;
+  bool _finished = false;
+
+  bool _isLetter(String letter) {
+    final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
+    return alpha.hasMatch(letter);
+  }
+
   String dottedText(String text) {
-    if (text.endsWith(".")) {
-      return text;
+    var lastLetter = text[text.length - 1];
+    if (_isLetter(lastLetter)) {
+      return text + "...";
     }
-    return text + "...";
+    return text;
+  }
+
+  Future<bool> _updateArticles([bool? refresh]) async {
+    var _newArticles =
+        await widget.service.articles(refresh == true ? null : articles.length);
+
+    setState(() {
+      if (refresh == true) {
+        articles = _newArticles;
+      } else {
+        articles.addAll(_newArticles);
+      }
+
+      _finished = _newArticles.isEmpty;
+    });
+
+    return articles.isNotEmpty;
+  }
+
+  Future<bool> _loadMore() async {
+    return await _updateArticles(false);
+  }
+
+  String _buildLoadingText(LoadMoreStatus status) {
+    switch (status) {
+      case LoadMoreStatus.fail:
+        return AppLocalizations.of(context)!.loadingNewsFail;
+      case LoadMoreStatus.idle:
+        return AppLocalizations.of(context)!.loadingNewsIdle;
+      case LoadMoreStatus.loading:
+        return AppLocalizations.of(context)!.loadingNewsLoading;
+      case LoadMoreStatus.nomore:
+        return AppLocalizations.of(context)!.loadingNewsNoMore;
+      default:
+        return AppLocalizations.of(context)!.unknown;
+    }
   }
 
   Widget _articleCard(Article article) {
@@ -130,31 +183,43 @@ class _NewsListState extends State<NewsList> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.articles.length,
-      itemBuilder: (BuildContext context, int index) {
-        return GestureDetector(
-          child: _articleCard(widget.articles[index]),
-          onTap: () async {
-            await launch(
-              widget.articles[index].url ?? "",
-              customTabsOption: CustomTabsOption(
-                toolbarColor: Theme.of(context).primaryColor,
-                enableDefaultShare: true,
-                enableUrlBarHiding: true,
-                showPageTitle: true,
-                animation: CustomTabsSystemAnimation.slideIn(),
-                extraCustomTabs: const <String>[
-                  // Browsers that support custom tabs. Could/Should add more
-                  "org.bromite.bromite",
-                  'org.mozilla.firefox',
-                  'com.microsoft.emmx',
-                ],
-              ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _updateArticles(true);
+      },
+      child: LoadMore(
+        isFinish: _finished,
+        onLoadMore: _loadMore,
+        child: ListView.builder(
+          itemCount: articles.length,
+          // We basically pre-compute this much info, that way images are often already there
+          cacheExtent: MediaQuery.of(context).size.height * 2,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              child: _articleCard(articles[index]),
+              onTap: () async {
+                await launch(
+                  articles[index].url ?? "",
+                  customTabsOption: CustomTabsOption(
+                    toolbarColor: Theme.of(context).primaryColor,
+                    enableDefaultShare: true,
+                    enableUrlBarHiding: true,
+                    showPageTitle: true,
+                    animation: CustomTabsSystemAnimation.slideIn(),
+                    extraCustomTabs: const <String>[
+                      // Browsers that support custom tabs. Could/Should add more
+                      "org.bromite.bromite",
+                      'org.mozilla.firefox',
+                      'com.microsoft.emmx',
+                    ],
+                  ),
+                );
+              },
             );
           },
-        );
-      },
+        ),
+        textBuilder: _buildLoadingText,
+      ),
     );
   }
 }
