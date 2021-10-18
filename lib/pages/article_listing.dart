@@ -9,6 +9,7 @@ import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:flutter_custom_tabs_platform_interface/flutter_custom_tabs_platform_interface.dart';
+import 'package:rockit/mixins/date_format.dart';
 
 class ArticleListingPage extends StatefulWidget {
   ArticleListingPage({Key? key}) : super(key: key);
@@ -71,7 +72,7 @@ class NewsList extends StatefulWidget {
   _NewsListState createState() => _NewsListState();
 }
 
-class _NewsListState extends State<NewsList> {
+class _NewsListState extends State<NewsList> with DateFormatter {
   late List<Article> articles = widget.initialArticles;
   bool _finished = false;
 
@@ -173,6 +174,14 @@ class _NewsListState extends State<NewsList> {
                 ),
               ),
             ),
+            if (article.publishedAt != null)
+              Container(
+                alignment: Alignment.bottomRight,
+                padding: const EdgeInsets.all(4),
+                child: Text(
+                  formatDateTime(context, article.publishedAt!),
+                ),
+              ),
           ],
         ),
       ),

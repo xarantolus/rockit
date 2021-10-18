@@ -100,7 +100,7 @@ class _CountDownWidgetState extends State<CountDownWidget> with DateFormatter {
               : "";
 
       dateText = formatTimeDiff(timeUntil);
-      additionalNote = formatDate(context, displayedDate);
+      additionalNote = formatDateTimeLocal(context, displayedDate);
     } else {
       textAbove = net != null
           ? AppLocalizations.of(context)!.launchIsOn
@@ -108,7 +108,7 @@ class _CountDownWidgetState extends State<CountDownWidget> with DateFormatter {
               ? AppLocalizations.of(context)!.windowIsOn
               : "";
 
-      dateText = formatDate(context, displayedDate);
+      dateText = formatDateTimeLocal(context, displayedDate);
       additionalNote = AppLocalizations.of(context)!.inYourLocalTime;
     }
 

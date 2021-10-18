@@ -121,11 +121,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                     AppLocalizations.of(context)!.failReason, l.failreason!),
               if (windowStart != null)
                 descriptionRow(AppLocalizations.of(context)!.windowStart,
-                    formatDate(context, windowStart)),
+                    formatDateTimeLocal(context, windowStart)),
               if (windowEnd != null)
                 descriptionRow(
                     AppLocalizations.of(context)!.windowEnd,
-                    formatDate(context, windowEnd) +
+                    formatDateTimeLocal(context, windowEnd) +
                         (windowStart == windowEnd
                             ? " (${AppLocalizations.of(context)!.likeStartTime})"
                             : "")),
@@ -134,7 +134,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                     "${((l.probability as double) * 100).toStringAsFixed(0)}%"),
               if (lastUpdated != null)
                 descriptionRow(AppLocalizations.of(context)!.lastUpdate,
-                    formatDate(context, lastUpdated)),
+                    formatDateTimeLocal(context, lastUpdated)),
             ],
           ),
         ],
