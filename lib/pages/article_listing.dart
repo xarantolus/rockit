@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
+import 'package:flutter_custom_tabs_platform_interface/flutter_custom_tabs_platform_interface.dart';
 
 class ArticleListingPage extends StatefulWidget {
   ArticleListingPage({Key? key}) : super(key: key);
@@ -131,7 +133,27 @@ class _NewsListState extends State<NewsList> {
     return ListView.builder(
       itemCount: widget.articles.length,
       itemBuilder: (BuildContext context, int index) {
-        return _articleCard(widget.articles[index]);
+        return GestureDetector(
+          child: _articleCard(widget.articles[index]),
+          onTap: () async {
+            await launch(
+              widget.articles[index].url ?? "",
+              customTabsOption: CustomTabsOption(
+                toolbarColor: Theme.of(context).primaryColor,
+                enableDefaultShare: true,
+                enableUrlBarHiding: true,
+                showPageTitle: true,
+                animation: CustomTabsSystemAnimation.slideIn(),
+                extraCustomTabs: const <String>[
+                  // Browsers that support custom tabs. Could/Should add more
+                  "org.bromite.bromite",
+                  'org.mozilla.firefox',
+                  'com.microsoft.emmx',
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }

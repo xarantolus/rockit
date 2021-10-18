@@ -41,6 +41,7 @@ dependencies:
   cached_network_image: ^3.1.0
   loadmore: ^2.0.1
   pinch_zoom_image_last: ^0.4.1
+  flutter_custom_tabs: ^1.0.3
   
 
 dev_dependencies:
