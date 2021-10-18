@@ -14,12 +14,10 @@ class SpaceFlightNewsAPI extends APIClient {
   SpaceFlightNewsAPI._internal();
 
   Uri _endpoint(String path, Map<String, dynamic> query) {
-    query["format"] = "json";
-
     return Uri.https('api.spaceflightnewsapi.net', "/v3" + path, query);
   }
 
-  Future<ArticleResponse> articles([int? _after]) async {
+  Future<List<Article>> articles([int? _after]) async {
     var query = <String, dynamic>{};
 
     if (_after != null) {
@@ -28,6 +26,8 @@ class SpaceFlightNewsAPI extends APIClient {
 
     var uri = _endpoint("/articles", query);
 
-    return ArticleResponse.fromJson(jsonDecode(await fetch(uri)));
+    var list = jsonDecode(await fetch(uri)) as List<dynamic>;
+
+    return list.map((e) => Article.fromJson(e)).toList();
   }
 }

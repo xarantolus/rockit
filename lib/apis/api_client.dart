@@ -6,7 +6,9 @@ class APIClient {
   static final _httpClient = http.Client();
 
   Future<String> fetch(Uri url) async {
-    var response = await _httpClient.get(url);
+    var response = await _httpClient.get(url, headers: {
+      "accept": "application/json",
+    });
 
     // We need to decode utf8, else text like "äöü" will be decoded wrong
     return utf8.decode(response.bodyBytes);

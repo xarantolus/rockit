@@ -1,5 +1,5 @@
-class ArticleResponse {
-  ArticleResponse({
+class Article {
+  Article({
     required this.id,
     required this.title,
     required this.url,
@@ -25,8 +25,8 @@ class ArticleResponse {
   final List<Launch>? launches;
   final List<Event>? events;
 
-  factory ArticleResponse.fromJson(Map<String, dynamic> json) {
-    return ArticleResponse(
+  factory Article.fromJson(Map<String, dynamic> json) {
+    return Article(
       id: json["id"] == null ? null : json["id"],
       title: json["title"] == null ? null : json["title"],
       url: json["url"] == null ? null : json["url"],
