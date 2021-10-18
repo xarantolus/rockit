@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -88,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
         body: TabBarView(
           children: [
             UpcomingLaunchesPage(),
-            Icon(Icons.article),
+            ArticleListingPage(),
           ],
         ),
       ),

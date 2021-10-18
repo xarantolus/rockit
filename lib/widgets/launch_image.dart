@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:rockit/launch_library/json_convert.dart';
+import 'package:rockit/apis/launch_library/upcoming_response.dart';
 
 class LaunchImageWidget extends StatefulWidget {
   const LaunchImageWidget(this.launch, {Key? key}) : super(key: key);

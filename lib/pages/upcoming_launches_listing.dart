@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rockit/launch_library/api.dart';
-import 'package:rockit/launch_library/json_convert.dart';
+import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/launch.dart';
 import 'package:loadmore/loadmore.dart';
@@ -23,6 +23,8 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Center(
       child: FutureBuilder<UpcomingResponse>(
         future: widget.service.upcomingLaunches(),

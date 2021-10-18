@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
-import 'package:rockit/launch_library/json_convert.dart';
+import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
