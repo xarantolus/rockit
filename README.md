@@ -9,11 +9,11 @@ Rock It! is an Android app that helps you stay informed on all things space. It 
 - Localization for English and German
 
 ### Screenshots
-|                    Note listing (dark mode)                    |              Note edit screen  (dark mode)               |
+|                    Launches listing (dark mode)                    |              Space news  (dark mode)               |
 | :------------------------------------------------------------: | :------------------------------------------------------: |
 | ![Launch listing](.github/screenshots/d-launches.png?raw=true) | ![News listing](.github/screenshots/d-news.png?raw=true) |
 
-|                   Note listing (light mode)                    |              Note edit screen  (light mode)              |
+|                   Launches listing (light mode)                    |              Space news  (light mode)              |
 | :------------------------------------------------------------: | :------------------------------------------------------: |
 | ![Launch listing](.github/screenshots/l-launches.png?raw=true) | ![News listing](.github/screenshots/l-news.png?raw=true) |
 
