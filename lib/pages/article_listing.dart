@@ -148,19 +148,43 @@ class _NewsListState extends State<NewsList> with DateFormatter {
               SizedBox(
                 height: max(MediaQuery.of(context).size.height / 4, 200),
                 width: double.infinity,
-                child: CachedNetworkImage(
-                  imageUrl: article.imageUrl!,
-                  fadeInDuration: const Duration(milliseconds: 125),
-                  fadeOutDuration: const Duration(milliseconds: 250),
-                  fit: BoxFit.cover,
-                  progressIndicatorBuilder: (context, url, downloadProgress) =>
-                      Center(
-                    child: CircularProgressIndicator(
-                        value: downloadProgress.progress),
-                  ),
-                  errorWidget: (context, url, error) => const Center(
-                    child: Icon(Icons.error),
-                  ),
+                child: Stack(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: CachedNetworkImage(
+                        imageUrl: article.imageUrl!,
+                        fadeInDuration: const Duration(milliseconds: 125),
+                        fadeOutDuration: const Duration(milliseconds: 250),
+                        fit: BoxFit.cover,
+                        progressIndicatorBuilder:
+                            (context, url, downloadProgress) => Center(
+                          child: CircularProgressIndicator(
+                              value: downloadProgress.progress),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(Icons.error),
+                        ),
+                      ),
+                    ),
+                    if (article.newsSite != null)
+                      Container(
+                        padding: EdgeInsets.zero,
+                        margin: EdgeInsets.zero,
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          article.newsSite!,
+                          style: TextStyle(
+                            backgroundColor: Theme.of(context)
+                                .backgroundColor
+                                .withOpacity(.75),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             Padding(
