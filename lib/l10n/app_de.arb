@@ -1,6 +1,8 @@
 {
   "dateTimeFormat": "dd. MMMM yyyy, HH:mm 'Uhr'",
   "dateFormat": "dd. MMM yyyy",
+  "timeFormat": "HH:mm 'Uhr'",
+
   "unknownLaunchTime": "Unbekannte Startzeit",
   "launchIsIn": "Der Start ist in",
   "windowIsIn": "Das Startfenster startet in",
@@ -46,5 +48,8 @@
 
   "inYourLocalTime": "in deiner Zeitzone",
 
-  "tapToTryAgain": "Tippe, um es nochmal zu versuchen."
+  "tapToTryAgain": "Tippe, um es nochmal zu versuchen.",
+
+  "today": "Heute",
+  "yesterday": "Gestern"
 }

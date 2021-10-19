@@ -179,7 +179,7 @@ class _NewsListState extends State<NewsList> with DateFormatter {
                 alignment: Alignment.bottomRight,
                 padding: const EdgeInsets.all(4),
                 child: Text(
-                  formatDateTime(context, article.publishedAt!),
+                  formatDateTimeFriendly(context, article.publishedAt!),
                 ),
               ),
           ],

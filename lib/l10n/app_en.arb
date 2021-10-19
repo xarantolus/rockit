@@ -1,6 +1,8 @@
 {
   "dateTimeFormat": "MM/dd/yyyy hh:mm a",
   "dateFormat": "yyyy-MM-dd",
+  "timeFormat": "hh:mm a",
+
   "unknownLaunchTime": "Unknown launch time",
   "launchIsIn": "The launch is in",
   "windowIsIn": "The launch window starts in",
@@ -45,5 +47,8 @@
 
   "inYourLocalTime": "in your local time",
 
-  "tapToTryAgain": "Tap to try again."
+  "tapToTryAgain": "Tap to try again.",
+
+  "today": "Today",
+  "yesterday": "Yesterday"
 }

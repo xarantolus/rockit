@@ -24,4 +24,32 @@ mixin DateFormatter {
 
     return formatter.format(d);
   }
+
+  String formatTime(BuildContext context, DateTime d) {
+    final localization = AppLocalizations.of(context)!;
+
+    final DateFormat formatter =
+        DateFormat(localization.timeFormat, localization.localeName);
+
+    return formatter.format(d);
+  }
+
+  bool _equalDay(DateTime d1, DateTime d2) {
+    return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
+  }
+
+  String formatDateTimeFriendly(BuildContext context, DateTime d) {
+    d = d.toLocal();
+    var now = DateTime.now().toLocal();
+
+    if (_equalDay(d, now)) {
+      return "${AppLocalizations.of(context)!.today}, ${formatTime(context, d)}";
+    }
+
+    if (_equalDay(d, now.subtract(const Duration(days: 1)))) {
+      return "${AppLocalizations.of(context)!.yesterday}, ${formatTime(context, d)}";
+    }
+
+    return formatDateTime(context, d);
+  }
 }
