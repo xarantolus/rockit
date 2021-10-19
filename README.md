@@ -1,16 +1,28 @@
 # rockit
+Rock It! is an Android app that helps you stay informed on all things space. It displays upcoming launches and current space news curated by [The Space Devs](https://thespacedevs.com/).
 
-A new Flutter project.
 
-## Getting Started
+### Features
+- List upcoming launches
+- Show launch details and a countdown
+- List latest space news articles
+- Localization for English and German
 
-This project is a starting point for a Flutter application.
+### Screenshots
+|                 Launches listing (dark mode)                  |               Space news  (dark mode)                |
+| :-------------------------------------------------------: | :--------------------------------------------------------: |
+| ![Launch listing](.github/screenshots/d-launches.png?raw=true) | ![Mobile Menu](.github/screenshots/d-news.png?raw=true) |
 
-A few resources to get you started if this is your first Flutter project:
+|                 Launches listing (light mode)                  |               Space news  (light mode)                |
+| :-------------------------------------------------------: | :--------------------------------------------------------: |
+| ![Note listing](.github/screenshots/l-launches.png?raw=true) | ![Mobile Menu](.github/screenshots/l-news.png?raw=true) |
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Installation & updates
+If you have [F-Droid](https://f-droid.org/) installed, you can add [my repository](https://github.com/xarantolus/fdroid). Then just search for "rockit" in the F-Droid client to download. You will receive update notifications.
+
+Alternatively, you can [download the APK file from the releases section of this repository](https://github.com/xarantolus/rockit/releases/latest). Then open it from the file manager to install it. Please note that you will not receive any update notifications when going this route.
+
+
+### [License](LICENSE)
+This is free as in freedom software. Do whatever you like with it.
