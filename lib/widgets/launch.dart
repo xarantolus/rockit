@@ -39,7 +39,12 @@ class _LaunchWidgetState extends State<LaunchWidget> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      trailing: Text(_netText(launch)),
+      trailing: Text(
+        _netText(launch),
+        style: const TextStyle(
+          color: Colors.white70,
+        ),
+      ),
       subtitle: Text(
         launch.launchServiceProvider?.name ??
             AppLocalizations.of(context)!.unknown,
