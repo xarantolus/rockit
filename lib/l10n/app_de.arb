@@ -51,5 +51,8 @@
   "tapToTryAgain": "Tippe, um es nochmal zu versuchen.",
 
   "today": "Heute",
-  "yesterday": "Gestern"
+  "yesterday": "Gestern",
+
+  "sources": "Quellen",
+  "failedURLLaunch": "Starten des Browsers fehlgeschlagen!"
 }

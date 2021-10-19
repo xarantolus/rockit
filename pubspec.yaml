@@ -38,6 +38,8 @@ dependencies:
   loadmore: ^2.0.1
   pinch_zoom_image_last: ^0.4.1
   flutter_custom_tabs: ^1.0.3
+  url_launcher: ^6.0.12
+  package_info_plus: ^1.3.0
   
 
 dev_dependencies:

@@ -50,5 +50,8 @@
   "tapToTryAgain": "Tap to try again.",
 
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+
+  "sources": "Sources",
+  "failedURLLaunch": "Starting the browser failed!"
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/pages/article_listing.dart';
+import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -71,6 +72,19 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              tooltip: AppLocalizations.of(context)!.sources,
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreditPage(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         bottomNavigationBar: TabBar(
           labelColor: Theme.of(context).textTheme.bodyText2!.color,
@@ -78,11 +92,11 @@ class _MyHomePageState extends State<MyHomePage> {
           tabs: [
             Tab(
               icon: const Icon(Icons.home),
-              child: Text(AppLocalizations.of(context)!.launches),
+              text: AppLocalizations.of(context)!.launches,
             ),
             Tab(
               icon: const Icon(Icons.article),
-              child: Text(AppLocalizations.of(context)!.news),
+              text: AppLocalizations.of(context)!.news,
             ),
           ],
         ),
