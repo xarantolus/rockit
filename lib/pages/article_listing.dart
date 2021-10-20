@@ -97,6 +97,11 @@ class _NewsListState extends State<NewsList> with DateFormatter {
       if (refresh == true) {
         articles = _newArticles;
       } else {
+        // See upcoming_launches_listing.dart for more info, but in short:
+        // This makes sure that cached responses do not lead to duplicate display of content
+        _newArticles.removeWhere((newArticle) =>
+            articles.any((article) => article.id == newArticle.id));
+
         articles.addAll(_newArticles);
       }
 

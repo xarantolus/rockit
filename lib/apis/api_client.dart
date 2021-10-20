@@ -26,28 +26,40 @@ class APIClient {
 
     Uint8List responseBytes;
 
-    var response = await _httpClient.get(url, headers: {
-      "Accept": "application/json",
-      "User-Agent":
-          "RockItApp (${packageInfo.packageName} ${packageInfo.version} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
-    });
+    try {
+      // At first, we try to get the response by fetching it from the web server
+      var response = await _httpClient.get(url, headers: {
+        "Accept": "application/json",
+        "User-Agent":
+            "RockItApp (${packageInfo.packageName} ${packageInfo.version} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
+      });
 
-    if (response.statusCode == 200) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw HttpException("Unexpected status code ${response.statusCode}");
+      }
+
       responseBytes = response.bodyBytes;
 
-      await _cacheManager.putFile(url.toString(), responseBytes,
-          key: url.toString());
-    } else {
+      // If everything worked, we can put the file into the cache. That way, we can
+      // access it in case of no internet or a rate limit
+      await _cacheManager.putFile(
+        url.toString(),
+        responseBytes,
+        key: url.toString(),
+      );
+    } catch (e) {
+      // We likely have no internet, or we have hit a rate limit
       try {
+        // Now we can try to get this content from the cache.
         var file = await _cacheManager.getFileFromCache(url.toString());
         if (file == null) {
-          throw Exception();
+          throw Exception("This URL hasn't been cached before");
         }
 
         responseBytes = await File(file.file.path).readAsBytes();
-      } catch (_) {
+      } catch (ec) {
         throw Exception(
-            "Cannot load data from ${url.toString()}: status code ${response.statusCode}. Cache was also unavailable");
+            "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
       }
     }
 

@@ -87,6 +87,12 @@ class _LaunchesListState extends State<LaunchesList> {
       if (refresh == true) {
         launches = newList;
       } else {
+        // When we cache responses, it can happen that a page further down the
+        // list has been cached, but contains launches that were on the previous (non-cached)
+        // page. By removing all known launches, we make sure this doesn't show up in the UI
+        newList.removeWhere(
+            (newLaunch) => launches.any((launch) => newLaunch.id == launch.id));
+
         launches.addAll(newList);
       }
 
@@ -97,7 +103,11 @@ class _LaunchesListState extends State<LaunchesList> {
   }
 
   Future<bool> _loadMore() async {
-    return await _updateLaunches(false);
+    try {
+      return await _updateLaunches(false);
+    } catch (_) {
+      return false;
+    }
   }
 
   String _buildLoadingText(LoadMoreStatus status) {
