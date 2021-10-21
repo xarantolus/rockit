@@ -10,6 +10,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:flutter_custom_tabs_platform_interface/flutter_custom_tabs_platform_interface.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/url_launcher.dart';
 
 class ArticleListingPage extends StatefulWidget {
   ArticleListingPage({Key? key}) : super(key: key);
@@ -72,7 +73,7 @@ class NewsList extends StatefulWidget {
   _NewsListState createState() => _NewsListState();
 }
 
-class _NewsListState extends State<NewsList> with DateFormatter {
+class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   late List<Article> articles = widget.initialArticles;
   bool _finished = false;
 
@@ -234,22 +235,7 @@ class _NewsListState extends State<NewsList> with DateFormatter {
             return GestureDetector(
               child: _articleCard(articles[index]),
               onTap: () async {
-                await launch(
-                  articles[index].url ?? "",
-                  customTabsOption: CustomTabsOption(
-                    toolbarColor: Theme.of(context).primaryColor,
-                    enableDefaultShare: true,
-                    enableUrlBarHiding: true,
-                    showPageTitle: true,
-                    animation: CustomTabsSystemAnimation.slideIn(),
-                    extraCustomTabs: const <String>[
-                      // Browsers that support custom tabs. Could/Should add more
-                      "org.bromite.bromite",
-                      'org.mozilla.firefox',
-                      'com.microsoft.emmx',
-                    ],
-                  ),
-                );
+                await openCustomTab(context, articles[index].url ?? "");
               },
             );
           },

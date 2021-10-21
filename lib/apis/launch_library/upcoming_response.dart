@@ -36,7 +36,7 @@ class Launch {
   String? name;
   Status? status;
   String? lastUpdated;
-  List<Updates>? updates;
+  List<Update>? updates;
   String? net;
   String? windowEnd;
   String? windowStart;
@@ -112,7 +112,7 @@ class Launch {
     lastUpdated = json["last_updated"];
     updates = json["updates"] == null
         ? null
-        : (json["updates"] as List).map((e) => Updates.fromJson(e)).toList();
+        : (json["updates"] as List).map((e) => Update.fromJson(e)).toList();
     net = json["net"];
     windowEnd = json["window_end"];
     windowStart = json["window_start"];
@@ -813,7 +813,7 @@ class LaunchServiceProvider {
   }
 }
 
-class Updates {
+class Update {
   int? id;
   String? profileImage;
   String? comment;
@@ -821,9 +821,9 @@ class Updates {
   String? createdBy;
   String? createdOn;
 
-  Updates({id, profileImage, comment, infoUrl, createdBy, createdOn});
+  Update({id, profileImage, comment, infoUrl, createdBy, createdOn});
 
-  Updates.fromJson(Map<String, dynamic> json) {
+  Update.fromJson(Map<String, dynamic> json) {
     id = json["id"];
     profileImage = json["profile_image"];
     comment = json["comment"];

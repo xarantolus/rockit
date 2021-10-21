@@ -22,6 +22,7 @@
   "inThePast": "Schon vorbei!",
 
   "info": "Infos",
+  "updates":"Neuigkeiten",
   "status": "Status",
   "statusDescription": "Statusbeschreibung",
   "lastUpdate": "Letzte Änderung",
@@ -52,6 +53,9 @@
 
   "today": "Heute",
   "yesterday": "Gestern",
+
+  "source": "Quelle",
+  "clickSource": "Klicken für mehr Info",
 
   "sources": "Quellen",
   "failedURLLaunch": "Starten des Browsers fehlgeschlagen!"

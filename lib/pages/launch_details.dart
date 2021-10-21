@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -18,7 +19,7 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with DateFormatter {
+    with DateFormatter, UrlLauncher {
   static const titleStyle = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -50,6 +51,50 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           fontSize: 16,
         ),
       ),
+    );
+  }
+
+  Widget _update(BuildContext context, Update u) {
+    final date = formatDateTimeFriendly(context,
+        (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
+
+    var infoHost = Uri.tryParse(u.infoUrl ?? "")?.host;
+    if (infoHost != null) {
+      const wwwPrefix = "www.";
+      if (infoHost.startsWith(wwwPrefix)) {
+        infoHost = infoHost.substring(wwwPrefix.length);
+      }
+    }
+
+    final tile = ListTile(
+      title: Text(
+        u.comment ?? AppLocalizations.of(context)!.unknown,
+      ),
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (u.infoUrl != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: infoHost == null
+                  ? Text(AppLocalizations.of(context)!.clickSource)
+                  : Text("${AppLocalizations.of(context)!.source}: $infoHost"),
+            ),
+          Align(alignment: Alignment.centerRight, child: Text(date)),
+        ],
+      ),
+      visualDensity: VisualDensity.comfortable,
+    );
+
+    if (u.infoUrl == null) {
+      return tile;
+    }
+
+    return GestureDetector(
+      child: tile,
+      onTap: () async {
+        await openCustomTab(context, u.infoUrl!);
+      },
     );
   }
 
@@ -165,6 +210,16 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             CountDownWidget(widget.launch),
             const Divider(),
             _generalInfo(context, widget.launch),
+            const Divider(),
+            if ((widget.launch.updates ?? []).isNotEmpty) ...[
+              Text(
+                AppLocalizations.of(context)!.updates,
+                style: titleStyle,
+              ),
+              ...widget.launch.updates!.reversed
+                  .map((e) => _update(context, e)),
+              const Divider(),
+            ],
           ],
         ),
       ),
