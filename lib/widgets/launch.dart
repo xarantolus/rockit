@@ -11,6 +11,10 @@ class LaunchWidget extends StatefulWidget {
 
   final Launch launch;
 
+  static double calculateHeight(BuildContext context) {
+    return max(MediaQuery.of(context).size.height / 3, 250);
+  }
+
   @override
   _LaunchWidgetState createState() => _LaunchWidgetState();
 }
@@ -61,7 +65,7 @@ class _LaunchWidgetState extends State<LaunchWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: max(MediaQuery.of(context).size.height / 3, 250),
+      height: LaunchWidget.calculateHeight(context),
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
         shape: RoundedRectangleBorder(

@@ -26,6 +26,10 @@ class APIClient {
 
     Uint8List responseBytes;
 
+    if (kDebugMode) {
+      debugPrint("Fetching URL ${url.toString()}");
+    }
+
     try {
       // At first, we try to get the response by fetching it from the web server
       var response = await _httpClient.get(url, headers: {
@@ -33,6 +37,11 @@ class APIClient {
         "User-Agent":
             "RockItApp (${packageInfo.packageName} ${packageInfo.version} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
       });
+
+      if (kDebugMode) {
+        debugPrint(
+            "Got response for ${url.toString()}: status ${response.statusCode}");
+      }
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw HttpException("Unexpected status code ${response.statusCode}");
@@ -48,6 +57,10 @@ class APIClient {
         key: url.toString(),
       );
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error fetching ${url.toString()}: $e");
+      }
+
       // We likely have no internet, or we have hit a rate limit
       try {
         // Now we can try to get this content from the cache.

@@ -75,31 +75,51 @@ class _LaunchesListState extends State<LaunchesList> {
   late List<Launch> launches = widget.initialLaunches;
   late String? nextURL = widget.initialNextURL;
 
+  bool _currentlyLoading = false;
+
   Future<bool> _updateLaunches([bool? refresh]) async {
-    var _nextURL = refresh == true ? null : nextURL;
+    if (_currentlyLoading) {
+      return true;
+    }
+    _currentlyLoading = true;
 
-    var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
+    var error;
 
-    final newList = _newLaunches.results ?? [];
+    List<Launch> newList = [];
+    try {
+      var _nextURL = refresh == true ? null : nextURL;
 
-    setState(() {
-      // Refresh? => replace
-      if (refresh == true) {
-        launches = newList;
-      } else {
-        // When we cache responses, it can happen that a page further down the
-        // list has been cached, but contains launches that were on the previous (non-cached)
-        // page. By removing all known launches, we make sure this doesn't show up in the UI
-        newList.removeWhere(
-            (newLaunch) => launches.any((launch) => newLaunch.id == launch.id));
+      var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
 
-        launches.addAll(newList);
-      }
+      newList = _newLaunches.results ?? [];
 
-      nextURL = _newLaunches.next;
-    });
+      setState(() {
+        // Refresh? => replace
+        if (refresh == true) {
+          launches = newList;
+        } else {
+          // When we cache responses, it can happen that a page further down the
+          // list has been cached, but contains launches that were on the previous (non-cached)
+          // page. By removing all known launches, we make sure this doesn't show up in the UI
+          newList.removeWhere((newLaunch) =>
+              launches.any((launch) => newLaunch.id == launch.id));
 
-    return newList.isNotEmpty;
+          launches.addAll(newList);
+        }
+
+        nextURL = _newLaunches.next;
+      });
+    } catch (e) {
+      error = e;
+    } finally {
+      _currentlyLoading = false;
+    }
+
+    if (error != null) {
+      throw error;
+    }
+
+    return true;
   }
 
   Future<bool> _loadMore() async {
@@ -125,6 +145,65 @@ class _LaunchesListState extends State<LaunchesList> {
     }
   }
 
+  void _openLaunchDetails(BuildContext context, int index) async {
+    void scrollToIndex(int idx, [bool animated = false]) {
+      // Scroll the list view to the currently viewed launch. If the user now leaves this view
+      // the list will have scrolled to the last viewed item, which is nice
+      final wheight = LaunchWidget.calculateHeight(context);
+      final targetOffset = wheight * idx - wheight / 2;
+
+      if (animated) {
+        _launchListController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeIn,
+        );
+      } else {
+        _launchListController.jumpTo(targetOffset);
+      }
+    }
+
+    scrollToIndex(index, true);
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) {
+          var pc = PageController(
+            initialPage: index,
+            // Prevent pages from being cached, else we would sometimes have
+            // two hero animations going back to the list, which is really ugly
+            keepPage: false,
+          );
+
+          var pv = PageView.custom(
+            childrenDelegate: SliverChildBuilderDelegate(
+              (context, idx) {
+                if (idx >= launches.length) {
+                  return null;
+                }
+                return LaunchDetailsPage(launches[idx]);
+              },
+            ),
+            controller: pc,
+            onPageChanged: (idx) async {
+              // If we are close to the end of currently loaded launches, we load the next ones
+              if (nextURL != null && idx > launches.length - 10) {
+                await _loadMore();
+              }
+
+              // Always adjust the current scroll position of the list
+              scrollToIndex(idx);
+            },
+          );
+
+          return pv;
+        },
+      ),
+    );
+  }
+
+  final ScrollController _launchListController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -135,19 +214,14 @@ class _LaunchesListState extends State<LaunchesList> {
         isFinish: nextURL == null,
         onLoadMore: _loadMore,
         child: ListView.builder(
+          controller: _launchListController,
           itemCount: launches.length,
           // We pre-load up to 5 screens of info, that way images load already
           cacheExtent: MediaQuery.of(context).size.height * 5,
           itemBuilder: (context, index) {
             return GestureDetector(
               child: LaunchWidget(launches[index]),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => LaunchDetailsPage(launches[index]),
-                  ),
-                );
-              },
+              onTap: () => _openLaunchDetails(context, index),
             );
           },
         ),
