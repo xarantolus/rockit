@@ -73,7 +73,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (u.infoUrl != null)
+          // We need an empty widget here, because if we don't add this, the date text will be on the left
+          if (u.infoUrl == null)
+            const SizedBox.shrink()
+          else
             Align(
               alignment: Alignment.centerLeft,
               child: infoHost == null
@@ -216,8 +219,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 AppLocalizations.of(context)!.updates,
                 style: titleStyle,
               ),
-              ...widget.launch.updates!.reversed
-                  .map((e) => _update(context, e)),
+              ...widget.launch.updates!.map((e) => _update(context, e)),
               const Divider(),
             ],
           ],
