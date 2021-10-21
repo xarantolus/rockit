@@ -18,7 +18,8 @@ class LaunchWidget extends StatefulWidget {
 class _LaunchWidgetState extends State<LaunchWidget> {
   String _netText(Launch launch) {
     try {
-      var launchDate = DateTime.parse(launch.net ?? launch.windowStart ?? "");
+      var launchDate =
+          DateTime.parse(launch.net ?? launch.windowStart ?? "").toLocal();
 
       final DateFormat formatter = DateFormat(
           AppLocalizations.of(context)!.dateFormat,
