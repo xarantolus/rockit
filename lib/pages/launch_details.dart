@@ -66,38 +66,40 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       }
     }
 
-    final tile = ListTile(
-      title: Text(
-        u.comment ?? AppLocalizations.of(context)!.unknown,
-      ),
-      subtitle: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // We need an empty widget here, because if we don't add this, the date text will be on the left
-          if (u.infoUrl == null)
-            const SizedBox.shrink()
-          else
-            Align(
-              alignment: Alignment.centerLeft,
-              child: infoHost == null
-                  ? Text(AppLocalizations.of(context)!.clickSource)
-                  : Text("${AppLocalizations.of(context)!.source}: $infoHost"),
-            ),
-          Align(alignment: Alignment.centerRight, child: Text(date)),
-        ],
-      ),
-      visualDensity: VisualDensity.comfortable,
-    );
+    return Material(
+      // This adds the ripple effect when holding the item
+      child: InkWell(
+        onTap: () async {
+          setState(() {});
 
-    if (u.infoUrl == null) {
-      return tile;
-    }
-
-    return GestureDetector(
-      child: tile,
-      onTap: () async {
-        await openCustomTab(context, u.infoUrl!);
-      },
+          if (u.infoUrl != null) {
+            await openCustomTab(context, u.infoUrl!);
+          }
+        },
+        child: ListTile(
+          title: Text(
+            u.comment ?? AppLocalizations.of(context)!.unknown,
+          ),
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // We need an empty widget here, because if we don't add this, the date text will be on the left
+              if (u.infoUrl == null)
+                const SizedBox.shrink()
+              else
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: infoHost == null
+                      ? Text(AppLocalizations.of(context)!.clickSource)
+                      : Text(
+                          "${AppLocalizations.of(context)!.source}: $infoHost"),
+                ),
+              Align(alignment: Alignment.centerRight, child: Text(date)),
+            ],
+          ),
+          visualDensity: VisualDensity.comfortable,
+        ),
+      ),
     );
   }
 
