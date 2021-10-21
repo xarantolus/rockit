@@ -26,8 +26,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   );
 
   Widget _zoomableImage() {
-    return SizedBox(
-      height: max(MediaQuery.of(context).size.height / 3, 250),
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: max(MediaQuery.of(context).size.height / 3, 250),
+      ),
       child: PinchZoomImage(
         image: Center(
           child: LaunchImageWidget(widget.launch),
@@ -139,9 +141,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          Text(
-            AppLocalizations.of(context)!.info,
-            style: titleStyle,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
+            child: Text(
+              AppLocalizations.of(context)!.info,
+              style: titleStyle,
+            ),
           ),
           Table(
             border: TableBorder.symmetric(
@@ -217,9 +222,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             _generalInfo(context, widget.launch),
             const Divider(),
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
-              Text(
-                AppLocalizations.of(context)!.updates,
-                style: titleStyle,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+                child: Text(
+                  AppLocalizations.of(context)!.updates,
+                  style: titleStyle,
+                ),
               ),
               ...widget.launch.updates!.map((e) => _update(context, e)),
               const Divider(),
