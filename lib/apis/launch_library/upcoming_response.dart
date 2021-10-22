@@ -48,8 +48,8 @@ class Launch {
   Rocket? rocket;
   Mission? mission;
   Pad? pad;
-  List<ArticleInfo>? infoUrls;
-  List<VideoInfo>? vidUrls;
+  List<URLInfo>? infoUrls;
+  List<URLInfo>? vidUrls;
   bool? webcastLive;
   String? image;
   dynamic? infographic;
@@ -130,13 +130,11 @@ class Launch {
 
     infoUrls = json["infoURLs"] == []
         ? null
-        : (json["infoURLs"] as List)
-            .map((e) => ArticleInfo.fromJson(e))
-            .toList();
+        : (json["infoURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
 
     vidUrls = json["vidURLs"] == null
         ? null
-        : (json["vidURLs"] as List).map((e) => VideoInfo.fromJson(e)).toList();
+        : (json["vidURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
     webcastLive = json["webcast_live"];
     image = json["image"];
     infographic = json["infographic"];
@@ -869,41 +867,8 @@ class Status {
   }
 }
 
-class VideoInfo {
-  int? priority;
-  String? title;
-  String? description;
-  String? featureImage;
-  String? url;
-
-  VideoInfo(
-      {this.priority,
-      this.title,
-      this.description,
-      this.featureImage,
-      this.url});
-
-  VideoInfo.fromJson(Map<String, dynamic> json) {
-    priority = json['priority'];
-    title = json['title'];
-    description = json['description'];
-    featureImage = json['feature_image'];
-    url = json['url'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['priority'] = this.priority;
-    data['title'] = this.title;
-    data['description'] = this.description;
-    data['feature_image'] = this.featureImage;
-    data['url'] = this.url;
-    return data;
-  }
-}
-
-class ArticleInfo {
-  ArticleInfo({
+class URLInfo {
+  URLInfo({
     required this.priority,
     required this.title,
     required this.description,
@@ -917,8 +882,8 @@ class ArticleInfo {
   final String? featureImage;
   final String? url;
 
-  factory ArticleInfo.fromJson(Map<String, dynamic> json) {
-    return ArticleInfo(
+  factory URLInfo.fromJson(Map<String, dynamic> json) {
+    return URLInfo(
       priority: json["priority"],
       title: json["title"],
       description: json["description"],

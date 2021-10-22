@@ -56,82 +56,86 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  widget.title ?? AppLocalizations.of(context)!.unknown,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+          margin: const EdgeInsets.fromLTRB(10, 15, 10, 5),
+          child: Container(
+            margin: (widget.summary ?? "").isEmpty
+                ? const EdgeInsets.only(bottom: 8)
+                : EdgeInsets.zero,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    widget.title ?? AppLocalizations.of(context)!.unknown,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              if ((widget.imageUrl ?? "").isNotEmpty)
-                SizedBox(
-                  height: max(MediaQuery.of(context).size.height / 4, 200),
-                  width: double.infinity,
-                  child: Stack(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: CachedNetworkImage(
-                          imageUrl: widget.imageUrl!,
-                          fadeInDuration: const Duration(milliseconds: 125),
-                          fadeOutDuration: const Duration(milliseconds: 250),
-                          fit: BoxFit.cover,
-                          progressIndicatorBuilder:
-                              (context, url, downloadProgress) => Center(
-                            child: CircularProgressIndicator(
-                                value: downloadProgress.progress),
-                          ),
-                          errorWidget: (context, url, error) => const Center(
-                            child: Icon(Icons.error),
-                          ),
-                        ),
-                      ),
-                      if (widget.newsSite != null)
-                        Container(
-                          padding: EdgeInsets.zero,
-                          margin: EdgeInsets.zero,
-                          alignment: Alignment.bottomRight,
-                          child: Text(
-                            widget.newsSite!,
-                            style: TextStyle(
-                              backgroundColor: Theme.of(context)
-                                  .backgroundColor
-                                  .withOpacity(.75),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14.0,
+                if ((widget.imageUrl ?? "").isNotEmpty)
+                  SizedBox(
+                    height: max(MediaQuery.of(context).size.height / 4, 200),
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: double.infinity,
+                          child: CachedNetworkImage(
+                            imageUrl: widget.imageUrl!,
+                            fadeInDuration: const Duration(milliseconds: 125),
+                            fadeOutDuration: const Duration(milliseconds: 250),
+                            fit: BoxFit.cover,
+                            progressIndicatorBuilder:
+                                (context, url, downloadProgress) => Center(
+                              child: CircularProgressIndicator(
+                                  value: downloadProgress.progress),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(Icons.error),
                             ),
                           ),
                         ),
-                    ],
+                        if (widget.newsSite != null)
+                          Container(
+                            padding: EdgeInsets.zero,
+                            margin: EdgeInsets.zero,
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              widget.newsSite!,
+                              style: TextStyle(
+                                backgroundColor: Theme.of(context)
+                                    .backgroundColor
+                                    .withOpacity(.75),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14.0,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  widget.summary != null
-                      ? dottedText(widget.summary!)
-                      : AppLocalizations.of(context)!.unknown,
-                  style: const TextStyle(
-                    fontSize: 15,
+                if ((widget.summary ?? "").isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      dottedText(widget.summary!),
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              if (widget.publishDate != null)
-                Container(
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.all(4),
-                  child: Text(
-                    formatDateTimeFriendly(context, widget.publishDate!),
+                if (widget.publishDate != null)
+                  Container(
+                    alignment: Alignment.bottomRight,
+                    padding: const EdgeInsets.all(4),
+                    child: Text(
+                      formatDateTimeFriendly(context, widget.publishDate!),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

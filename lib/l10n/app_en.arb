@@ -1,5 +1,5 @@
 {
-  "dateTimeFormat": "MM/dd/yyyy hh:mm a",
+  "dateTimeFormat": "dd. MMM yyyy hh:mm a",
   "dateFormat": "dd. MMM yyyy",
   "timeFormat": "hh:mm a",
 
@@ -24,6 +24,7 @@
   "info": "Info",
   "updates": "Updates",
   "articles": "Articles",
+  "videos": "Videos",
   "status": "Status",
   "statusDescription": "Status description",
   "lastUpdate": "Last updated",

@@ -95,7 +95,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _infoArticle(BuildContext context, ArticleInfo info) {
+  Widget _infoArticle(BuildContext context, URLInfo info) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
@@ -231,6 +231,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
               ...widget.launch.infoUrls!.map(
                 (info) => _infoArticle(context, info),
+              ),
+              const Divider(),
+            ],
+            if ((widget.launch.vidUrls ?? []).isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                child: Text(
+                  AppLocalizations.of(context)!.videos,
+                  style: titleStyle,
+                ),
+              ),
+              ...widget.launch.vidUrls!.map(
+                (vid) => _infoArticle(context, vid),
               ),
               const Divider(),
             ],
