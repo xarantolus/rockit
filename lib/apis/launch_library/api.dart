@@ -17,10 +17,9 @@ class LaunchLibraryAPI extends APIClient {
   Uri _endpoint(String path, Map<String, dynamic> query) {
     query["format"] = "json";
 
-    if (kReleaseMode) {
-      return Uri.https('ll.thespacedevs.com', "/2.2.0" + path, query);
-    }
-    return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
+    if (kReleaseMode) {}
+    return Uri.https('ll.thespacedevs.com', "/2.2.0" + path, query);
+    // return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
 
   Future<UpcomingResponse> upcomingLaunches([String? next]) async {

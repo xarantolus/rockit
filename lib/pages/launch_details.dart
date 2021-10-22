@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/countdown.dart';
@@ -57,11 +58,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _update(BuildContext context, Update u) {
-    final date = formatDateTimeFriendly(context,
-        (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
-
-    var infoHost = Uri.tryParse(u.infoUrl ?? "")?.host;
+  String? _sourceAttributionText(String? infoURL) {
+    var infoHost = Uri.tryParse(infoURL ?? "")?.host;
     if (infoHost != null) {
       const wwwPrefix = "www.";
       if (infoHost.startsWith(wwwPrefix)) {
@@ -70,17 +68,32 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     }
 
     String? bottomLeftText;
-    if (u.infoUrl != null) {
+    if (infoURL != null) {
       bottomLeftText = infoHost == null
           ? AppLocalizations.of(context)!.clickSource
           : "${AppLocalizations.of(context)!.source}: $infoHost";
     }
 
+    return bottomLeftText;
+  }
+
+  Widget _update(BuildContext context, Update u) {
+    final date = formatDateTimeFriendly(context,
+        (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
+
     return RippleLinkWidget(
       u.comment ?? AppLocalizations.of(context)!.unknown,
-      date,
-      bottomLeft: bottomLeftText,
+      bottomRight: date,
+      bottomLeft: _sourceAttributionText(u.infoUrl),
       url: u.infoUrl,
+    );
+  }
+
+  Widget _infoArticle(BuildContext context, ArticleInfo info) {
+    return RippleLinkWidget(
+      info.title ?? AppLocalizations.of(context)!.unknown,
+      url: info.url,
+      bottomLeft: _sourceAttributionText(info.url),
     );
   }
 
@@ -200,9 +213,22 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             const Divider(),
             _generalInfo(context, widget.launch),
             const Divider(),
+            if ((widget.launch.infoUrls ?? []).isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                child: Text(
+                  AppLocalizations.of(context)!.articles,
+                  style: titleStyle,
+                ),
+              ),
+              ...widget.launch.infoUrls!.map(
+                (info) => _infoArticle(context, info),
+              ),
+              const Divider(),
+            ],
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
                 child: Text(
                   AppLocalizations.of(context)!.updates,
                   style: titleStyle,

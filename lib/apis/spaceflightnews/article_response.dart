@@ -22,7 +22,7 @@ class Article {
   final DateTime? publishedAt;
   final DateTime? updatedAt;
   final bool? featured;
-  final List<Launch>? launches;
+  final List<LaunchInfo>? launches;
   final List<Event>? events;
 
   factory Article.fromJson(Map<String, dynamic> json) {
@@ -41,7 +41,8 @@ class Article {
       featured: json["featured"] == null ? null : json["featured"],
       launches: json["launches"] == null
           ? null
-          : List<Launch>.from(json["launches"].map((x) => Launch.fromJson(x))),
+          : List<LaunchInfo>.from(
+              json["launches"].map((x) => LaunchInfo.fromJson(x))),
       events: json["events"] == null
           ? null
           : List<Event>.from(json["events"].map((x) => Event.fromJson(x))),
@@ -66,8 +67,8 @@ class Event {
   }
 }
 
-class Launch {
-  Launch({
+class LaunchInfo {
+  LaunchInfo({
     required this.id,
     required this.provider,
   });
@@ -75,8 +76,8 @@ class Launch {
   final String id;
   final String? provider;
 
-  factory Launch.fromJson(Map<String, dynamic> json) {
-    return Launch(
+  factory LaunchInfo.fromJson(Map<String, dynamic> json) {
+    return LaunchInfo(
       id: json["id"] == null ? null : json["id"],
       provider: json["provider"] == null ? null : json["provider"],
     );
