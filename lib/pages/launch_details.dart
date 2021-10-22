@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
@@ -24,8 +25,20 @@ class LaunchDetailsPage extends StatefulWidget {
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     with DateFormatter, UrlLauncher, SourceAttribution {
   static const titleStyle = TextStyle(
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: FontWeight.bold,
+  );
+
+  static const tableDescriptionStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+  );
+  static const tableTextStyle = TextStyle(
+    fontSize: 16,
+  );
+
+  static const textStyle = const TextStyle(
+    fontSize: 16,
   );
 
   Widget _zoomableImage() {
@@ -52,9 +65,20 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       subtitle: Text(
         m.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
-        style: const TextStyle(
-          fontSize: 16,
+        style: textStyle.copyWith(
+          color: Theme.of(context).textTheme.bodyText2!.color,
         ),
+      ),
+    );
+  }
+
+  Widget _launchServiceProvider(
+      BuildContext context, LaunchServiceProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        provider.description ?? AppLocalizations.of(context)!.unknown,
+        style: textStyle,
       ),
     );
   }
@@ -84,14 +108,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _generalInfo(BuildContext context, Launch l) {
-    const tableDescriptionStyle = TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-    );
-    const tableTextStyle = TextStyle(
-      fontSize: 16,
-    );
-
     TableRow descriptionRow(String description, String? value) {
       return TableRow(
         children: [
@@ -236,6 +252,39 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ...widget.launch.updates!.map((e) => _update(context, e)),
               const Divider(),
             ],
+            if (widget.launch.launchServiceProvider != null) ...[
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  widget.launch.launchServiceProvider!.name ??
+                      AppLocalizations.of(context)!.unknown,
+                  style: titleStyle,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (widget.launch.launchServiceProvider!.logoUrl != null)
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16),
+                  constraints: BoxConstraints(
+                    maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.launch.launchServiceProvider!.logoUrl!,
+                    fadeInDuration: const Duration(milliseconds: 125),
+                    fadeOutDuration: const Duration(milliseconds: 250),
+                    fit: BoxFit.cover,
+                    progressIndicatorBuilder:
+                        (context, url, downloadProgress) => Center(
+                      child: CircularProgressIndicator(
+                          value: downloadProgress.progress),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                  ),
+                ),
+              _launchServiceProvider(
+                  context, widget.launch.launchServiceProvider!),
+            ]
           ],
         ),
       ),
