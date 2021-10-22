@@ -119,6 +119,37 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
+  List<Widget> _urlInfoList(
+    BuildContext context,
+    List<URLInfo> l,
+    String title,
+    Widget Function(BuildContext, URLInfo) mapFunction,
+  ) {
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+        child: Text(
+          title,
+          style: titleStyle,
+        ),
+      ),
+      ...l.map((info) => mapFunction(context, info)),
+    ];
+  }
+
+  List<Widget> _updateList(BuildContext context, List<Update> updates) {
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+        child: Text(
+          AppLocalizations.of(context)!.updates,
+          style: titleStyle,
+        ),
+      ),
+      ...widget.launch.updates!.map((e) => _update(context, e)),
+    ];
+  }
+
   Widget _update(BuildContext context, Update u) {
     final date = formatDateTimeFriendly(context,
         (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
@@ -239,58 +270,60 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // If we have an image, we show it at the top
             if (widget.launch.image != null) ...[
               _zoomableImage(),
               const Divider(),
             ],
+
+            // Then a mission description
             if (widget.launch.mission != null) ...[
               _missionDetails(context, widget.launch.mission!),
               const Divider(),
             ],
+
+            // The countdown should always be displayed
             CountDownWidget(widget.launch),
             const Divider(),
+
+            // Just like the general info table
             _generalInfo(context, widget.launch),
             const Divider(),
+
+            // Render a list of articles/info URLs
             if ((widget.launch.infoUrls ?? []).isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-                child: Text(
-                  AppLocalizations.of(context)!.articles,
-                  style: titleStyle,
-                ),
-              ),
-              ...widget.launch.infoUrls!.map(
-                (info) => _urlInfoArticleWidget(context, info),
+              ..._urlInfoList(
+                context,
+                widget.launch.infoUrls!,
+                AppLocalizations.of(context)!.articles,
+                (ctx, info) => _urlInfoArticleWidget(ctx, info),
               ),
               const Divider(),
             ],
+
+            // A list of videos with thumbnails
             if ((widget.launch.vidUrls ?? []).isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-                child: Text(
-                  AppLocalizations.of(context)!.videos,
-                  style: titleStyle,
-                ),
-              ),
-              ...widget.launch.vidUrls!.map(
-                (vid) => _urlInfoArticleWidget(context, vid, false),
+              ..._urlInfoList(
+                context,
+                widget.launch.vidUrls!,
+                AppLocalizations.of(context)!.videos,
+                (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false),
               ),
               const Divider(),
             ],
+
+            // Now a list of updates to the data
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-                child: Text(
-                  AppLocalizations.of(context)!.updates,
-                  style: titleStyle,
-                ),
-              ),
-              ...widget.launch.updates!.map((e) => _update(context, e)),
+              ..._updateList(context, widget.launch.updates!),
               const Divider(),
             ],
+
+            // And a bunch of info about the launch provider
             if (widget.launch.launchServiceProvider?.description != null)
               ..._launchServiceProvider(
-                  context, widget.launch.launchServiceProvider!),
+                context,
+                widget.launch.launchServiceProvider!,
+              ),
           ],
         ),
       ),
