@@ -37,7 +37,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     fontSize: 16,
   );
 
-  static const textStyle = const TextStyle(
+  static const textStyle = TextStyle(
     fontSize: 16,
   );
 
@@ -252,7 +252,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ...widget.launch.updates!.map((e) => _update(context, e)),
               const Divider(),
             ],
-            if (widget.launch.launchServiceProvider != null) ...[
+            if (widget.launch.launchServiceProvider?.description != null) ...[
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
