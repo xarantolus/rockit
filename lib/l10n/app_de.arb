@@ -1,5 +1,5 @@
 {
-  "dateTimeFormat": "dd. MMMM yyyy, HH:mm 'Uhr'",
+  "dateTimeFormat": "dd. MMM yyyy, HH:mm 'Uhr'",
   "dateFormat": "dd. MMM yyyy",
   "timeFormat": "HH:mm 'Uhr'",
 
