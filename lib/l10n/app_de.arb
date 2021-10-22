@@ -4,10 +4,15 @@
   "timeFormat": "HH:mm 'Uhr'",
 
   "unknownLaunchTime": "Unbekannte Startzeit",
+
   "launchIsIn": "Der Start ist in",
   "windowIsIn": "Das Startfenster startet in",
   "launchIsOn": "Der Start ist am",
   "windowIsOn": "Das Startfenster startet am",
+
+  "launchMightBeIn": "Der Start könnte erfolgen in",
+  "launchMightBeOn": "Der Start könnte erfolgen am",
+
   "oneDay": "Ein Tag",
   "days": "Tagen",
   "unknownLaunch": "Unbekannter Start",

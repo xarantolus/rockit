@@ -92,21 +92,28 @@ class _CountDownWidgetState extends State<CountDownWidget> with DateFormatter {
 
     var timeUntil = timeDiff(displayedDate);
 
+    // If there's no official Go for launch time, it's speculation
+    final timeIsSpeculation = (widget.launch.status?.abbrev != "Go");
+
     if (timeUntil < const Duration(days: 7) || forceCountdown) {
-      textAbove = net != null
-          ? AppLocalizations.of(context)!.launchIsIn
-          : windowStart != null
-              ? AppLocalizations.of(context)!.windowIsIn
-              : "";
+      if (net != null) {
+        textAbove = timeIsSpeculation
+            ? AppLocalizations.of(context)!.launchMightBeIn
+            : AppLocalizations.of(context)!.launchIsIn;
+      } else if (windowStart != null) {
+        textAbove = AppLocalizations.of(context)!.windowIsIn;
+      }
 
       dateText = formatTimeDiff(timeUntil);
       additionalNote = formatDateTimeLocal(context, displayedDate);
     } else {
-      textAbove = net != null
-          ? AppLocalizations.of(context)!.launchIsOn
-          : windowStart != null
-              ? AppLocalizations.of(context)!.windowIsOn
-              : "";
+      if (net != null) {
+        textAbove = timeIsSpeculation
+            ? AppLocalizations.of(context)!.launchMightBeOn
+            : AppLocalizations.of(context)!.launchIsOn;
+      } else if (windowStart != null) {
+        textAbove = AppLocalizations.of(context)!.windowIsOn;
+      }
 
       dateText = formatDateTimeLocal(context, displayedDate);
       additionalNote = AppLocalizations.of(context)!.inYourLocalTime;

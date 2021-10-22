@@ -4,10 +4,15 @@
   "timeFormat": "hh:mm a",
 
   "unknownLaunchTime": "Unknown launch time",
+
   "launchIsIn": "The launch is in",
   "windowIsIn": "The launch window starts in",
   "launchIsOn": "The launch is on",
   "windowIsOn": "The launch window starts on",
+
+  "launchMightBeIn": "The launch might be in",
+  "launchMightBeOn": "The launch might be on",
+
   "oneDay": "one day",
   "days": "days",
   "unknownLaunch": "Unknown launch",
