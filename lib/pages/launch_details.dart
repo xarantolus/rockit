@@ -125,6 +125,21 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     String title,
     Widget Function(BuildContext, URLInfo) mapFunction,
   ) {
+    final widgets = l
+        .map((info) {
+          if (info.title == null &&
+              (info.description == null || info.featureImage == null)) {
+            return null;
+          }
+          return mapFunction(context, info);
+        })
+        .where((element) => element != null)
+        .map((e) => e!);
+
+    if (widgets.isEmpty) {
+      return List.empty();
+    }
+
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
@@ -133,7 +148,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           style: titleStyle,
         ),
       ),
-      ...l.map((info) => mapFunction(context, info)),
+      ...widgets,
+      const Divider(),
     ];
   }
 
@@ -291,26 +307,20 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             const Divider(),
 
             // Render a list of articles/info URLs
-            if ((widget.launch.infoUrls ?? []).isNotEmpty) ...[
-              ..._urlInfoList(
-                context,
-                widget.launch.infoUrls!,
-                AppLocalizations.of(context)!.articles,
-                (ctx, info) => _urlInfoArticleWidget(ctx, info),
-              ),
-              const Divider(),
-            ],
+            ..._urlInfoList(
+              context,
+              widget.launch.infoUrls ?? [],
+              AppLocalizations.of(context)!.moreInfo,
+              (ctx, info) => _urlInfoArticleWidget(ctx, info),
+            ),
 
             // A list of videos with thumbnails
-            if ((widget.launch.vidUrls ?? []).isNotEmpty) ...[
-              ..._urlInfoList(
-                context,
-                widget.launch.vidUrls!,
-                AppLocalizations.of(context)!.videos,
-                (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false),
-              ),
-              const Divider(),
-            ],
+            ..._urlInfoList(
+              context,
+              widget.launch.vidUrls ?? [],
+              AppLocalizations.of(context)!.videos,
+              (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false),
+            ),
 
             // Now a list of updates to the data
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
