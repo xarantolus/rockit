@@ -60,5 +60,7 @@
   "clickSource": "Klicken für mehr Info",
 
   "sources": "Quellen",
-  "failedURLLaunch": "Starten des Browsers fehlgeschlagen!"
+  "failedURLLaunch": "Starten des Browsers fehlgeschlagen!",
+
+  "onTwitter": "@{account} auf Twitter"
 }

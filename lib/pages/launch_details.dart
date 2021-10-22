@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
-import 'package:rockit/apis/spaceflightnews/article_response.dart';
+import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/article.dart';
@@ -22,7 +22,7 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with DateFormatter, UrlLauncher {
+    with DateFormatter, UrlLauncher, SourceAttribution {
   static const titleStyle = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -59,93 +59,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  String? _urlHost(String? url) {
-    var host = Uri.tryParse(url ?? "")?.host;
-    if (host != null) {
-      const wwwPrefix = "www.";
-      if (host.startsWith(wwwPrefix)) {
-        host = host.substring(wwwPrefix.length);
-      }
-    }
-    return host;
-  }
-
-  String? _sourceAttributionText(String? infoURL) {
-    var infoHost = _urlHost(infoURL);
-
-    String? bottomLeftText;
-    if (infoURL != null) {
-      // For some hosts, we can have special text instead of the host name
-      final specialHostFuncs = <String, String? Function(Uri)>{
-        // Social media sites used for announcements
-        "twitter.com": (uri) {
-          // Make sure it's a link to a tweet, e.g. like
-          // https://twitter.com/accountname/status/1897358912732835
-          if (uri.pathSegments.length >= 3 &&
-              uri.pathSegments[1] == "status" &&
-              int.tryParse(uri.pathSegments[2]) != null) {
-            return "@${uri.pathSegments.first} on Twitter";
-          }
-          return null;
-        },
-        "facebook.com": (_) => "Facebook",
-
-        // News sites
-        "spacenews.com": (_) => "SpaceNews",
-        "spaceflightnow.com": (_) => "Spaceflight Now",
-        "nasaspaceflight.com": (_) => "NASASpaceFlight",
-        "spaceref.com": (_) => "SpaceRef",
-
-        // Other
-        "fcc.report": (_) => "FCC Report",
-
-        // Forums
-        "forum.nasaspaceflight.com": (_) => "NASASpaceFlight Forum",
-
-        // Sites from https://en.wikipedia.org/wiki/List_of_government_space_agencies#Budgets
-        "nasa.gov": (_) => "NASA",
-        "cnsa.gov.cn": (_) => "CNSA",
-        "esa.int": (_) => "ESA",
-        "dlr.de": (_) => "DLR",
-        "cnes.fr": (_) => "CNES",
-        "roscosmos.ru": (_) => "Roscosmos",
-        "isro.gov.in": (_) => "ISRO",
-        "asi.it": (_) => "ASI",
-        "jaxa.jp": (_) => "JAXA",
-        "kari.re.kr": (_) => "KARI",
-        "gov.uk": (_) => "UKSA",
-
-        // Private space companies, from https://en.wikipedia.org/wiki/List_of_private_spaceflight_companies
-        "spacex.com": (_) => "SpaceX",
-        "blueorigin.com": (_) => "Blue Origin",
-        "boeing.com": (_) => "Boeing",
-        "virginorbit.com": (_) => "Virgin Orbit",
-        "virgingalactic.com": (_) => "Virgin Galactic",
-        "mhi.com": (_) => "Mitsubishi Heavy Industries",
-        "northropgrumman.com": (_) => "Northrop Grumman",
-        "scaled.com": (_) => "Scaled Composites",
-        "sncorp.com": (_) => "Sierra Nevada Corporation"
-      };
-
-      var infoText = infoHost;
-      if (specialHostFuncs.containsKey(infoHost?.toLowerCase())) {
-        final uri = Uri.tryParse(infoURL);
-        if (uri != null) {
-          var newText = specialHostFuncs[infoHost!.toLowerCase()]!(uri);
-          if (newText != null) {
-            infoText = newText;
-          }
-        }
-      }
-
-      bottomLeftText = infoHost == null
-          ? AppLocalizations.of(context)!.clickSource
-          : "${AppLocalizations.of(context)!.source}: $infoText";
-    }
-
-    return bottomLeftText;
-  }
-
   Widget _update(BuildContext context, Update u) {
     final date = formatDateTimeFriendly(context,
         (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
@@ -153,7 +66,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return RippleLinkWidget(
       u.comment ?? AppLocalizations.of(context)!.unknown,
       bottomRight: date,
-      bottomLeft: _sourceAttributionText(u.infoUrl),
+      bottomLeft: sourceAttributionText(context, u.infoUrl),
       url: u.infoUrl,
     );
   }
@@ -164,7 +77,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       title: info.title,
       link: info.url,
       imageUrl: info.featureImage,
-      newsSite: _urlHost(info.url),
+      newsSite: urlHost(info.url),
       summary: info.description,
       customTab: customTab,
     );

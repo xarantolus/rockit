@@ -59,5 +59,15 @@
   "clickSource": "Click for more info",
 
   "sources": "Sources",
-  "failedURLLaunch": "Starting the browser failed!"
+  "failedURLLaunch": "Starting the browser failed!",
+
+  "onTwitter": "@{account} on Twitter",
+  "@onTwitter": {
+    "placeholders": {
+      "account": {
+        "type": "String",
+        "example": "SpaceX"
+      }
+    }
+  }
 }
