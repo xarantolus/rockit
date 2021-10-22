@@ -6,6 +6,7 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -58,14 +59,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  String? _sourceAttributionText(String? infoURL) {
-    var infoHost = Uri.tryParse(infoURL ?? "")?.host;
-    if (infoHost != null) {
+  String? _urlHost(String? url) {
+    var host = Uri.tryParse(url ?? "")?.host;
+    if (host != null) {
       const wwwPrefix = "www.";
-      if (infoHost.startsWith(wwwPrefix)) {
-        infoHost = infoHost.substring(wwwPrefix.length);
+      if (host.startsWith(wwwPrefix)) {
+        host = host.substring(wwwPrefix.length);
       }
     }
+    return host;
+  }
+
+  String? _sourceAttributionText(String? infoURL) {
+    var infoHost = _urlHost(infoURL);
 
     String? bottomLeftText;
     if (infoURL != null) {
@@ -90,10 +96,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _infoArticle(BuildContext context, ArticleInfo info) {
-    return RippleLinkWidget(
-      info.title ?? AppLocalizations.of(context)!.unknown,
-      url: info.url,
-      bottomLeft: _sourceAttributionText(info.url),
+    return ArticleCardWidget(
+      title: info.title,
+      link: info.url,
+      imageUrl: info.featureImage,
+      newsSite: _urlHost(info.url),
+      summary: info.description,
     );
   }
 

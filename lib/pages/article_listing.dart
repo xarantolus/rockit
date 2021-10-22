@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loadmore/loadmore.dart';
@@ -9,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/article.dart';
 
 class ArticleListingPage extends StatefulWidget {
   ArticleListingPage({Key? key}) : super(key: key);
@@ -75,19 +73,6 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   late List<Article> articles = widget.initialArticles;
   bool _finished = false;
 
-  bool _isLetter(String letter) {
-    final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
-    return alpha.hasMatch(letter);
-  }
-
-  String dottedText(String text) {
-    var lastLetter = text[text.length - 1];
-    if (_isLetter(lastLetter)) {
-      return text + "...";
-    }
-    return text;
-  }
-
   Future<bool> _updateArticles([bool? refresh]) async {
     var _newArticles =
         await widget.service.articles(refresh == true ? null : articles.length);
@@ -129,93 +114,6 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
     }
   }
 
-  Widget _articleCard(Article article) {
-    return Center(
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Text(
-                article.title ?? AppLocalizations.of(context)!.unknown,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            if ((article.imageUrl ?? "").isNotEmpty)
-              SizedBox(
-                height: max(MediaQuery.of(context).size.height / 4, 200),
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: CachedNetworkImage(
-                        imageUrl: article.imageUrl!,
-                        fadeInDuration: const Duration(milliseconds: 125),
-                        fadeOutDuration: const Duration(milliseconds: 250),
-                        fit: BoxFit.cover,
-                        progressIndicatorBuilder:
-                            (context, url, downloadProgress) => Center(
-                          child: CircularProgressIndicator(
-                              value: downloadProgress.progress),
-                        ),
-                        errorWidget: (context, url, error) => const Center(
-                          child: Icon(Icons.error),
-                        ),
-                      ),
-                    ),
-                    if (article.newsSite != null)
-                      Container(
-                        padding: EdgeInsets.zero,
-                        margin: EdgeInsets.zero,
-                        alignment: Alignment.bottomRight,
-                        child: Text(
-                          article.newsSite!,
-                          style: TextStyle(
-                            backgroundColor: Theme.of(context)
-                                .backgroundColor
-                                .withOpacity(.75),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14.0,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                article.summary != null
-                    ? dottedText(article.summary!)
-                    : AppLocalizations.of(context)!.unknown,
-                style: const TextStyle(
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            if (article.publishedAt != null)
-              Container(
-                alignment: Alignment.bottomRight,
-                padding: const EdgeInsets.all(4),
-                child: Text(
-                  formatDateTimeFriendly(context, article.publishedAt!),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -230,11 +128,14 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
           // We basically pre-compute this much info, that way images are often already there
           cacheExtent: MediaQuery.of(context).size.height * 2,
           itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              child: _articleCard(articles[index]),
-              onTap: () async {
-                await openCustomTab(context, articles[index].url ?? "");
-              },
+            final a = articles[index];
+            return ArticleCardWidget(
+              title: a.title,
+              link: a.url,
+              imageUrl: a.imageUrl,
+              newsSite: a.newsSite,
+              summary: a.summary,
+              publishDate: a.publishedAt,
             );
           },
         ),
