@@ -75,9 +75,72 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
     String? bottomLeftText;
     if (infoURL != null) {
+      // For some hosts, we can have special text instead of the host name
+      final specialHostFuncs = <String, String? Function(Uri)>{
+        // Social media sites used for announcements
+        "twitter.com": (uri) {
+          // Make sure it's a link to a tweet, e.g. like
+          // https://twitter.com/accountname/status/1897358912732835
+          if (uri.pathSegments.length >= 3 &&
+              uri.pathSegments[1] == "status" &&
+              int.tryParse(uri.pathSegments[2]) != null) {
+            return "@${uri.pathSegments.first} on Twitter";
+          }
+          return null;
+        },
+        "facebook.com": (_) => "Facebook",
+
+        // News sites
+        "spacenews.com": (_) => "SpaceNews",
+        "spaceflightnow.com": (_) => "Spaceflight Now",
+        "nasaspaceflight.com": (_) => "NASASpaceFlight",
+        "spaceref.com": (_) => "SpaceRef",
+
+        // Other
+        "fcc.report": (_) => "FCC Report",
+
+        // Forums
+        "forum.nasaspaceflight.com": (_) => "NASASpaceFlight Forum",
+
+        // Sites from https://en.wikipedia.org/wiki/List_of_government_space_agencies#Budgets
+        "nasa.gov": (_) => "NASA",
+        "cnsa.gov.cn": (_) => "CNSA",
+        "esa.int": (_) => "ESA",
+        "dlr.de": (_) => "DLR",
+        "cnes.fr": (_) => "CNES",
+        "roscosmos.ru": (_) => "Roscosmos",
+        "isro.gov.in": (_) => "ISRO",
+        "asi.it": (_) => "ASI",
+        "jaxa.jp": (_) => "JAXA",
+        "kari.re.kr": (_) => "KARI",
+        "gov.uk": (_) => "UKSA",
+
+        // Private space companies, from https://en.wikipedia.org/wiki/List_of_private_spaceflight_companies
+        "spacex.com": (_) => "SpaceX",
+        "blueorigin.com": (_) => "Blue Origin",
+        "boeing.com": (_) => "Boeing",
+        "virginorbit.com": (_) => "Virgin Orbit",
+        "virgingalactic.com": (_) => "Virgin Galactic",
+        "mhi.com": (_) => "Mitsubishi Heavy Industries",
+        "northropgrumman.com": (_) => "Northrop Grumman",
+        "scaled.com": (_) => "Scaled Composites",
+        "sncorp.com": (_) => "Sierra Nevada Corporation"
+      };
+
+      var infoText = infoHost;
+      if (specialHostFuncs.containsKey(infoHost?.toLowerCase())) {
+        final uri = Uri.tryParse(infoURL);
+        if (uri != null) {
+          var newText = specialHostFuncs[infoHost!.toLowerCase()]!(uri);
+          if (newText != null) {
+            infoText = newText;
+          }
+        }
+      }
+
       bottomLeftText = infoHost == null
           ? AppLocalizations.of(context)!.clickSource
-          : "${AppLocalizations.of(context)!.source}: $infoHost";
+          : "${AppLocalizations.of(context)!.source}: $infoText";
     }
 
     return bottomLeftText;
