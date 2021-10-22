@@ -8,6 +8,7 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/widgets/ripple_link.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
   const LaunchDetailsPage(this.launch, {Key? key}) : super(key: key);
@@ -68,40 +69,18 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       }
     }
 
-    return Material(
-      // This adds the ripple effect when holding the item
-      child: InkWell(
-        onTap: () async {
-          setState(() {});
+    String? bottomLeftText;
+    if (u.infoUrl != null) {
+      bottomLeftText = infoHost == null
+          ? AppLocalizations.of(context)!.clickSource
+          : "${AppLocalizations.of(context)!.source}: $infoHost";
+    }
 
-          if (u.infoUrl != null) {
-            await openCustomTab(context, u.infoUrl!);
-          }
-        },
-        child: ListTile(
-          title: Text(
-            u.comment ?? AppLocalizations.of(context)!.unknown,
-          ),
-          subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // We need an empty widget here, because if we don't add this, the date text will be on the left
-              if (u.infoUrl == null)
-                const SizedBox.shrink()
-              else
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: infoHost == null
-                      ? Text(AppLocalizations.of(context)!.clickSource)
-                      : Text(
-                          "${AppLocalizations.of(context)!.source}: $infoHost"),
-                ),
-              Align(alignment: Alignment.centerRight, child: Text(date)),
-            ],
-          ),
-          visualDensity: VisualDensity.comfortable,
-        ),
-      ),
+    return RippleLinkWidget(
+      u.comment ?? AppLocalizations.of(context)!.unknown,
+      date,
+      bottomLeft: bottomLeftText,
+      url: u.infoUrl,
     );
   }
 
