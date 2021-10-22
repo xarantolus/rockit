@@ -95,13 +95,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _infoArticle(BuildContext context, URLInfo info) {
+  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
+      [bool customTab = true]) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
       imageUrl: info.featureImage,
       newsSite: _urlHost(info.url),
       summary: info.description,
+      customTab: customTab,
     );
   }
 
@@ -230,7 +232,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 ),
               ),
               ...widget.launch.infoUrls!.map(
-                (info) => _infoArticle(context, info),
+                (info) => _urlInfoArticleWidget(context, info),
               ),
               const Divider(),
             ],
@@ -243,7 +245,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 ),
               ),
               ...widget.launch.vidUrls!.map(
-                (vid) => _infoArticle(context, vid),
+                (vid) => _urlInfoArticleWidget(context, vid, false),
               ),
               const Divider(),
             ],

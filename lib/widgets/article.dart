@@ -5,17 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArticleCardWidget extends StatefulWidget {
-  const ArticleCardWidget(
-      {this.title,
-      this.link,
-      this.imageUrl,
-      this.newsSite,
-      this.summary,
-      this.publishDate,
-      Key? key})
-      : super(key: key);
+  const ArticleCardWidget({
+    this.title,
+    this.link,
+    this.imageUrl,
+    this.newsSite,
+    this.summary,
+    this.publishDate,
+    this.customTab = true,
+    Key? key,
+  }) : super(key: key);
+
+  final bool customTab;
 
   final String? title;
   final String? link;
@@ -48,7 +52,11 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
     return GestureDetector(
       onTap: () async {
         if (widget.link != null) {
-          await openCustomTab(context, widget.link!);
+          if (widget.customTab) {
+            await openCustomTab(context, widget.link!);
+          } else {
+            await launch(widget.link!);
+          }
         }
       },
       child: Center(
