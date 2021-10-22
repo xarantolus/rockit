@@ -72,15 +72,51 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _launchServiceProvider(
+  List<Widget> _launchServiceProvider(
       BuildContext context, LaunchServiceProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Text(
-        provider.description ?? AppLocalizations.of(context)!.unknown,
-        style: textStyle,
+    return [
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          provider.name ?? AppLocalizations.of(context)!.unknown,
+          style: titleStyle,
+          textAlign: TextAlign.center,
+        ),
       ),
-    );
+      if (provider.logoUrl != null)
+        GestureDetector(
+          onTap: () async {
+            if (provider.infoUrl != null) {
+              openCustomTab(context, provider.infoUrl!);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            constraints: BoxConstraints(
+              maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
+            ),
+            child: CachedNetworkImage(
+              imageUrl: provider.logoUrl!,
+              fadeInDuration: const Duration(milliseconds: 125),
+              fadeOutDuration: const Duration(milliseconds: 250),
+              fit: BoxFit.cover,
+              progressIndicatorBuilder: (context, url, downloadProgress) =>
+                  Center(
+                child:
+                    CircularProgressIndicator(value: downloadProgress.progress),
+              ),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+          ),
+        ),
+      Container(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          provider.description ?? AppLocalizations.of(context)!.unknown,
+          style: textStyle,
+        ),
+      )
+    ];
   }
 
   Widget _update(BuildContext context, Update u) {
@@ -252,39 +288,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ...widget.launch.updates!.map((e) => _update(context, e)),
               const Divider(),
             ],
-            if (widget.launch.launchServiceProvider?.description != null) ...[
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  widget.launch.launchServiceProvider!.name ??
-                      AppLocalizations.of(context)!.unknown,
-                  style: titleStyle,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              if (widget.launch.launchServiceProvider!.logoUrl != null)
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  constraints: BoxConstraints(
-                    maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: widget.launch.launchServiceProvider!.logoUrl!,
-                    fadeInDuration: const Duration(milliseconds: 125),
-                    fadeOutDuration: const Duration(milliseconds: 250),
-                    fit: BoxFit.cover,
-                    progressIndicatorBuilder:
-                        (context, url, downloadProgress) => Center(
-                      child: CircularProgressIndicator(
-                          value: downloadProgress.progress),
-                    ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                  ),
-                ),
-              _launchServiceProvider(
+            if (widget.launch.launchServiceProvider?.description != null)
+              ..._launchServiceProvider(
                   context, widget.launch.launchServiceProvider!),
-            ]
           ],
         ),
       ),
