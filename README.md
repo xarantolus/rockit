@@ -19,7 +19,7 @@ Rock It! is an Android app that helps you stay informed on all things space. It 
 
 
 ### Installation & updates
-If you have [F-Droid](https://f-droid.org/) installed, you can add [my repository](https://github.com/xarantolus/fdroid). Then just search for "rockit" in the F-Droid client to download. You will receive update notifications.
+If you have [F-Droid](https://f-droid.org/) installed, you can add [my repository](https://github.com/xarantolus/fdroid). Make sure you have "Include anti-feature apps" enabled in settings. Then just search for "rockit" in the F-Droid client to download. You will receive update notifications.
 
 Alternatively, you can [download the APK file from the releases section of this repository](https://github.com/xarantolus/rockit/releases/latest). Then open it from the file manager to install it. Please note that you will not receive any update notifications when going this route.
 
