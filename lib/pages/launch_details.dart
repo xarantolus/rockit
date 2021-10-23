@@ -74,20 +74,46 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   List<Widget> _launchServiceProvider(
       BuildContext context, LaunchServiceProvider provider) {
+    return _titleImageDescription(
+      context,
+      clickURL: provider.infoUrl,
+      title: provider.name,
+      description: provider.description,
+      imageURL: provider.logoUrl ?? provider.imageUrl,
+    );
+  }
+
+  List<Widget> _rocketConfiguration(BuildContext context, Configuration cfg) {
+    return _titleImageDescription(
+      context,
+      title: cfg.fullName,
+      description: cfg.description,
+      clickURL: cfg.infoUrl,
+      imageURL: cfg.imageUrl,
+    );
+  }
+
+  List<Widget> _titleImageDescription(
+    BuildContext context, {
+    String? title,
+    String? description,
+    String? imageURL,
+    String? clickURL,
+  }) {
     return [
       Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          provider.name ?? AppLocalizations.of(context)!.unknown,
+          title ?? AppLocalizations.of(context)!.unknown,
           style: titleStyle,
           textAlign: TextAlign.center,
         ),
       ),
-      if (provider.logoUrl != null)
+      if (imageURL != null)
         GestureDetector(
           onTap: () async {
-            if (provider.infoUrl != null) {
-              openCustomTab(context, provider.infoUrl!);
+            if (clickURL != null) {
+              openCustomTab(context, clickURL);
             }
           },
           child: Container(
@@ -96,7 +122,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
             ),
             child: CachedNetworkImage(
-              imageUrl: provider.logoUrl!,
+              imageUrl: imageURL,
               fadeInDuration: const Duration(milliseconds: 125),
               fadeOutDuration: const Duration(milliseconds: 250),
               fit: BoxFit.cover,
@@ -112,7 +138,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       Container(
         padding: const EdgeInsets.all(16),
         child: Text(
-          provider.description ?? AppLocalizations.of(context)!.unknown,
+          description ?? AppLocalizations.of(context)!.unknown,
           style: textStyle,
         ),
       )
@@ -329,11 +355,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // And a bunch of info about the launch provider
-            if (widget.launch.launchServiceProvider?.description != null)
+            if (widget.launch.launchServiceProvider?.description != null) ...[
               ..._launchServiceProvider(
                 context,
                 widget.launch.launchServiceProvider!,
               ),
+              const Divider(),
+            ],
+
+            if (widget.launch.rocket?.configuration != null) ...[
+              ..._rocketConfiguration(
+                  context, widget.launch.rocket!.configuration!),
+              const Divider(),
+            ],
           ],
         ),
       ),
