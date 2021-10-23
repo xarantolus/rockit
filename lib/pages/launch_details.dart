@@ -167,6 +167,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     }
 
     return [
+      const Divider(),
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
         child: Text(
@@ -175,7 +176,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         ),
       ),
       ...widgets,
-      const Divider(),
     ];
   }
 
@@ -315,22 +315,21 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // If we have an image, we show it at the top
             if (widget.launch.image != null) ...[
               _zoomableImage(),
-              const Divider(),
             ],
 
             // Then a mission description
             if (widget.launch.mission != null) ...[
-              _missionDetails(context, widget.launch.mission!),
               const Divider(),
+              _missionDetails(context, widget.launch.mission!),
             ],
 
             // The countdown should always be displayed
-            CountDownWidget(widget.launch),
             const Divider(),
+            CountDownWidget(widget.launch),
 
             // Just like the general info table
-            _generalInfo(context, widget.launch),
             const Divider(),
+            _generalInfo(context, widget.launch),
 
             // Render a list of articles/info URLs
             ..._urlInfoList(
@@ -350,23 +349,23 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             // Now a list of updates to the data
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
-              ..._updateList(context, widget.launch.updates!),
               const Divider(),
+              ..._updateList(context, widget.launch.updates!),
             ],
 
             // And a bunch of info about the launch provider
             if (widget.launch.launchServiceProvider?.description != null) ...[
+              const Divider(),
               ..._launchServiceProvider(
                 context,
                 widget.launch.launchServiceProvider!,
               ),
-              const Divider(),
             ],
 
             if (widget.launch.rocket?.configuration != null) ...[
+              const Divider(),
               ..._rocketConfiguration(
                   context, widget.launch.rocket!.configuration!),
-              const Divider(),
             ],
           ],
         ),
