@@ -60,6 +60,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         child: Text(
           m.name ?? AppLocalizations.of(context)!.unknown,
           style: titleStyle,
+          textAlign: TextAlign.center,
         ),
       ),
       subtitle: Text(
@@ -76,6 +77,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return Center(
       child: Text(
         l.name ?? AppLocalizations.of(context)!.unknown,
+        textAlign: TextAlign.center,
         style: titleStyle,
       ),
     );
@@ -332,11 +334,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // Then a mission description
-            if (widget.launch.mission == null)
-              _reducedMissionDetails(context, widget.launch)
-            else ...[
+            ...[
               const Divider(),
-              _missionDetails(context, widget.launch.mission!),
+              if (widget.launch.mission == null)
+                _reducedMissionDetails(context, widget.launch)
+              else
+                _missionDetails(context, widget.launch.mission!),
             ],
 
             // The countdown should always be displayed
@@ -370,7 +373,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // An informative description of the rocket
-            if (widget.launch.rocket?.configuration != null) ...[
+            if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
               ..._rocketConfiguration(
                   context, widget.launch.rocket!.configuration!),
