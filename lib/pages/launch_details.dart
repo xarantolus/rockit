@@ -72,6 +72,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  Widget _reducedMissionDetails(BuildContext context, Launch l) {
+    return Center(
+      child: Text(
+        l.name ?? AppLocalizations.of(context)!.unknown,
+        style: titleStyle,
+      ),
+    );
+  }
+
   List<Widget> _launchServiceProvider(
       BuildContext context, LaunchServiceProvider provider) {
     return _titleImageDescription(
@@ -100,22 +109,27 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     String? imageURL,
     String? clickURL,
   }) {
+    void openClickURL() async {
+      if (clickURL != null) {
+        openCustomTab(context, clickURL);
+      }
+    }
+
     return [
-      Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          title ?? AppLocalizations.of(context)!.unknown,
-          style: titleStyle,
-          textAlign: TextAlign.center,
+      GestureDetector(
+        onTap: openClickURL,
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          child: Text(
+            title ?? AppLocalizations.of(context)!.unknown,
+            style: titleStyle,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
       if (imageURL != null)
         GestureDetector(
-          onTap: () async {
-            if (clickURL != null) {
-              openCustomTab(context, clickURL);
-            }
-          },
+          onTap: openClickURL,
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             constraints: BoxConstraints(
@@ -318,7 +332,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // Then a mission description
-            if (widget.launch.mission != null) ...[
+            if (widget.launch.mission == null)
+              _reducedMissionDetails(context, widget.launch)
+            else ...[
               const Divider(),
               _missionDetails(context, widget.launch.mission!),
             ],
@@ -353,6 +369,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ..._updateList(context, widget.launch.updates!),
             ],
 
+            // An informative description of the rocket
+            if (widget.launch.rocket?.configuration != null) ...[
+              const Divider(),
+              ..._rocketConfiguration(
+                  context, widget.launch.rocket!.configuration!),
+            ],
+
             // And a bunch of info about the launch provider
             if (widget.launch.launchServiceProvider?.description != null) ...[
               const Divider(),
@@ -360,12 +383,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 context,
                 widget.launch.launchServiceProvider!,
               ),
-            ],
-
-            if (widget.launch.rocket?.configuration != null) ...[
-              const Divider(),
-              ..._rocketConfiguration(
-                  context, widget.launch.rocket!.configuration!),
             ],
           ],
         ),
