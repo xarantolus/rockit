@@ -241,7 +241,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     final windowEnd = DateTime.tryParse(l.windowEnd ?? "");
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           Padding(
