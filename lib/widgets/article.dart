@@ -64,7 +64,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          margin: const EdgeInsets.fromLTRB(10, 15, 10, 5),
+          margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
           child: Container(
             margin: (widget.summary ?? "").isEmpty
                 ? const EdgeInsets.only(bottom: 8)
