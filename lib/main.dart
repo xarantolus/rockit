@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
@@ -94,13 +95,23 @@ class _MyHomePageState extends State<MyHomePage> {
         bottomNavigationBar: TabBar(
           labelColor: Theme.of(context).textTheme.bodyText2!.color,
           automaticIndicatorColorAdjustment: true,
+          indicator: OverlineTabIndicator(
+            borderSide: BorderSide(
+              color: Theme.of(context).textTheme.bodyText2!.color!,
+              width: 3,
+            ),
+          ),
           tabs: [
             Tab(
-              icon: const Icon(Icons.home),
+              icon: ImageIcon(
+                Theme.of(context).brightness == Brightness.light
+                    ? const AssetImage("assets/rocket-black.png")
+                    : const AssetImage("assets/rocket-white.png"),
+              ),
               text: AppLocalizations.of(context)!.launches,
             ),
             Tab(
-              icon: const Icon(Icons.article),
+              icon: const Icon(Icons.article_outlined),
               text: AppLocalizations.of(context)!.news,
             ),
           ],
