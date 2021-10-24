@@ -15,6 +15,7 @@ class ArticleCardWidget extends StatefulWidget {
     this.newsSite,
     this.summary,
     this.publishDate,
+    this.icon,
     this.customTab = true,
     Key? key,
   }) : super(key: key);
@@ -27,6 +28,7 @@ class ArticleCardWidget extends StatefulWidget {
   final String? newsSite;
   final String? summary;
   final DateTime? publishDate;
+  final Icon? icon;
 
   @override
   _ArticleCardWidgetState createState() => _ArticleCardWidgetState();
@@ -120,6 +122,10 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                                 fontSize: 14.0,
                               ),
                             ),
+                          ),
+                        if (widget.icon != null)
+                          Center(
+                            child: widget.icon,
                           ),
                       ],
                     ),

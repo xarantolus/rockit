@@ -304,7 +304,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
-      [bool customTab = true]) {
+      [bool customTab = true, Icon? icon]) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
@@ -312,6 +312,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       newsSite: urlHost(info.url),
       summary: info.description,
       customTab: customTab,
+      icon: icon,
     );
   }
 
@@ -464,7 +465,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               context,
               widget.launch.vidUrls ?? [],
               AppLocalizations.of(context)!.videos,
-              (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false),
+              (ctx, vid) => _urlInfoArticleWidget(
+                  ctx, vid, false, const Icon(Icons.play_arrow, size: 72)),
             ),
 
             // Now a list of updates to the data
