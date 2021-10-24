@@ -83,6 +83,18 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  List<Widget> _launchPad(BuildContext context, Pad pad) {
+    return _titleImageDescription(
+      context,
+      clickURL: pad.mapUrl ?? pad.infoUrl ?? pad.wikiUrl,
+      title: pad.name,
+      description: pad.location?.name,
+      imageURL: pad.mapImage ?? pad.location?.mapImage,
+      shrinkImage: false,
+      zoomableImage: true,
+    );
+  }
+
   List<Widget> _launchServiceProvider(
       BuildContext context, LaunchServiceProvider provider) {
     return _titleImageDescription(
@@ -110,12 +122,29 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     String? description,
     String? imageURL,
     String? clickURL,
+    bool shrinkImage = true,
+    bool zoomableImage = false,
   }) {
     void openClickURL() async {
-      if (clickURL != null) {
-        openCustomTab(context, clickURL);
+      if ((clickURL ?? "").isNotEmpty) {
+        openCustomTab(context, clickURL!);
       }
     }
+
+    final imageWidget = imageURL == null
+        ? null
+        : CachedNetworkImage(
+            imageUrl: imageURL,
+            fadeInDuration: const Duration(milliseconds: 125),
+            fadeOutDuration: const Duration(milliseconds: 250),
+            fit: BoxFit.cover,
+            progressIndicatorBuilder: (context, url, downloadProgress) =>
+                Center(
+              child:
+                  CircularProgressIndicator(value: downloadProgress.progress),
+            ),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+          );
 
     return [
       GestureDetector(
@@ -134,21 +163,18 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           onTap: openClickURL,
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            constraints: BoxConstraints(
-              maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
-            ),
-            child: CachedNetworkImage(
-              imageUrl: imageURL,
-              fadeInDuration: const Duration(milliseconds: 125),
-              fadeOutDuration: const Duration(milliseconds: 250),
-              fit: BoxFit.cover,
-              progressIndicatorBuilder: (context, url, downloadProgress) =>
-                  Center(
-                child:
-                    CircularProgressIndicator(value: downloadProgress.progress),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            constraints: shrinkImage
+                ? BoxConstraints(
+                    maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
+                  )
+                : null,
+            child: zoomableImage
+                ? PinchZoomImage(
+                    image: Center(
+                      child: imageWidget,
+                    ),
+                  )
+                : imageWidget,
           ),
         ),
       Container(
@@ -159,6 +185,63 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         ),
       )
     ];
+  }
+
+  List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
+    final importantPatches =
+        l.where((element) => (element.imageUrl ?? "").isNotEmpty);
+    if (importantPatches.isEmpty) {
+      return List.empty();
+    }
+
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+        child: Text(
+          l.length == 1
+              ? AppLocalizations.of(context)!.missionPatch
+              : AppLocalizations.of(context)!.missionPatches,
+          style: titleStyle,
+        ),
+      ),
+      ...importantPatches.map((e) => _missionPatch(context, e, l.length == 1)),
+    ];
+  }
+
+  Widget _missionPatch(
+      BuildContext context, MissionPatch patch, bool isSingle) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // If we only have one mission patch, we don't need to add the title
+          if (!isSingle)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                patch.name ?? AppLocalizations.of(context)!.unknown,
+                style: titleStyle,
+              ),
+            ),
+          PinchZoomImage(
+            image: Center(
+              child: CachedNetworkImage(
+                imageUrl: patch.imageUrl!,
+                fadeInDuration: const Duration(milliseconds: 125),
+                fadeOutDuration: const Duration(milliseconds: 250),
+                fit: BoxFit.cover,
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    Center(
+                  child: CircularProgressIndicator(
+                      value: downloadProgress.progress),
+                ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _urlInfoList(
@@ -350,6 +433,24 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             const Divider(),
             _generalInfo(context, widget.launch),
 
+            // Show mission patches
+            if (widget.launch.missionPatches?.isNotEmpty ?? false) ...[
+              ...() {
+                // We only add the divider conditionally;
+                // the function might return zero widgets even if
+                // the mission patch list contains more than 0 items
+                final patches = _missionPatches(
+                  context,
+                  widget.launch.missionPatches!,
+                );
+
+                if (patches.isNotEmpty) {
+                  patches.insert(0, const Divider());
+                }
+                return patches;
+              }(),
+            ],
+
             // Render a list of articles/info URLs
             ..._urlInfoList(
               context,
@@ -386,6 +487,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 context,
                 widget.launch.launchServiceProvider!,
               ),
+            ],
+
+            // There are some incomplete pads that we shouldn't render6
+            if (widget.launch.pad != null &&
+                widget.launch.pad?.location?.countryCode != "UNK") ...[
+              const Divider(),
+              ..._launchPad(context, widget.launch.pad!),
             ],
           ],
         ),
