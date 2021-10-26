@@ -132,7 +132,9 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   ),
                 if ((widget.summary ?? "").isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: widget.imageUrl == null
+                        ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
+                        : const EdgeInsets.fromLTRB(8, 8, 8, 4),
                     child: Text(
                       dottedText(widget.summary!),
                       style: const TextStyle(
@@ -143,7 +145,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                 if (widget.publishDate != null)
                   Container(
                     alignment: Alignment.bottomRight,
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.fromLTRB(0, 0, 4, 4),
                     child: Text(
                       formatDateTimeFriendly(context, widget.publishDate!),
                     ),
