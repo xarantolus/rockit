@@ -39,6 +39,7 @@
   "windowEnd": "Launch window end",
   "holdReason": "Hold reason",
   "failReason": "Fail reason",
+  "targetOrbit": "Target orbit",
   "startProbability": "Start probability",
 
   "likeStartTime" : "like start time",

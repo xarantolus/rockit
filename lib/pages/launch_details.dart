@@ -377,6 +377,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               if ((l.failreason ?? "").isNotEmpty)
                 descriptionRow(
                     AppLocalizations.of(context)!.failReason, l.failreason!),
+              if (l.mission?.orbit != null)
+                descriptionRow(
+                  AppLocalizations.of(context)!.targetOrbit,
+                  l.mission!.orbit!.name ??
+                      AppLocalizations.of(context)!.unknown,
+                ),
               if (windowStart != null)
                 descriptionRow(AppLocalizations.of(context)!.windowStart,
                     formatDateTimeLocal(context, windowStart)),

@@ -39,6 +39,7 @@
   "windowEnd": "Ende des Startfensters",
   "holdReason": "Grund für Verzögerung",
   "failReason": "Grund für Fehlschlag",
+  "targetOrbit": "Zielorbit",
   "startProbability": "Startwahrscheinlichkeit",
 
   "likeStartTime": "wie Startzeit",
