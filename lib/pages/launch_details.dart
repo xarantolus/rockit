@@ -135,20 +135,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       }
     }
 
-    final imageWidget = imageURL == null
-        ? null
-        : CachedNetworkImage(
-            imageUrl: imageURL,
-            fadeInDuration: const Duration(milliseconds: 125),
-            fadeOutDuration: const Duration(milliseconds: 250),
-            fit: BoxFit.cover,
-            progressIndicatorBuilder: (context, url, downloadProgress) =>
-                Center(
-              child:
-                  CircularProgressIndicator(value: downloadProgress.progress),
-            ),
-            errorWidget: (context, url, error) => const Icon(Icons.error),
-          );
+    final imageWidget = imageURL == null ? null : ImageWidget(imageURL);
 
     return [
       GestureDetector(
@@ -229,18 +216,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ),
           PinchZoomImage(
             image: Center(
-              child: CachedNetworkImage(
-                imageUrl: patch.imageUrl!,
-                fadeInDuration: const Duration(milliseconds: 125),
-                fadeOutDuration: const Duration(milliseconds: 250),
-                fit: BoxFit.cover,
-                progressIndicatorBuilder: (context, url, downloadProgress) =>
-                    Center(
-                  child: CircularProgressIndicator(
-                      value: downloadProgress.progress),
-                ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              ),
+              child: ImageWidget(patch.imageUrl),
             ),
           ),
         ],

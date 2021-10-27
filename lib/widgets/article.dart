@@ -1,10 +1,10 @@
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/launch_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ArticleCardWidget extends StatefulWidget {
@@ -92,20 +92,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                         SizedBox(
                           width: double.infinity,
                           height: double.infinity,
-                          child: CachedNetworkImage(
-                            imageUrl: widget.imageUrl!,
-                            fadeInDuration: const Duration(milliseconds: 125),
-                            fadeOutDuration: const Duration(milliseconds: 250),
-                            fit: BoxFit.cover,
-                            progressIndicatorBuilder:
-                                (context, url, downloadProgress) => Center(
-                              child: CircularProgressIndicator(
-                                  value: downloadProgress.progress),
-                            ),
-                            errorWidget: (context, url, error) => const Center(
-                              child: Icon(Icons.error),
-                            ),
-                          ),
+                          child: ImageWidget(widget.imageUrl),
                         ),
                         if (widget.newsSite != null)
                           Container(

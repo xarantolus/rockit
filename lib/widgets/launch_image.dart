@@ -40,9 +40,16 @@ class _ImageWidgetState extends State<ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final launchImage = _image(context, widget.imageURL);
+
+    // This prevents having multiple "unknown-unknown" hero tags, which crash the app
+    if (widget.heroTag == null || widget.id == null) {
+      return launchImage;
+    }
+
     return Hero(
       tag: (widget.heroTag ?? "unknown") + "-" + (widget.id ?? "unknown"),
-      child: _image(context, widget.imageURL),
+      child: launchImage,
     );
   }
 }
