@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:intl/intl.dart';
+import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -19,16 +20,13 @@ class LaunchWidget extends StatefulWidget {
   _LaunchWidgetState createState() => _LaunchWidgetState();
 }
 
-class _LaunchWidgetState extends State<LaunchWidget> {
+class _LaunchWidgetState extends State<LaunchWidget> with DateFormatter {
   String _netText(Launch launch) {
     try {
       var launchDate =
           DateTime.parse(launch.net ?? launch.windowStart ?? "").toLocal();
 
-      final DateFormat formatter = DateFormat(
-          AppLocalizations.of(context)!.dateFormat,
-          AppLocalizations.of(context)!.localeName);
-      return formatter.format(launchDate);
+      return formatDate(context, launchDate);
     } catch (_) {}
     return AppLocalizations.of(context)!.netUnknown;
   }
