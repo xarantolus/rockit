@@ -48,7 +48,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       ),
       child: PinchZoomImage(
         image: Center(
-          child: LaunchImageWidget(widget.launch),
+          child: ImageWidget(
+            widget.launch.image,
+            heroTag: "launch-image",
+            id: widget.launch.id,
+          ),
         ),
       ),
     );

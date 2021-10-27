@@ -74,7 +74,11 @@ class _LaunchWidgetState extends State<LaunchWidget> {
         elevation: 5,
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: GridTile(
-          child: LaunchImageWidget(widget.launch),
+          child: ImageWidget(
+            widget.launch.image,
+            heroTag: "launch-image",
+            id: widget.launch.id,
+          ),
           footer: _infoBar(widget.launch),
         ),
       ),

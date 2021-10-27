@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
 
-class LaunchImageWidget extends StatefulWidget {
-  const LaunchImageWidget(this.launch, {Key? key}) : super(key: key);
+class ImageWidget extends StatefulWidget {
+  const ImageWidget(this.imageURL, {this.heroTag, this.id, Key? key})
+      : super(key: key);
 
-  final Launch launch;
+  final String? imageURL;
+  final String? heroTag;
+  final String? id;
 
   @override
-  _LaunchImageWidgetState createState() => _LaunchImageWidgetState();
+  _ImageWidgetState createState() => _ImageWidgetState();
 }
 
-class _LaunchImageWidgetState extends State<LaunchImageWidget> {
-  Widget _image(BuildContext context, Launch launch) {
-    if (launch.image != null) {
+class _ImageWidgetState extends State<ImageWidget> {
+  Widget _image(BuildContext context, String? _imageURL) {
+    if (_imageURL != null) {
       return CachedNetworkImage(
-        imageUrl: launch.image!,
+        imageUrl: _imageURL,
         fadeInDuration: const Duration(milliseconds: 125),
         fadeOutDuration: const Duration(milliseconds: 250),
         fit: BoxFit.cover,
@@ -39,8 +41,8 @@ class _LaunchImageWidgetState extends State<LaunchImageWidget> {
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: "launchimage-" + (widget.launch.id ?? "unknown"),
-      child: _image(context, widget.launch),
+      tag: (widget.heroTag ?? "unknown") + "-" + (widget.id ?? "unknown"),
+      child: _image(context, widget.imageURL),
     );
   }
 }
