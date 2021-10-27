@@ -19,10 +19,12 @@
   "noDescription": "No description",
   "unknown": "Unknown",
   "noLaunches": "There are no launches we could show here",
+  "noEvents": "There are no events we could show here",
   "noNews": "There are no articles we could show here",
 
   "launches": "Launches",
   "news": "News",
+  "events": "Events",
 
   "inThePast": "Already over!",
 
@@ -55,6 +57,12 @@
   "loadingNewsIdle": "Waiting...",
   "loadingNewsLoading": "Loading more news...",
   "loadingNewsNoMore": "You've reached the end of the list!",
+
+  "loadingEventsFail": "Failed to load. Tap to try again.",
+  "loadingEventsIdle": "Waiting...",
+  "loadingEventsLoading": "Loading more events...",
+  "loadingEventsNoMore": "You've reached the end of the list!",
+
 
   "inYourLocalTime": "in your local time",
 

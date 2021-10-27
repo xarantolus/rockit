@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:rockit/apis/api_client.dart';
+import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 
 class LaunchLibraryAPI extends APIClient {
@@ -37,5 +38,17 @@ class LaunchLibraryAPI extends APIClient {
     var decoded = jsonDecode(await fetch(uri));
 
     return UpcomingResponse.fromJson(decoded);
+  }
+
+  Future<UpcomingEventsResponse> upcomingEvents([String? next]) async {
+    var uri = next != null
+        ? Uri.parse(next)
+        : _endpoint("/event/upcoming/", {
+            "limit": "25",
+          });
+
+    var decoded = jsonDecode(await fetch(uri));
+
+    return UpcomingEventsResponse.fromJson(decoded);
   }
 }

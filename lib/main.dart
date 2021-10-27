@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
@@ -74,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
@@ -111,6 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
               text: AppLocalizations.of(context)!.launches,
             ),
             Tab(
+              icon: const Icon(Icons.event),
+              text: AppLocalizations.of(context)!.events,
+            ),
+            Tab(
               icon: const Icon(Icons.article_outlined),
               text: AppLocalizations.of(context)!.news,
             ),
@@ -119,6 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
         body: TabBarView(
           children: [
             UpcomingLaunchesPage(),
+            UpcomingEventsPage(),
             ArticleListingPage(),
           ],
         ),

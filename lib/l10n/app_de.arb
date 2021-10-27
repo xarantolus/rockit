@@ -19,10 +19,12 @@
   "noDescription": "Keine Beschreibung",
   "unknown": "Unbekannt",
   "noLaunches": "Es gibt keine Starts, die angezeigt werden können",
+  "noEvents": "Es gibt keine Ereignisse, die angezeigt werden können",
   "noNews": "Derzeit gibt es keine Artikel, die angezeigt werden können",
 
   "launches": "Starts",
   "news": "Nachrichten",
+  "events": "Ereignisse",
 
   "inThePast": "Schon vorbei!",
 
@@ -56,6 +58,11 @@
   "loadingNewsIdle": "Warten...",
   "loadingNewsLoading": "Laden weiterer Nachrichten...",
   "loadingNewsNoMore": "Du hast das Ende der Liste erreicht!",
+
+  "loadingEventsFail": "Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",
+  "loadingEventsIdle": "Warten...",
+  "loadingEventsLoading": "Laden weiterer Ereignisse...",
+  "loadingEventsNoMore": "Du hast das Ende der Liste erreicht!",
 
   "inYourLocalTime": "in deiner Zeitzone",
 
