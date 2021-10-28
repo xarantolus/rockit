@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ImageWidget extends StatefulWidget {
   const ImageWidget(this.imageURL, {this.heroTag, this.id, Key? key})
@@ -14,10 +15,18 @@ class ImageWidget extends StatefulWidget {
 }
 
 class _ImageWidgetState extends State<ImageWidget> {
+  static final _cacheManager = CacheManager(
+    Config(
+      'images',
+      stalePeriod: const Duration(days: 7),
+    ),
+  );
+
   Widget _image(BuildContext context, String? _imageURL) {
     if (_imageURL != null) {
       return CachedNetworkImage(
         imageUrl: _imageURL,
+        cacheManager: _cacheManager,
         fadeInDuration: const Duration(milliseconds: 125),
         fadeOutDuration: const Duration(milliseconds: 250),
         fit: BoxFit.cover,
