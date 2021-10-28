@@ -7,7 +7,7 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/event_countdown.dart';
 import 'package:rockit/widgets/launch.dart';
-import 'package:rockit/widgets/launch_image.dart';
+import 'package:rockit/widgets/image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class EventDetailsPage extends StatefulWidget {

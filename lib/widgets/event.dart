@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/mixins/date_format.dart';
-import 'package:rockit/widgets/launch_image.dart';
+import 'package:rockit/widgets/image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class EventWidget extends StatefulWidget {
