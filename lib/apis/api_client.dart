@@ -15,7 +15,6 @@ class APIClient {
     Config(
       _key,
       stalePeriod: const Duration(days: 3),
-      maxNrOfCacheObjects: 25,
       repo: JsonCacheInfoRepository(databaseName: _key),
       fileService: HttpFileService(),
     ),
