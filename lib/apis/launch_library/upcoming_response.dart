@@ -128,7 +128,7 @@ class Launch {
         json["mission"] == null ? null : Mission.fromJson(json["mission"]);
     pad = json["pad"] == null ? null : Pad.fromJson(json["pad"]);
 
-    infoUrls = json["infoURLs"] == []
+    infoUrls = (json["infoURLs"] ?? []).isEmpty
         ? null
         : (json["infoURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
 
