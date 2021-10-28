@@ -5,16 +5,16 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 
-class CountDownWidget extends StatefulWidget {
-  const CountDownWidget(this.launch, {Key? key}) : super(key: key);
+class LaunchCountDownWidget extends StatefulWidget {
+  const LaunchCountDownWidget(this.launch, {Key? key}) : super(key: key);
 
   final Launch launch;
 
   @override
-  _CountDownWidgetState createState() => _CountDownWidgetState();
+  _LaunchCountDownWidgetState createState() => _LaunchCountDownWidgetState();
 }
 
-class _CountDownWidgetState extends State<CountDownWidget> with DateFormatter {
+class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget> with DateFormatter {
   late Timer _timer;
 
   late DateTime? net;

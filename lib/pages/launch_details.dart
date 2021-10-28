@@ -7,7 +7,7 @@ import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/article.dart';
-import 'package:rockit/widgets/countdown.dart';
+import 'package:rockit/widgets/launch_countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/widgets/ripple_link.dart';
@@ -413,7 +413,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             // The countdown should always be displayed
             const Divider(),
-            CountDownWidget(widget.launch),
+            LaunchCountDownWidget(widget.launch),
 
             // Just like the general info table
             const Divider(),
