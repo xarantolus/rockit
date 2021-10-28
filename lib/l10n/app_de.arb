@@ -10,6 +10,9 @@
   "launchIsOn": "Der Start ist am",
   "windowIsOn": "Das Startfenster startet am",
 
+  "eventIsIn": "Dieses Event ist in",
+  "eventIsOn": "Dieses Event ist am",
+
   "launchMightBeIn": "Der Start könnte erfolgen in",
   "launchMightBeOn": "Der Start könnte erfolgen am",
 

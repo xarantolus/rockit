@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/time_diff.dart';
 
 class LaunchCountDownWidget extends StatefulWidget {
   const LaunchCountDownWidget(this.launch, {Key? key}) : super(key: key);
@@ -14,7 +15,8 @@ class LaunchCountDownWidget extends StatefulWidget {
   _LaunchCountDownWidgetState createState() => _LaunchCountDownWidgetState();
 }
 
-class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget> with DateFormatter {
+class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
+    with DateFormatter, TimeDiff {
   late Timer _timer;
 
   late DateTime? net;
@@ -41,35 +43,6 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget> with Date
   void dispose() {
     _timer.cancel();
     super.dispose();
-  }
-
-  Duration timeDiff(DateTime date) {
-    final now = DateTime.now().toUtc();
-
-    return date.toUtc().difference(now);
-  }
-
-  String formatTimeDiff(Duration d) {
-    if (d.isNegative) {
-      return AppLocalizations.of(context)!.inThePast;
-    }
-
-    var prefix = "";
-
-    if (d.inDays == 1) {
-      prefix = AppLocalizations.of(context)!.oneDay + ", ";
-    } else if (d.inDays > 1) {
-      prefix = "${d.inDays} ${AppLocalizations.of(context)!.days}, ";
-    }
-
-    String twoDigits(int d) {
-      if (d < 10) {
-        return "0$d";
-      }
-      return "$d";
-    }
-
-    return "$prefix${d.inHours % 24}:${twoDigits(d.inMinutes % 60)}:${twoDigits(d.inSeconds % 60)}";
   }
 
   @override
@@ -104,7 +77,7 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget> with Date
         textAbove = AppLocalizations.of(context)!.windowIsIn;
       }
 
-      dateText = formatTimeDiff(timeUntil);
+      dateText = formatTimeDiff(context, timeUntil);
       additionalNote = formatDateTimeLocal(context, displayedDate);
     } else {
       if (net != null) {

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
+import 'package:rockit/widgets/event_countdown.dart';
 import 'package:rockit/widgets/launch_image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -16,6 +17,52 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
+  static const titleStyle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
+
+  static const tableDescriptionStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+  );
+  static const tableTextStyle = TextStyle(
+    fontSize: 16,
+  );
+
+  static const textStyle = TextStyle(
+    fontSize: 16,
+  );
+
+  Widget _missionDetails(BuildContext context, Event e) {
+    return ListTile(
+      title: Center(
+        child: Text(
+          e.name ?? AppLocalizations.of(context)!.unknown,
+          style: titleStyle,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      subtitle: Text(
+        e.description ?? AppLocalizations.of(context)!.noDescription,
+        softWrap: true,
+        style: textStyle.copyWith(
+          color: Theme.of(context).textTheme.bodyText2!.color,
+        ),
+      ),
+    );
+  }
+
+  Widget _reducedMissionDetails(BuildContext context, Event e) {
+    return Center(
+      child: Text(
+        e.name ?? AppLocalizations.of(context)!.unknown,
+        textAlign: TextAlign.center,
+        style: titleStyle,
+      ),
+    );
+  }
+
   Widget _zoomableImage() {
     return Container(
       constraints: BoxConstraints(
@@ -47,6 +94,20 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             if (widget.event.featureImage != null) ...[
               _zoomableImage(),
             ],
+            ...[
+              const Divider(),
+              if (widget.event.description == null)
+                _reducedMissionDetails(context, widget.event)
+              else
+                _missionDetails(context, widget.event)
+            ],
+
+            // TODO: Add a countdown
+
+            if (widget.event.date != null) ...[
+              const Divider(),
+              EventCountDownWidget(widget.event),
+            ]
           ],
         ),
       ),
