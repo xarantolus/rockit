@@ -12,6 +12,14 @@ void main() async {
   if (!kDebugMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Allow a bit more render image cache, this makes images reload less
+  // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.
+  // See https://github.com/flutter/flutter/issues/68700 for more details
+  PaintingBinding.instance!.imageCache!.maximumSizeBytes = 300 << 20;
+
   runApp(const RockItApp());
 }
 

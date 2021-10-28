@@ -14,7 +14,11 @@ class ImageWidget extends StatefulWidget {
   _ImageWidgetState createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends State<ImageWidget> {
+class _ImageWidgetState extends State<ImageWidget>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   static final _cacheManager = CacheManager(
     Config(
       'images',
@@ -49,6 +53,8 @@ class _ImageWidgetState extends State<ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final launchImage = _image(context, widget.imageURL);
 
     // This prevents having multiple "unknown-unknown" hero tags, which crash the app
