@@ -10,8 +10,11 @@
   "launchIsOn": "Der Start ist am",
   "windowIsOn": "Das Startfenster startet am",
 
+  "launchWasOn": "Dieser Start war am",
+
   "eventIsIn": "Dieses Event ist in",
   "eventIsOn": "Dieses Event ist am",
+  "eventWasOn": "Dieses Event war am",
 
   "launchMightBeIn": "Der Start könnte erfolgen in",
   "launchMightBeOn": "Der Start könnte erfolgen am",
@@ -19,17 +22,17 @@
   "oneDay": "Ein Tag",
   "days": "Tagen",
   "unknownLaunch": "Unbekannter Start",
-  "unknownEvent": "Unbekanntes Ereignis",
+  "unknownEvent": "Unbekanntes Event",
   "noDescription": "Keine Beschreibung",
   "unknown": "Unbekannt",
   "noLaunches": "Es gibt keine Starts, die angezeigt werden können",
-  "noEvents": "Es gibt keine Ereignisse, die angezeigt werden können",
+  "noEvents": "Es gibt keine Events, die angezeigt werden können",
   "noNews": "Derzeit gibt es keine Artikel, die angezeigt werden können",
 
   "launches": "Starts",
   "launch": "Start",
   "news": "Nachrichten",
-  "events": "Ereignisse",
+  "events": "Events",
 
   "station": "Raumstation",
   "stations": "Raumstationen",
@@ -72,7 +75,7 @@
 
   "loadingEventsFail": "Laden fehlgeschlagen. Tippe, um es nochmal zu versuchen.",
   "loadingEventsIdle": "Warten...",
-  "loadingEventsLoading": "Laden weiterer Ereignisse...",
+  "loadingEventsLoading": "Laden weiterer Events...",
   "loadingEventsNoMore": "Du hast das Ende der Liste erreicht!",
 
   "inYourLocalTime": "in deiner Zeitzone",

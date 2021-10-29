@@ -68,7 +68,10 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
     // If there's no official Go for launch time, it's speculation
     final timeIsSpeculation = (widget.launch.status?.abbrev != "Go");
 
-    if (timeUntil < const Duration(days: 7) || forceCountdown) {
+    if (timeUntil.isNegative) {
+      textAbove = AppLocalizations.of(context)!.launchWasOn;
+      dateText = formatDateTimeLocal(context, displayedDate);
+    } else if (timeUntil < const Duration(days: 7) || forceCountdown) {
       if (net != null) {
         textAbove = timeIsSpeculation
             ? AppLocalizations.of(context)!.launchMightBeIn
@@ -100,12 +103,12 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
       },
       child: Column(
         children: [
-          if (!timeUntil.isNegative) Text(textAbove),
+          if (textAbove.isNotEmpty) Text(textAbove),
           Text(
             dateText,
             style: bigTextStyle,
           ),
-          if (!timeUntil.isNegative) Text(additionalNote),
+          if (additionalNote.isNotEmpty) Text(additionalNote),
         ],
       ),
     );

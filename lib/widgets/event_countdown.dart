@@ -46,7 +46,10 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
     final date = widget.event.date!;
 
     var timeUntil = timeDiff(date);
-    if (timeUntil < const Duration(days: 7) || forceCountdown) {
+    if (timeUntil.isNegative) {
+      textAbove = AppLocalizations.of(context)!.eventWasOn;
+      dateText = formatDateTimeLocal(context, date);
+    } else if (timeUntil < const Duration(days: 7) || forceCountdown) {
       textAbove = AppLocalizations.of(context)!.eventIsIn;
 
       dateText = formatTimeDiff(context, timeUntil);
@@ -66,12 +69,12 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
       },
       child: Column(
         children: [
-          if (!timeUntil.isNegative) Text(textAbove),
+          if (textAbove.isNotEmpty) Text(textAbove),
           Text(
             dateText,
             style: bigTextStyle,
           ),
-          if (!timeUntil.isNegative) Text(additionalNote),
+          if (additionalNote.isNotEmpty) Text(additionalNote),
         ],
       ),
     );
