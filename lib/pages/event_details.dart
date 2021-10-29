@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/event_countdown.dart';
 import 'package:rockit/widgets/launch.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsPage extends StatefulWidget {
   const EventDetailsPage(this.event, {Key? key}) : super(key: key);
@@ -20,7 +22,7 @@ class EventDetailsPage extends StatefulWidget {
   _EventDetailsPageState createState() => _EventDetailsPageState();
 }
 
-class _EventDetailsPageState extends State<EventDetailsPage> {
+class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -38,7 +40,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     fontSize: 16,
   );
 
-  Widget _missionDetails(BuildContext context, Event e) {
+  Widget _eventDetails(BuildContext context, Event e) {
     return ListTile(
       title: Center(
         child: Text(
@@ -57,7 +59,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     );
   }
 
-  Widget _reducedMissionDetails(BuildContext context, Event e) {
+  Widget _reducedEventDetails(BuildContext context, Event e) {
     return Center(
       child: Text(
         e.name ?? AppLocalizations.of(context)!.unknown,
@@ -137,6 +139,21 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     );
   }
 
+  Widget _openURLButton(
+      IconData icon, String text, bool customTab, String url) {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        if (customTab) {
+          await openCustomTab(context, url);
+        } else {
+          await launch(url);
+        }
+      },
+      icon: Icon(icon),
+      label: Text(text),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,9 +174,23 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             ...[
               const Divider(),
               if (widget.event.description == null)
-                _reducedMissionDetails(context, widget.event)
+                _reducedEventDetails(context, widget.event)
               else
-                _missionDetails(context, widget.event)
+                _eventDetails(context, widget.event),
+              if (widget.event.videoUrl != null)
+                _openURLButton(
+                  Icons.play_arrow,
+                  AppLocalizations.of(context)!.watchVideo,
+                  false,
+                  widget.event.videoUrl!,
+                ),
+              if (widget.event.newsUrl != null)
+                _openURLButton(
+                  Icons.open_in_browser,
+                  AppLocalizations.of(context)!.openArticle,
+                  true,
+                  widget.event.newsUrl!,
+                ),
             ],
 
             // Show a countdown
