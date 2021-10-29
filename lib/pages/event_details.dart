@@ -78,8 +78,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
         image: Center(
           child: ImageWidget(
             widget.event.featureImage,
-            heroTag: "launch-image",
             id: "${widget.event.id}",
+            heroTag: "event",
           ),
         ),
       ),
@@ -106,7 +106,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
           : AppLocalizations.of(context)!.launches,
       launches.map((l) {
         return GestureDetector(
-          child: LaunchWidget(l),
+          child: LaunchWidget(l, hero: false),
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(

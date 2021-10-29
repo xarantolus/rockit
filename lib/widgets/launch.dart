@@ -2,15 +2,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
-import 'package:intl/intl.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LaunchWidget extends StatefulWidget {
-  const LaunchWidget(this.launch, {Key? key}) : super(key: key);
+  const LaunchWidget(this.launch, {this.hero = true, Key? key})
+      : super(key: key);
 
   final Launch launch;
+  final bool hero;
 
   static double calculateHeight(BuildContext context) {
     return max(MediaQuery.of(context).size.height / 3, 250);
@@ -74,7 +75,7 @@ class _LaunchWidgetState extends State<LaunchWidget> with DateFormatter {
         child: GridTile(
           child: ImageWidget(
             widget.launch.image,
-            heroTag: "launch-image",
+            heroTag: widget.hero ? "launch-image" : null,
             id: widget.launch.id,
           ),
           footer: _infoBar(widget.launch),
