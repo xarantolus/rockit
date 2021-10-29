@@ -106,7 +106,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
           : AppLocalizations.of(context)!.launches,
       launches.map((l) {
         return GestureDetector(
-          child: LaunchWidget(l, hero: false),
+          child: LaunchWidget(l),
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(
