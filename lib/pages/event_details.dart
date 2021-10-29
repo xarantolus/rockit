@@ -5,6 +5,7 @@ import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/event_countdown.dart';
 import 'package:rockit/widgets/launch.dart';
 import 'package:rockit/widgets/image.dart';
@@ -83,18 +84,25 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     );
   }
 
-  List<Widget> _renderLaunches(List<Launch> launches) {
+  List<Widget> _titledList(String title, Iterable<Widget> widgets) {
     return [
       Padding(
         padding: const EdgeInsets.all(8.0),
         child: Text(
-          launches.length == 1
-              ? AppLocalizations.of(context)!.launch
-              : AppLocalizations.of(context)!.launches,
+          title,
           style: titleStyle,
         ),
       ),
-      ...launches.map((l) {
+      ...widgets,
+    ];
+  }
+
+  List<Widget> _renderLaunches(List<Launch> launches) {
+    return _titledList(
+      launches.length == 1
+          ? AppLocalizations.of(context)!.launch
+          : AppLocalizations.of(context)!.launches,
+      launches.map((l) {
         return GestureDetector(
           child: LaunchWidget(l),
           onTap: () async {
@@ -106,7 +114,27 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           },
         );
       }),
-    ];
+    );
+  }
+
+  List<Widget> _renderSpaceStations(List<Spacestation> stations) {
+    return _titledList(
+      stations.length == 1
+          ? AppLocalizations.of(context)!.station
+          : AppLocalizations.of(context)!.stations,
+      stations.map(
+        (station) {
+          // Yes, reusing the article card widget here is a bit weird,
+          // especially because we don't have a link, but it works
+          return ArticleCardWidget(
+            title: station.name,
+            summary: station.description,
+            imageUrl: station.imageUrl,
+            newsSite: station.orbit,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -145,7 +173,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               ..._renderLaunches(widget.event.launches!),
             ],
 
-            // TODO: SpaceStations, Video+News URL
+            if ((widget.event.spacestations ?? []).isNotEmpty) ...[
+              const Divider(),
+              ..._renderSpaceStations(widget.event.spacestations!)
+            ],
           ],
         ),
       ),
