@@ -2,7 +2,6 @@ name: Build for Android
 
 on:
   push:
-    branches: [ main ]
 
 jobs:
   build:
@@ -10,19 +9,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out repo
+        uses: actions/checkout@v2
       
-      - uses: actions/setup-java@v1
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '12.x'
       
-      - uses: subosito/flutter-action@v1
+      - name: Install flutter
+        uses: subosito/flutter-action@v1
           
-      - run: flutter pub get
+      - name: Install app dependencies (flutter pub get)
+        run: flutter pub get
       
-      # - run: flutter test
+      - name: Run tests
+        run: flutter test
 
-      - name: Extract env variables
+      - name: Extract app variables to workflow env
         run: |
             sudo wget -q "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" -O "/usr/bin/yq"
             sudo chmod +x /usr/bin/yq
@@ -39,9 +43,13 @@ jobs:
 
           echo "${{ secrets.SIGNING_PROPERTIES_CONTENT }}" > android/key.properties
 
-      - run: flutter build apk --release
+      - name: Build signed APK
+        run: flutter build apk --release
         env:
           X_KEYSTORE_PATH: ${{ env.X_KEYSTORE_PATH }}
+
+      - name: Show APK hashes
+        run: find build/app/outputs -type f -name "*.apk" | xargs -L1 sha256sum
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
