@@ -21,4 +21,8 @@ class BackgroundHandler {
   Future<bool> callback(String task, Map<String, dynamic>? inputData) {
     return Future.value(true);
   }
+
+  // TODO: Register notifications for a rocket launch (maybe only register if the first launch http request was successful, to make sure it was cached?)
+
+  // TODO: Periodically update rocket launch update time intervals, then cancel all other registered tasks (using a tag for each launch)
 }
