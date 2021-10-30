@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:rockit/background/handler.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
   // Disable debug print messages when not in debug mode
@@ -14,6 +16,21 @@ void main() async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize background tasks
+  Workmanager().initialize(
+    backgroundTaskCallback,
+    isInDebugMode: kDebugMode,
+  );
+
+  Workmanager().registerOneOffTask(
+    "test",
+    "bgtask",
+    inputData: <String, dynamic>{
+      "type": "launch-subscription",
+      "launchId": "asdf-asdfasdf-asdfasdf",
+    },
+  );
 
   // Allow a bit more render image cache, this makes images reload less
   // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.
