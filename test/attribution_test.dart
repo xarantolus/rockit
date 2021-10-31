@@ -1,6 +1,6 @@
 // Import the test package and Counter class
-import 'package:test/test.dart';
 import 'package:rockit/mixins/attribution.dart';
+import 'package:test/test.dart';
 
 class SourceAttributionTest with SourceAttribution {}
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
@@ -8,9 +9,8 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/event_countdown.dart';
-import 'package:rockit/widgets/launch.dart';
 import 'package:rockit/widgets/image.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/widgets/launch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsPage extends StatefulWidget {

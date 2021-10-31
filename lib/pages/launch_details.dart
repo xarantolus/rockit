@@ -1,15 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/article.dart';
-import 'package:rockit/widgets/launch_countdown.dart';
 import 'package:rockit/widgets/image.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/widgets/launch_countdown.dart';
 import 'package:rockit/widgets/ripple_link.dart';
 
 class LaunchDetailsPage extends StatefulWidget {

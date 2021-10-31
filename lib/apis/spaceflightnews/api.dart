@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 
@@ -26,7 +24,7 @@ class SpaceFlightNewsAPI extends APIClient {
 
     var uri = _endpoint("/articles", query);
 
-    var list = jsonDecode(await fetch(uri)) as List<dynamic>;
+    var list = await fetchJSON(uri) as List<dynamic>;
 
     return list.map((e) => Article.fromJson(e)).toList();
   }
