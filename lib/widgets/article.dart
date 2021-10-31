@@ -72,6 +72,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                 ? const EdgeInsets.only(bottom: 8)
                 : EdgeInsets.zero,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -81,6 +82,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
                 if ((widget.imageUrl ?? "").isNotEmpty)
