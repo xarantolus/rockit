@@ -35,9 +35,7 @@ class LaunchLibraryAPI extends APIClient {
             "related": "false",
           });
 
-    var decoded = jsonDecode(await fetch(uri));
-
-    return UpcomingResponse.fromJson(decoded);
+    return UpcomingResponse.fromJson(await fetchJSON(uri));
   }
 
   Future<UpcomingEventsResponse> upcomingEvents([String? next]) async {
@@ -47,8 +45,20 @@ class LaunchLibraryAPI extends APIClient {
             "limit": "25",
           });
 
+    return UpcomingEventsResponse.fromJson(await fetchJSON(uri));
+  }
+
+  Future<Launch> launch(String id) async {
+    var uri = _endpoint("/launch/" + id, {});
+
     var decoded = jsonDecode(await fetch(uri));
 
-    return UpcomingEventsResponse.fromJson(decoded);
+    return Launch.fromJson(decoded);
+  }
+
+  Future<Event> event(int id) async {
+    var uri = _endpoint("/event/$id", {});
+
+    return Event.fromJson(await fetchJSON(uri));
   }
 }

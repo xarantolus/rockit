@@ -20,6 +20,10 @@ class APIClient {
     ),
   );
 
+  Future<dynamic> fetchJSON(Uri url) async {
+    return jsonDecode(await fetch(url));
+  }
+
   Future<String> fetch(Uri url) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
 

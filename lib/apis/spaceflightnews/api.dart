@@ -26,7 +26,7 @@ class SpaceFlightNewsAPI extends APIClient {
 
     var uri = _endpoint("/articles", query);
 
-    var list = jsonDecode(await fetch(uri)) as List<dynamic>;
+    var list = await fetchJSON(uri) as List<dynamic>;
 
     return list.map((e) => Article.fromJson(e)).toList();
   }
