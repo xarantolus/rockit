@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/widgets/event.dart';
-import 'package:loadmore/loadmore.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UpcomingEventsPage extends StatefulWidget {
   UpcomingEventsPage({Key? key}) : super(key: key);

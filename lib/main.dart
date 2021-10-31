@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:rockit/pages/upcoming_events_listing.dart';
-import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
+import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 
 void main() async {
   // Disable debug print messages when not in debug mode

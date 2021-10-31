@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/time_diff.dart';
 

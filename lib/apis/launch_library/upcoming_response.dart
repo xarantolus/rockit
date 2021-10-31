@@ -16,7 +16,7 @@ class UpcomingResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["count"] = count;
     data["next"] = next;
     data["previous"] = previous;
@@ -155,7 +155,7 @@ class Launch {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["slug"] = slug;
@@ -164,8 +164,9 @@ class Launch {
     data["name"] = name;
     if (status != null) data["status"] = status?.toJson();
     data["last_updated"] = lastUpdated;
-    if (updates != null)
+    if (updates != null) {
       data["updates"] = updates?.map((e) => e.toJson()).toList();
+    }
     data["net"] = net;
     data["window_end"] = windowEnd;
     data["window_start"] = windowStart;
@@ -173,8 +174,9 @@ class Launch {
     data["holdreason"] = holdreason;
     data["failreason"] = failreason;
     data["hashtag"] = hashtag;
-    if (launchServiceProvider != null)
+    if (launchServiceProvider != null) {
       data["launch_service_provider"] = launchServiceProvider?.toJson();
+    }
     if (rocket != null) data["rocket"] = rocket?.toJson();
     if (mission != null) data["mission"] = mission?.toJson();
     if (pad != null) data["pad"] = pad?.toJson();
@@ -192,8 +194,9 @@ class Launch {
     data["location_launch_attempt_count_year"] = locationLaunchAttemptCountYear;
     data["pad_launch_attempt_count_year"] = padLaunchAttemptCountYear;
     data["agency_launch_attempt_count_year"] = agencyLaunchAttemptCountYear;
-    if (missionPatches != null)
+    if (missionPatches != null) {
       data["mission_patches"] = missionPatches?.map((e) => e.toJson()).toList();
+    }
     return data;
   }
 }
@@ -216,7 +219,7 @@ class MissionPatch {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["name"] = name;
     data["priority"] = priority;
@@ -242,7 +245,7 @@ class Agency {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["name"] = name;
@@ -296,7 +299,7 @@ class Pad {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["agency_id"] = agencyId;
@@ -342,7 +345,7 @@ class Location {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["name"] = name;
@@ -374,7 +377,7 @@ class Mission {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["name"] = name;
     data["description"] = description;
@@ -399,7 +402,7 @@ class Orbit {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["name"] = name;
     data["abbrev"] = abbrev;
@@ -425,7 +428,7 @@ class Rocket {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     if (configuration != null) data["configuration"] = configuration?.toJson();
     if (launcherStage != null) data["launcher_stage"] = launcherStage;
@@ -534,7 +537,7 @@ class Configuration {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["name"] = name;
@@ -658,7 +661,7 @@ class Manufacturer {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["name"] = name;
@@ -779,7 +782,7 @@ class LaunchServiceProvider {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["url"] = url;
     data["name"] = name;
@@ -831,7 +834,7 @@ class Update {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["profile_image"] = profileImage;
     data["comment"] = comment;
@@ -858,7 +861,7 @@ class Status {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     data["name"] = name;
     data["abbrev"] = abbrev;

@@ -15,9 +15,9 @@ class UpcomingEventsResponse {
 
   factory UpcomingEventsResponse.fromJson(Map<String, dynamic> json) {
     return UpcomingEventsResponse(
-      count: json["count"] == null ? null : json["count"],
-      next: json["next"] == null ? null : json["next"],
-      previous: json["previous"] == null ? null : json["previous"],
+      count: json["count"],
+      next: json["next"],
+      previous: json["previous"],
       results: json["results"] == null
           ? null
           : List<Event>.from(json["results"].map((x) => Event.fromJson(x))),
@@ -64,20 +64,19 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      slug: json["slug"] == null ? null : json["slug"],
-      name: json["name"] == null ? null : json["name"],
+      id: json["id"],
+      url: json["url"],
+      slug: json["slug"],
+      name: json["name"],
       updates: json["updates"] == null
           ? null
           : List<dynamic>.from(json["updates"].map((x) => x)),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
-      description: json["description"] == null ? null : json["description"],
-      location: json["location"] == null ? null : json["location"],
-      newsUrl: json["news_url"] == null ? null : json["news_url"],
-      videoUrl: json["video_url"] == null ? null : json["video_url"],
-      featureImage:
-          json["feature_image"] == null ? null : json["feature_image"],
+      description: json["description"],
+      location: json["location"],
+      newsUrl: json["news_url"],
+      videoUrl: json["video_url"],
+      featureImage: json["feature_image"],
       date: json["date"] == null ? null : DateTime.parse(json["date"]),
       launches: json["launches"] == null
           ? null
@@ -118,9 +117,9 @@ class Expedition {
 
   factory Expedition.fromJson(Map<String, dynamic> json) {
     return Expedition(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      name: json["name"] == null ? null : json["name"],
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
       start: json["start"] == null ? null : DateTime.parse(json["start"]),
       end: json["end"] == null ? null : DateTime.parse(json["end"]),
       spacestation: json["spacestation"] == null
@@ -151,10 +150,10 @@ class MissionPatch {
 
   factory MissionPatch.fromJson(Map<String, dynamic> json) {
     return MissionPatch(
-      id: json["id"] == null ? null : json["id"],
-      name: json["name"] == null ? null : json["name"],
-      priority: json["priority"] == null ? null : json["priority"],
-      imageUrl: json["image_url"] == null ? null : json["image_url"],
+      id: json["id"],
+      name: json["name"],
+      priority: json["priority"],
+      imageUrl: json["image_url"],
       agency: json["agency"] == null
           ? null
           : LaunchServiceProvider.fromJson(json["agency"]),
@@ -177,10 +176,10 @@ class LaunchServiceProvider {
 
   factory LaunchServiceProvider.fromJson(Map<String, dynamic> json) {
     return LaunchServiceProvider(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      name: json["name"] == null ? null : json["name"],
-      type: json["type"] == null ? null : json["type"],
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
+      type: json["type"],
     );
   }
 }
@@ -208,14 +207,14 @@ class Spacestation {
 
   factory Spacestation.fromJson(Map<String, dynamic> json) {
     return Spacestation(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      name: json["name"] == null ? null : json["name"],
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
       status: json["status"] == null ? null : Type.fromJson(json["status"]),
-      orbit: json["orbit"] == null ? null : json["orbit"],
-      imageUrl: json["image_url"] == null ? null : json["image_url"],
+      orbit: json["orbit"],
+      imageUrl: json["image_url"],
       founded: json["founded"] == null ? null : DateTime.parse(json["founded"]),
-      description: json["description"] == null ? null : json["description"],
+      description: json["description"],
     );
   }
 }
@@ -231,8 +230,8 @@ class Type {
 
   factory Type.fromJson(Map<String, dynamic> json) {
     return Type(
-      id: json["id"] == null ? null : json["id"],
-      name: json["name"] == null ? null : json["name"],
+      id: json["id"],
+      name: json["name"],
     );
   }
 }
@@ -258,17 +257,13 @@ class Location {
 
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      name: json["name"] == null ? null : json["name"],
-      countryCode: json["country_code"] == null ? null : json["country_code"],
-      mapImage: json["map_image"] == null ? null : json["map_image"],
-      totalLaunchCount: json["total_launch_count"] == null
-          ? null
-          : json["total_launch_count"],
-      totalLandingCount: json["total_landing_count"] == null
-          ? null
-          : json["total_landing_count"],
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
+      countryCode: json["country_code"],
+      mapImage: json["map_image"],
+      totalLaunchCount: json["total_launch_count"],
+      totalLandingCount: json["total_landing_count"],
     );
   }
 }
@@ -302,21 +297,21 @@ class Program {
 
   factory Program.fromJson(Map<String, dynamic> json) {
     return Program(
-      id: json["id"] == null ? null : json["id"],
-      url: json["url"] == null ? null : json["url"],
-      name: json["name"] == null ? null : json["name"],
-      description: json["description"] == null ? null : json["description"],
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
+      description: json["description"],
       agencies: json["agencies"] == null
           ? null
           : List<LaunchServiceProvider>.from(
               json["agencies"].map((x) => LaunchServiceProvider.fromJson(x))),
-      imageUrl: json["image_url"] == null ? null : json["image_url"],
+      imageUrl: json["image_url"],
       startDate: json["start_date"] == null
           ? null
           : DateTime.parse(json["start_date"]),
       endDate: json["end_date"],
-      infoUrl: json["info_url"] == null ? null : json["info_url"],
-      wikiUrl: json["wiki_url"] == null ? null : json["wiki_url"],
+      infoUrl: json["info_url"],
+      wikiUrl: json["wiki_url"],
       missionPatches: json["mission_patches"] == null
           ? null
           : List<dynamic>.from(json["mission_patches"].map((x) => x)),

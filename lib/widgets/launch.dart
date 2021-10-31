@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/image.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LaunchWidget extends StatefulWidget {
   const LaunchWidget(this.launch, {Key? key}) : super(key: key);

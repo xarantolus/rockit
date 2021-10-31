@@ -27,18 +27,18 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
-      id: json["id"] == null ? null : json["id"],
-      title: json["title"] == null ? null : json["title"],
-      url: json["url"] == null ? null : json["url"],
-      imageUrl: json["imageUrl"] == null ? null : json["imageUrl"],
-      newsSite: json["newsSite"] == null ? null : json["newsSite"],
-      summary: json["summary"] == null ? null : json["summary"],
+      id: json["id"],
+      title: json["title"],
+      url: json["url"],
+      imageUrl: json["imageUrl"],
+      newsSite: json["newsSite"],
+      summary: json["summary"],
       publishedAt: json["publishedAt"] == null
           ? null
           : DateTime.parse(json["publishedAt"]),
       updatedAt:
           json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-      featured: json["featured"] == null ? null : json["featured"],
+      featured: json["featured"],
       launches: json["launches"] == null
           ? null
           : List<LaunchInfo>.from(
@@ -61,8 +61,8 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
-      id: json["id"] == null ? null : json["id"],
-      provider: json["provider"] == null ? null : json["provider"],
+      id: json["id"],
+      provider: json["provider"],
     );
   }
 }
@@ -78,8 +78,8 @@ class LaunchInfo {
 
   factory LaunchInfo.fromJson(Map<String, dynamic> json) {
     return LaunchInfo(
-      id: json["id"] == null ? null : json["id"],
-      provider: json["provider"] == null ? null : json["provider"],
+      id: json["id"],
+      provider: json["provider"],
     );
   }
 }
