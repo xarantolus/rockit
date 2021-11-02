@@ -70,14 +70,15 @@ class BackgroundHandler {
       return true;
     }
 
+    final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
 
     // Now we can just register all notifications for this launch
 
     var x = (await NotificationHandler.create()).notifs;
 
-    x.show(31, "Background task", "Running background notif scheduler",
-        _getNotifDetails(tag));
+    x.show(31, "Background task for $launchTitle",
+        "Running background notif scheduler", _getNotifDetails(tag));
 
     // Cancel all previously registered ones
     try {
@@ -89,8 +90,8 @@ class BackgroundHandler {
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
 
-      x.show(32, "Background task", "Cancelled notif scheduler",
-          _getNotifDetails(tag));
+      x.show(32, "Background task for $launchTitle",
+          "Cancelled notif scheduler", _getNotifDetails(tag));
 
       Workmanager().cancelByTag("update:launch:slow:$launchId");
       return true;
@@ -106,8 +107,6 @@ class BackgroundHandler {
         launchTime.second,
         launchTime.millisecond,
         launchTime.microsecond);
-
-    final launchTitle = launch.name ?? "Unknown";
 
     x.zonedSchedule(
       1,
@@ -142,7 +141,7 @@ class BackgroundHandler {
       androidAllowWhileIdle: true,
     );
 
-    x.show(33, "Background task", "Rescheduled notifications",
+    x.show(33, "Background task for $launchTitle", "Rescheduled notifications",
         _getNotifDetails(tag));
 
     return true;
