@@ -22,12 +22,4 @@ class NotificationHandler {
 
     return NotificationHandler._create(localNotifs);
   }
-
-  void clearAllForTag(String tag) {
-    // _localNotifs.
-  }
-
-  void createNotification() {
-    // _localNotifs.zonedSchedule(id, title, body, scheduledDate, notificationDetails, uiLocalNotificationDateInterpretation: uiLocalNotificationDateInterpretation, androidAllowWhileIdle: androidAllowWhileIdle)
-  }
 }
