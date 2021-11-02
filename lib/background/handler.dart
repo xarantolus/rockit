@@ -80,11 +80,26 @@ class BackgroundHandler {
     x.show(31, "Background task for $launchTitle",
         "Running background notif scheduler", _getNotifDetails(tag));
 
+    const notificationSettings = [
+      <String, dynamic>{
+        "offset": Duration(hours: -1),
+        "displayed": "one hour",
+      },
+      {
+        "offset": Duration(minutes: -15),
+        "displayed": "15 minutes",
+      },
+      {
+        "offset": Duration(minutes: -5),
+        "displayed": "5 minutes",
+      },
+    ];
+
     // Cancel all previously registered ones
     try {
-      x.cancel(1, tag: tag);
-      x.cancel(2, tag: tag);
-      x.cancel(3, tag: tag);
+      for (var i = 0; i < notificationSettings.length; i++) {
+        x.cancel(i, tag: tag);
+      }
     } catch (_) {}
 
     if (launchTime.isBefore(DateTime.now())) {
@@ -108,38 +123,20 @@ class BackgroundHandler {
         launchTime.millisecond,
         launchTime.microsecond);
 
-    x.zonedSchedule(
-      1,
-      launchTitle,
-      "This start will be in 1h",
-      notifBaseTime.add(const Duration(hours: -1)),
-      _getNotifDetails(tag),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
-    );
-
-    x.zonedSchedule(
-      2,
-      launchTitle,
-      "This start will be in 15 minutes",
-      notifBaseTime.add(const Duration(minutes: 15)),
-      _getNotifDetails(tag),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
-    );
-
-    x.zonedSchedule(
-      3,
-      launchTitle,
-      "This start will be in 5 minutes",
-      notifBaseTime.add(const Duration(minutes: 5)),
-      _getNotifDetails(tag),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
-    );
+    // Register notifications with their offsets
+    for (var i = 0; i < notificationSettings.length; i++) {
+      Duration offset = notificationSettings[i]['displayed'];
+      x.zonedSchedule(
+        i,
+        launchTitle,
+        "This start will be in ${notificationSettings[i]['displayed']}",
+        notifBaseTime.add(offset),
+        _getNotifDetails(tag),
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidAllowWhileIdle: true,
+      );
+    }
 
     x.show(33, "Background task for $launchTitle", "Rescheduled notifications",
         _getNotifDetails(tag));
