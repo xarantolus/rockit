@@ -44,6 +44,7 @@ dependencies:
   workmanager: ^0.4.1
   shared_preferences: ^2.0.8
   flutter_local_notifications: ^9.0.2
+  timezone: ^0.8.0
   
 
 dev_dependencies:

@@ -60,6 +60,8 @@
 
   "likeStartTime" : "like start time",
 
+  "launchSubscribe": "Receive notifications",
+
   "netUnknown": "NET Unknown",
 
   "loadingLaunchFail": "Failed to load. Tap to try again.",
