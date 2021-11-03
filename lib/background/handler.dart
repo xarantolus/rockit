@@ -123,14 +123,20 @@ class BackgroundHandler {
         launchTime.millisecond,
         launchTime.microsecond);
 
+    var now = DateTime.now();
     // Register notifications with their offsets
     for (var i = 0; i < notificationSettings.length; i++) {
       Duration offset = notificationSettings[i]['displayed'];
+      var notifTime = notifBaseTime.add(offset);
+      if (notifTime.isBefore(now)) {
+        continue;
+      }
+
       x.zonedSchedule(
         i,
         launchTitle,
         "This start will be in ${notificationSettings[i]['displayed']}",
-        notifBaseTime.add(offset),
+        notifTime,
         _getNotifDetails(tag),
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
