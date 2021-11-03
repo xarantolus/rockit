@@ -15,6 +15,13 @@ void backgroundTaskCallback() {
   });
 }
 
+class _NotifSetting {
+  final Duration offset;
+  final String displayed;
+
+  const _NotifSetting(this.offset, this.displayed);
+}
+
 class BackgroundHandler {
   static final instance = BackgroundHandler._internal();
   factory BackgroundHandler() {
@@ -65,50 +72,46 @@ class BackgroundHandler {
     final launchId = inputData!["launchId"]!;
     final launch = await LaunchLibraryAPI().launch(launchId);
 
-    var launchTime = DateTime.tryParse(launch.net ?? "");
-    if (launchTime == null) {
-      return true;
-    }
-
     final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
 
-    // Now we can just register all notifications for this launch
-
     var x = (await NotificationHandler.create()).notifs;
 
-    x.show(31, "Background task for $launchTitle",
+    var launchTime = DateTime.tryParse(launch.net ?? "");
+    if (launchTime == null) {
+      await x.show(35, "Background task for $launchTitle",
+          "Cannot parse launch time", _getNotifDetails(tag));
+      return true;
+    }
+
+    // Now we can just register all notifications for this launch
+
+    await x.show(31, "Background task for $launchTitle",
         "Running background notif scheduler", _getNotifDetails(tag));
 
     const notificationSettings = [
-      <String, dynamic>{
-        "offset": Duration(hours: -1),
-        "displayed": "one hour",
-      },
-      {
-        "offset": Duration(minutes: -15),
-        "displayed": "15 minutes",
-      },
-      {
-        "offset": Duration(minutes: -5),
-        "displayed": "5 minutes",
-      },
+      _NotifSetting(Duration(hours: -1), "one hour"),
+      _NotifSetting(Duration(minutes: -15), "15 minutes"),
+      _NotifSetting(Duration(minutes: -5), "5 minutes"),
     ];
 
     // Cancel all previously registered ones
     try {
       for (var i = 0; i < notificationSettings.length; i++) {
-        x.cancel(i, tag: tag);
+        await x.cancel(i, tag: tag);
       }
     } catch (_) {}
 
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
 
-      x.show(32, "Background task for $launchTitle",
+      // TODO: Only cancel if the launch time has been more than x hours ago, e.g. in case of a scrub
+      // we still want to stay subscribed
+
+      await x.show(32, "Background task for $launchTitle",
           "Cancelled notif scheduler", _getNotifDetails(tag));
 
-      Workmanager().cancelByTag("update:launch:slow:$launchId");
+      await unsubscribeFromLaunch(launchId);
       return true;
     }
 
@@ -126,16 +129,18 @@ class BackgroundHandler {
     var now = DateTime.now();
     // Register notifications with their offsets
     for (var i = 0; i < notificationSettings.length; i++) {
-      Duration offset = notificationSettings[i]['displayed'];
+      Duration offset = notificationSettings[i].offset;
       var notifTime = notifBaseTime.add(offset);
       if (notifTime.isBefore(now)) {
+        await x.show(36, "Background task for $launchTitle",
+            "$notifTime is before now", _getNotifDetails(tag));
         continue;
       }
 
-      x.zonedSchedule(
+      await x.zonedSchedule(
         i,
         launchTitle,
-        "This start will be in ${notificationSettings[i]['displayed']}",
+        "This start will be in ${notificationSettings[i].displayed}",
         notifTime,
         _getNotifDetails(tag),
         uiLocalNotificationDateInterpretation:
@@ -144,8 +149,8 @@ class BackgroundHandler {
       );
     }
 
-    x.show(33, "Background task for $launchTitle", "Rescheduled notifications",
-        _getNotifDetails(tag));
+    await x.show(33, "Background task for $launchTitle",
+        "Rescheduled notifications", _getNotifDetails(tag));
 
     return true;
   }
