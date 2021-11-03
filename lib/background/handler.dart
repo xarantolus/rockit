@@ -170,12 +170,16 @@ class BackgroundHandler {
 
   Future<void> unsubscribeFromLaunch(String launchId) async {
     // Unsubscribe the recurring task
-    await Workmanager().cancelByUniqueName("update:launch:$launchId");
+    await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));
 
     // Remove from saved launches
     var markedLaunches = await _loadIDs(launchesKey);
     markedLaunches.remove(launchId);
     await _saveIDs(launchesKey, markedLaunches);
+  }
+
+  String _taskNameForLaunch(String launchId) {
+    return "update:launch:$launchId";
   }
 
   Future<void> subscribeToLaunch(String launchId) async {
@@ -189,7 +193,7 @@ class BackgroundHandler {
 
     // Now tell the work manager to do periodic updates for this launch
     await Workmanager().registerPeriodicTask(
-      "update:launch:$launchId",
+      _taskNameForLaunch(launchId),
       periodicLaunchUpdateTaskName,
       frequency: const Duration(hours: 1),
       inputData: {
