@@ -61,7 +61,9 @@ class BackgroundHandler {
 
   Future<List<String>> _loadIDs(String key) async {
     try {
-      return (await SharedPreferences.getInstance()).getStringList(key) ?? [];
+      var instance = await SharedPreferences.getInstance();
+      await instance.reload();
+      return instance.getStringList(key) ?? [];
     } catch (_) {}
     return [];
   }
@@ -156,7 +158,9 @@ class BackgroundHandler {
   }
 
   Future<void> _saveIDs(String key, List<String> values) async {
-    await (await SharedPreferences.getInstance()).setStringList(key, values);
+    var instance = await SharedPreferences.getInstance();
+    instance.reload();
+    await instance.setStringList(key, values);
   }
 
   static const launchesKey = "launches";
@@ -171,9 +175,6 @@ class BackgroundHandler {
 
     // Remove from saved launches
     var markedLaunches = await _loadIDs(launchesKey);
-    if (!markedLaunches.contains(launchId)) {
-      return;
-    }
     markedLaunches.remove(launchId);
     await _saveIDs(launchesKey, markedLaunches);
   }
