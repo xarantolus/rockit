@@ -77,7 +77,7 @@ class BackgroundHandler {
     final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
 
-    var notifs = (await NotificationHandler.create()).notifs;
+    var notifs = await NotificationHandler.create();
 
     var launchTime = DateTime.tryParse(launch.net ?? "");
     if (launchTime == null) {

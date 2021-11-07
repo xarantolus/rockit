@@ -1,18 +1,11 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationHandler {
-  final FlutterLocalNotificationsPlugin _localNotifs;
-
-  NotificationHandler._create(this._localNotifs);
-
-  FlutterLocalNotificationsPlugin get notifs => _localNotifs;
-
-  static Future<NotificationHandler> create() async {
+  static Future<FlutterLocalNotificationsPlugin> create() async {
     var localNotifs = FlutterLocalNotificationsPlugin();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('notification_icon');
     const initSettings = InitializationSettings(android: androidSettings);
 
     var success = await localNotifs.initialize(initSettings);
@@ -20,6 +13,6 @@ class NotificationHandler {
       throw Exception("Could not initialize local notification plugin");
     }
 
-    return NotificationHandler._create(localNotifs);
+    return localNotifs;
   }
 }
