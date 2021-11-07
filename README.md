@@ -7,6 +7,7 @@ Rock It! is an Android app that helps you stay informed on all things space. It 
 - Show launch/event details and a countdown
 - List latest space news articles
 - Localization for English and German (UI only, data is in English)
+- No internet? No problem! The app caches offline content for a few days and updates it when connected to the internet
 
 ### Anti-Features
 There's also one [Anti-Feature](https://f-droid.org/wiki/page/AntiFeatures) as defined by F-Droid: this app connects to [Non-Free Network Services](https://f-droid.org/docs/Anti-Features/#NonFreeNet) because it needs to get launch data.

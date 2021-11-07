@@ -81,15 +81,11 @@ class BackgroundHandler {
 
     var launchTime = DateTime.tryParse(launch.net ?? "");
     if (launchTime == null) {
-      await notifs.show(35, "Background task for $launchTitle",
-          "Cannot parse launch time", _getNotifDetails(tag));
+      // If we cannot parse the time, we just try it on the next run
       return true;
     }
 
     // Now we can just register all notifications for this launch
-    await notifs.show(31, "Background task for $launchTitle",
-        "Running background notif scheduler", _getNotifDetails(tag));
-
     const notificationSettings = [
       _NotifSetting(Duration(hours: -1), "one hour"),
       _NotifSetting(Duration(minutes: -15), "15 minutes"),
@@ -105,43 +101,27 @@ class BackgroundHandler {
 
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
-
-      // TODO: Only cancel if the launch time has been more than x hours ago, e.g. in case of a scrub
-      // we still want to stay subscribed
-
-      await notifs.show(32, "Background task for $launchTitle",
-          "Cancelled notif scheduler", _getNotifDetails(tag));
-
       await unsubscribeFromLaunch(launchId);
       return true;
     }
 
     // And now register all notifications
-    var notifBaseTime = tz.TZDateTime.utc(
-        launchTime.year,
-        launchTime.month,
-        launchTime.day,
-        launchTime.hour,
-        launchTime.minute,
-        launchTime.second,
-        launchTime.millisecond,
-        launchTime.microsecond);
+    var notifBaseTime = tz.TZDateTime.from(launchTime.toUtc(), tz.UTC);
 
     var now = DateTime.now();
     // Register notifications with their offsets
     for (var i = 0; i < notificationSettings.length; i++) {
       Duration offset = notificationSettings[i].offset;
+
       var notifTime = notifBaseTime.add(offset);
       if (notifTime.isBefore(now)) {
-        await notifs.show(36, "Background task for $launchTitle",
-            "$notifTime is before now", _getNotifDetails(tag));
         continue;
       }
 
       await notifs.zonedSchedule(
         i,
         launchTitle,
-        "This start will be in ${notificationSettings[i].displayed}",
+        "This launch will be in ${notificationSettings[i].displayed}",
         notifTime,
         _getNotifDetails(tag),
         uiLocalNotificationDateInterpretation:
@@ -149,9 +129,6 @@ class BackgroundHandler {
         androidAllowWhileIdle: true,
       );
     }
-
-    await notifs.show(33, "Background task for $launchTitle",
-        "Rescheduled notifications", _getNotifDetails(tag));
 
     return true;
   }
@@ -169,13 +146,13 @@ class BackgroundHandler {
   }
 
   Future<void> unsubscribeFromLaunch(String launchId) async {
-    // Unsubscribe the recurring task
-    await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));
-
     // Remove from saved launches
     var markedLaunches = await _loadIDs(launchesKey);
     markedLaunches.remove(launchId);
     await _saveIDs(launchesKey, markedLaunches);
+
+    // Unsubscribe the recurring task
+    await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));
   }
 
   String _taskNameForLaunch(String launchId) {
