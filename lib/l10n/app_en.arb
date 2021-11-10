@@ -56,7 +56,7 @@
   "holdReason": "Hold reason",
   "failReason": "Fail reason",
   "targetOrbit": "Target orbit",
-  "startProbability": "Start probability",
+  "startProbability": "Launch probability",
 
   "likeStartTime" : "like start time",
 

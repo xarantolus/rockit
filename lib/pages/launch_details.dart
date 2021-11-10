@@ -348,9 +348,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                         (windowStart == windowEnd
                             ? " (${AppLocalizations.of(context)!.likeStartTime})"
                             : "")),
-              if (l.probability is double && (l.probability ?? -1) > 0)
+              if ((l.probability ?? -1) > 0)
                 descriptionRow(AppLocalizations.of(context)!.startProbability,
-                    "${((l.probability as double) * 100).toStringAsFixed(0)}%"),
+                    "${l.probability!}%"),
               if (lastUpdated != null)
                 descriptionRow(AppLocalizations.of(context)!.lastUpdate,
                     formatDateTimeLocal(context, lastUpdated)),

@@ -14,6 +14,7 @@ void main() async {
   if (!kDebugMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
+  Paint.enableDithering = true;
 
   WidgetsFlutterBinding.ensureInitialized();
 
