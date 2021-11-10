@@ -72,6 +72,14 @@ class BackgroundHandler {
       Map<String, dynamic>? inputData) async {
     // At first, we load the associated launch
     final launchId = inputData!["launchId"]!;
+
+    // If this task was run even though it should not have been, we cancel it
+    var markedLaunches = await _loadIDs(launchesKey);
+    if (!markedLaunches.contains(launchId)) {
+      await unsubscribeFromLaunch(launchId);
+      return true;
+    }
+
     final launch = await LaunchLibraryAPI().launch(launchId);
 
     final launchTitle = launch.name ?? "Unknown";
