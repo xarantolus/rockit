@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -385,6 +386,51 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  Widget _subscription(String launchId) {
+    final subscriptionManager = BackgroundHandler();
+
+    return FutureBuilder<bool>(
+      future: subscriptionManager.isSubscribedToLaunch(launchId),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasError) {
+          return ErrorWidget(snapshot.error!);
+        }
+        if (snapshot.hasData) {
+          var value = snapshot.data!;
+
+          return Column(
+            children: [
+              CheckboxListTile(
+                title: Text(AppLocalizations.of(context)!.launchSubscribe),
+                onChanged: (newValue) async {
+                  if (newValue == true) {
+                    await subscriptionManager.subscribeToLaunch(launchId);
+                  } else if (newValue == false) {
+                    await subscriptionManager.unsubscribeFromLaunch(launchId);
+                  }
+
+                  setState(() {
+                    value = newValue;
+                  });
+                },
+                value: value,
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  AppLocalizations.of(context)!.notificationDescription,
+                ),
+              ),
+            ],
+          );
+        }
+
+        return const CircularProgressIndicator();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final launchName =
@@ -410,6 +456,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               else
                 _missionDetails(context, widget.launch.mission!),
             ],
+
+            const Divider(),
+
+            if (widget.launch.id != null) _subscription(widget.launch.id!),
 
             // The countdown should always be displayed
             const Divider(),

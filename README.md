@@ -3,10 +3,18 @@ Rock It! is an Android app that helps you stay informed on all things space. It 
 
 
 ### Features
-- List upcoming launches
-- Show launch details and a countdown
+- List upcoming launches and events (e.g. space station activity)
+- Show launch/event details and a countdown
 - List latest space news articles
-- Localization for English and German
+- Subscribe to launches to receive notifications before liftoff
+- Localization for English and German (UI only, data is in English)
+- No internet? No problem! The app caches offline content for a few days and updates it when connected to the internet
+
+### Anti-Features
+There's also one [Anti-Feature](https://f-droid.org/wiki/page/AntiFeatures) as defined by F-Droid: this app connects to [Non-Free Network Services](https://f-droid.org/docs/Anti-Features/#NonFreeNet) because it needs to get launch data.
+
+### Credits
+All data this app uses is curated by [The Space Devs](https://thespacedevs.com/). This app uses the [Launch Library 2](https://thespacedevs.com/llapi) and [Spaceflight News](https://thespacedevs.com/snapi) APIs.
 
 ### Screenshots (dark/light mode)
 |                        Launches listing                        |                   Events listing                    |                        Space news                        |
