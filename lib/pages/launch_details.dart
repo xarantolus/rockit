@@ -373,20 +373,31 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         if (snapshot.hasData) {
           var value = snapshot.data!;
 
-          return CheckboxListTile(
-            title: Text(AppLocalizations.of(context)!.launchSubscribe),
-            onChanged: (newValue) async {
-              if (newValue == true) {
-                await subscriptionManager.subscribeToLaunch(launchId);
-              } else if (newValue == false) {
-                await subscriptionManager.unsubscribeFromLaunch(launchId);
-              }
+          return Column(
+            children: [
+              CheckboxListTile(
+                title: Text(AppLocalizations.of(context)!.launchSubscribe),
+                onChanged: (newValue) async {
+                  if (newValue == true) {
+                    await subscriptionManager.subscribeToLaunch(launchId);
+                  } else if (newValue == false) {
+                    await subscriptionManager.unsubscribeFromLaunch(launchId);
+                  }
 
-              setState(() {
-                value = newValue;
-              });
-            },
-            value: value,
+                  setState(() {
+                    value = newValue;
+                  });
+                },
+                value: value,
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  AppLocalizations.of(context)!.notificationDescription,
+                ),
+              ),
+            ],
           );
         }
 

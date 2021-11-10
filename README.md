@@ -6,6 +6,7 @@ Rock It! is an Android app that helps you stay informed on all things space. It 
 - List upcoming launches and events (e.g. space station activity)
 - Show launch/event details and a countdown
 - List latest space news articles
+- Subscribe to launches to receive notifications before liftoff
 - Localization for English and German (UI only, data is in English)
 - No internet? No problem! The app caches offline content for a few days and updates it when connected to the internet
 
