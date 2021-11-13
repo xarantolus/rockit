@@ -1,6 +1,6 @@
 {
-  "dateTimeFormat": "dd. MMM yyyy, hh:mm a",
-  "dateFormat": "dd. MMM yyyy",
+  "dateTimeFormat": "EEE, dd. MMM yyyy, hh:mm a",
+  "dateFormat": "d. MMM yyyy",
   "timeFormat": "hh:mm a",
 
   "unknownLaunchTime": "Unknown launch time",
