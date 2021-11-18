@@ -49,7 +49,7 @@ class Event {
   final String? url;
   final String? slug;
   final String? name;
-  final List<dynamic>? updates;
+  final List<Update>? updates;
   final Type? type;
   final String? description;
   final String? location;
@@ -70,7 +70,7 @@ class Event {
       name: json["name"],
       updates: json["updates"] == null
           ? null
-          : List<dynamic>.from(json["updates"].map((x) => x)),
+          : (json["updates"] as List).map((e) => Update.fromJson(e)).toList(),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
       description: json["description"],
       location: json["location"],

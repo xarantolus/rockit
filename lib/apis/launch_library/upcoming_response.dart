@@ -40,7 +40,7 @@ class Launch {
   String? net;
   String? windowEnd;
   String? windowStart;
-  dynamic? probability;
+  int? probability;
   String? holdreason;
   String? failreason;
   dynamic? hashtag;

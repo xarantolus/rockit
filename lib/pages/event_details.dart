@@ -5,6 +5,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/mixins/attribution.dart';
+import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/article.dart';
@@ -22,7 +25,8 @@ class EventDetailsPage extends StatefulWidget {
   _EventDetailsPageState createState() => _EventDetailsPageState();
 }
 
-class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
+class _EventDetailsPageState extends State<EventDetailsPage>
+    with UrlLauncher, DateFormatter, SourceAttribution, UpdateRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -204,6 +208,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> with UrlLauncher {
               ..._renderLaunches(widget.event.launches!),
             ],
 
+            // Now a list of updates to the data
+            if ((widget.event.updates ?? []).isNotEmpty) ...[
+              const Divider(),
+              ...renderUpdateList(context, titleStyle, widget.event.updates!),
+            ],
             if ((widget.event.spacestations ?? []).isNotEmpty) ...[
               const Divider(),
               ..._renderSpaceStations(widget.event.spacestations!)

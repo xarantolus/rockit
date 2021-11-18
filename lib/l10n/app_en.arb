@@ -1,6 +1,6 @@
 {
-  "dateTimeFormat": "dd. MMM yyyy, hh:mm a",
-  "dateFormat": "dd. MMM yyyy",
+  "dateTimeFormat": "EEE, dd. MMM yyyy, hh:mm a",
+  "dateFormat": "EEE, d. MMM yyyy",
   "timeFormat": "hh:mm a",
 
   "unknownLaunchTime": "Unknown launch time",
@@ -56,7 +56,7 @@
   "holdReason": "Hold reason",
   "failReason": "Fail reason",
   "targetOrbit": "Target orbit",
-  "startProbability": "Start probability",
+  "startProbability": "Launch probability",
 
   "likeStartTime" : "like start time",
 

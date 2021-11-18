@@ -7,11 +7,11 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch_countdown.dart';
-import 'package:rockit/widgets/ripple_link.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
   const LaunchDetailsPage(this.launch, {Key? key}) : super(key: key);
@@ -23,7 +23,7 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with DateFormatter, UrlLauncher, SourceAttribution {
+    with DateFormatter, UrlLauncher, SourceAttribution, UpdateRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -258,31 +258,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
-  List<Widget> _updateList(BuildContext context, List<Update> updates) {
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(
-          AppLocalizations.of(context)!.updates,
-          style: titleStyle,
-        ),
-      ),
-      ...widget.launch.updates!.map((e) => _update(context, e)),
-    ];
-  }
-
-  Widget _update(BuildContext context, Update u) {
-    final date = formatDateTimeFriendly(context,
-        (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
-
-    return RippleLinkWidget(
-      u.comment ?? AppLocalizations.of(context)!.unknown,
-      bottomRight: date,
-      bottomLeft: sourceAttributionText(context, u.infoUrl),
-      url: u.infoUrl,
-    );
-  }
-
   Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
       [bool customTab = true, Icon? icon]) {
     return ArticleCardWidget(
@@ -351,6 +326,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   AppLocalizations.of(context)!.statusDescription,
                   l.status?.description ??
                       AppLocalizations.of(context)!.unknown),
+              if ((l.probability ?? -1) > 0)
+                descriptionRow(AppLocalizations.of(context)!.startProbability,
+                    "${l.probability!}%"),
               if ((l.holdreason ?? "").isNotEmpty)
                 descriptionRow(
                     AppLocalizations.of(context)!.holdReason, l.holdreason!),
@@ -373,9 +351,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                         (windowStart == windowEnd
                             ? " (${AppLocalizations.of(context)!.likeStartTime})"
                             : "")),
-              if (l.probability is double && (l.probability ?? -1) > 0)
-                descriptionRow(AppLocalizations.of(context)!.startProbability,
-                    "${((l.probability as double) * 100).toStringAsFixed(0)}%"),
               if (lastUpdated != null)
                 descriptionRow(AppLocalizations.of(context)!.lastUpdate,
                     formatDateTimeLocal(context, lastUpdated)),
@@ -507,7 +482,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // Now a list of updates to the data
             if ((widget.launch.updates ?? []).isNotEmpty) ...[
               const Divider(),
-              ..._updateList(context, widget.launch.updates!),
+              ...renderUpdateList(context, titleStyle, widget.launch.updates!),
             ],
 
             // An informative description of the rocket

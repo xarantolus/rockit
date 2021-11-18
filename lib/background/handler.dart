@@ -42,7 +42,6 @@ class BackgroundHandler {
             'Notifications for Rocket launches, e.g. when a launch is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
-        ticker: 'ticker',
         tag: tag,
       ),
     );
@@ -150,7 +149,8 @@ class BackgroundHandler {
   static const launchesKey = "launches";
 
   Future<bool> isSubscribedToLaunch(String launchId) async {
-    return (await _loadIDs(launchesKey)).contains(launchId);
+    var markedIDs = await _loadIDs(launchesKey);
+    return markedIDs.contains(launchId);
   }
 
   Future<void> unsubscribeFromLaunch(String launchId) async {
