@@ -28,7 +28,9 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
         (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
 
     return RippleLinkWidget(
-      u.comment ?? AppLocalizations.of(context)!.unknown,
+      (u.comment ?? "").isNotEmpty
+          ? u.comment!
+          : AppLocalizations.of(context)!.unknown,
       bottomRight: date,
       bottomLeft: sourceAttributionText(context, u.infoUrl),
       url: u.infoUrl,
