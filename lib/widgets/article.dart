@@ -51,95 +51,102 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        if (widget.link != null) {
-          if (widget.customTab) {
-            await openCustomTab(context, widget.link!);
-          } else {
-            await launch(widget.link!);
-          }
-        }
-      },
-      child: Center(
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-          child: Container(
-            margin: (widget.summary ?? "").isEmpty
-                ? const EdgeInsets.only(bottom: 8)
-                : EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    widget.title ?? AppLocalizations.of(context)!.unknown,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+    final radius = BorderRadius.circular(10.0);
+    return Center(
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+        ),
+        margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+        child: Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: () async {
+              setState(() {});
+              if (widget.link != null) {
+                if (widget.customTab) {
+                  await openCustomTab(context, widget.link!);
+                } else {
+                  await launch(widget.link!);
+                }
+              }
+            },
+            child: Container(
+              margin: (widget.summary ?? "").isEmpty
+                  ? const EdgeInsets.only(bottom: 8)
+                  : EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text(
+                      widget.title ?? AppLocalizations.of(context)!.unknown,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                if ((widget.imageUrl ?? "").isNotEmpty)
-                  SizedBox(
-                    height: max(MediaQuery.of(context).size.height / 4, 200),
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: double.infinity,
-                          child: ImageWidget(widget.imageUrl),
-                        ),
-                        if (widget.newsSite != null)
-                          Container(
-                            padding: EdgeInsets.zero,
-                            margin: EdgeInsets.zero,
-                            alignment: Alignment.bottomRight,
-                            child: Text(
-                              widget.newsSite!,
-                              style: TextStyle(
-                                backgroundColor: Theme.of(context)
-                                    .backgroundColor
-                                    .withOpacity(.75),
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14.0,
+                  if ((widget.imageUrl ?? "").isNotEmpty)
+                    SizedBox(
+                      height: max(MediaQuery.of(context).size.height / 4, 200),
+                      width: double.infinity,
+                      child: Stack(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: double.infinity,
+                            child: ImageWidget(widget.imageUrl),
+                          ),
+                          if (widget.newsSite != null)
+                            Container(
+                              padding: EdgeInsets.zero,
+                              margin: EdgeInsets.zero,
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                widget.newsSite!,
+                                style: TextStyle(
+                                  backgroundColor: Theme.of(context)
+                                      .backgroundColor
+                                      .withOpacity(.75),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.0,
+                                ),
                               ),
                             ),
-                          ),
-                        if (widget.icon != null)
-                          Center(
-                            child: widget.icon,
-                          ),
-                      ],
-                    ),
-                  ),
-                if ((widget.summary ?? "").isNotEmpty)
-                  Padding(
-                    padding: widget.imageUrl == null
-                        ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
-                        : const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                    child: Text(
-                      dottedText(widget.summary!),
-                      style: const TextStyle(
-                        fontSize: 15,
+                          if (widget.icon != null)
+                            Center(
+                              child: widget.icon,
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                if (widget.publishDate != null)
-                  Container(
-                    alignment: Alignment.bottomRight,
-                    padding: const EdgeInsets.fromLTRB(0, 0, 4, 4),
-                    child: Text(
-                      formatDateTimeFriendly(context, widget.publishDate!),
+                  if ((widget.summary ?? "").isNotEmpty)
+                    Padding(
+                      padding: widget.imageUrl == null
+                          ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
+                          : const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                      child: Text(
+                        dottedText(widget.summary!),
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
-                  ),
-              ],
+                  if (widget.publishDate != null)
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.fromLTRB(0, 0, 4, 4),
+                      child: Text(
+                        formatDateTimeFriendly(context, widget.publishDate!),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
