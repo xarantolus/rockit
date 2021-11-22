@@ -19,7 +19,7 @@ All data this app uses is curated by [The Space Devs](https://thespacedevs.com/)
 ### Screenshots (dark/light mode)
 |                        Launches listing                        |                   Events listing                    |                        Space news                        |
 | :------------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------: |
-| ![Launch listing](.github/screenshots/d-launches.png?raw=true) | ![Events listing](.github/screenshots/d-events.png) | ![News listing](.github/screenshots/d-news.png?raw=true) |
+| ![Launch listing](.github/screenshots/d-launches.png) | ![Events listing](.github/screenshots/d-events.png) | ![News listing](.github/screenshots/d-news.png) |
 
 |                   Launch details                    |                   Event details                   |
 | :-------------------------------------------------: | :-----------------------------------------------: |
@@ -27,7 +27,7 @@ All data this app uses is curated by [The Space Devs](https://thespacedevs.com/)
 
 |                        Launches listing                        |                   Events listing                    |                        Space news                        |
 | :------------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------: |
-| ![Launch listing](.github/screenshots/l-launches.png?raw=true) | ![Events listing](.github/screenshots/l-events.png) | ![News listing](.github/screenshots/l-news.png?raw=true) |
+| ![Launch listing](.github/screenshots/l-launches.png) | ![Events listing](.github/screenshots/l-events.png) | ![News listing](.github/screenshots/l-news.png) |
 
 |                   Launch details                    |                   Event details                   |
 | :-------------------------------------------------: | :-----------------------------------------------: |
