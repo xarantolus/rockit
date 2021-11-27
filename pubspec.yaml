@@ -80,6 +80,8 @@ flutter:
   assets:
     - assets/rocket-white.png
     - assets/rocket-black.png
+    - assets/rocket-white-small.png
+    - assets/rocket-black-small.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -95,8 +95,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final lightTheme = Theme.of(context).brightness == Brightness.light;
     final appIcon = ImageIcon(
       lightTheme
-          ? const AssetImage("assets/rocket-black.png")
-          : const AssetImage("assets/rocket-white.png"),
+          ? const AssetImage("assets/rocket-black-small.png")
+          : const AssetImage("assets/rocket-white-small.png"),
     );
 
     return DefaultTabController(
