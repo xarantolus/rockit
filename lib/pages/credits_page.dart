@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CreditPage extends StatelessWidget {
@@ -29,8 +30,9 @@ class CreditPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.sources),
+      appBar: CustomAppBar.create(
+        context,
+        title: AppLocalizations.of(context)!.sources,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),

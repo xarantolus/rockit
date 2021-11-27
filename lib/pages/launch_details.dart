@@ -9,6 +9,7 @@ import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch_countdown.dart';
@@ -412,8 +413,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(launchName),
+      appBar: CustomAppBar.create(
+        context,
+        title: launchName,
       ),
       body: SingleChildScrollView(
         child: Column(

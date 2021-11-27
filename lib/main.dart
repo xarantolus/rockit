@@ -6,6 +6,7 @@ import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
+import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -91,11 +92,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    final lightTheme = Theme.of(context).brightness == Brightness.light;
+    final appIcon = ImageIcon(
+      lightTheme
+          ? const AssetImage("assets/rocket-black.png")
+          : const AssetImage("assets/rocket-white.png"),
+    );
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
+        appBar: CustomAppBar.create(
+          context,
+          title: widget.title,
+          titleStyle: const TextStyle(fontWeight: FontWeight.w900),
+          icon: appIcon,
           actions: [
             IconButton(
               icon: const Icon(Icons.info_outline),
@@ -121,11 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           tabs: [
             Tab(
-              icon: ImageIcon(
-                Theme.of(context).brightness == Brightness.light
-                    ? const AssetImage("assets/rocket-black.png")
-                    : const AssetImage("assets/rocket-white.png"),
-              ),
+              icon: appIcon,
               text: AppLocalizations.of(context)!.launches,
             ),
             Tab(
