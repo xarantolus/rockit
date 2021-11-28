@@ -9,18 +9,19 @@ class CustomAppBar {
     List<Widget>? actions,
     Widget? icon,
   }) {
-    final lightTheme = Theme.of(context).brightness == Brightness.light;
+    final theme = Theme.of(context);
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: lightTheme ? null : Theme.of(context).backgroundColor,
-      systemNavigationBarColor:
-          lightTheme ? null : Theme.of(context).backgroundColor,
-      systemStatusBarContrastEnforced: true,
-    ));
+    var barColor = theme.brightness == Brightness.light
+        ? theme.primaryColor
+        : theme.backgroundColor;
 
     return AppBar(
-      backgroundColor: lightTheme ? null : Theme.of(context).backgroundColor,
+      backgroundColor: barColor,
       centerTitle: true,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: barColor,
+        systemNavigationBarColor: barColor,
+      ),
       title: title == null
           ? null
           : Text(
