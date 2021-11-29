@@ -374,32 +374,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         if (snapshot.hasData) {
           var value = snapshot.data!;
 
-          return Column(
-            children: [
-              CheckboxListTile(
-                title: Text(AppLocalizations.of(context)!.launchSubscribe),
-                onChanged: (newValue) async {
-                  if (newValue == true) {
-                    await subscriptionManager.subscribeToLaunch(launchId);
-                  } else if (newValue == false) {
-                    await subscriptionManager.unsubscribeFromLaunch(launchId);
-                  }
-
-                  setState(() {
-                    value = newValue;
-                  });
-                },
-                value: value,
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  AppLocalizations.of(context)!.notificationDescription,
-                ),
-              ),
-            ],
-          );
+          return SubscriptionWidget(value, launchId, subscriptionManager);
         }
 
         return const CircularProgressIndicator();
@@ -512,6 +487,55 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ],
         ),
       ),
+    );
+  }
+}
+
+class SubscriptionWidget extends StatefulWidget {
+  const SubscriptionWidget(
+      this.initialValue, this.launchId, this.subscriptionManager,
+      {Key? key})
+      : super(key: key);
+
+  final bool initialValue;
+  final String launchId;
+  final BackgroundHandler subscriptionManager;
+
+  @override
+  _SubscriptionWidgetState createState() => _SubscriptionWidgetState();
+}
+
+class _SubscriptionWidgetState extends State<SubscriptionWidget> {
+  bool? value;
+
+  void _onCheckChange(newValue) async {
+    if (newValue == true) {
+      await widget.subscriptionManager.subscribeToLaunch(widget.launchId);
+    } else if (newValue == false) {
+      await widget.subscriptionManager.unsubscribeFromLaunch(widget.launchId);
+    }
+
+    setState(() {
+      value = newValue;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: Text(AppLocalizations.of(context)!.launchSubscribe),
+          onChanged: _onCheckChange,
+          value: value ?? widget.initialValue,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(
+            AppLocalizations.of(context)!.notificationDescription,
+          ),
+        ),
+      ],
     );
   }
 }
