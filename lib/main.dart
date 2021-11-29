@@ -39,6 +39,9 @@ class RockItApp extends StatelessWidget {
   static const _themeColor = Color.fromRGBO(0x3A, 0x88, 0xFF, 1.0);
   static const _secondaryColor = Color.fromRGBO(0x70, 0xA2, 0xFF, 1.0);
 
+  static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
+  static const _secondaryColorDark = Color.fromRGBO(0x54, 0x79, 0xBF, 1.0);
+
   static const appName = 'Rock It!';
 
   @override
@@ -64,8 +67,8 @@ class RockItApp extends StatelessWidget {
       darkTheme: ThemeData.from(
         colorScheme: const ColorScheme.dark().copyWith(
           brightness: Brightness.dark,
-          primary: _themeColor,
-          secondary: _secondaryColor,
+          primary: _themeColorDark,
+          secondary: _secondaryColorDark,
           surface: Colors.grey[900],
         ),
         textTheme: Typography.whiteHelsinki.copyWith(

@@ -9,11 +9,7 @@ class CustomAppBar {
     List<Widget>? actions,
     Widget? icon,
   }) {
-    final theme = Theme.of(context);
-
-    var barColor = theme.brightness == Brightness.light
-        ? theme.primaryColor
-        : theme.backgroundColor;
+    var barColor = Theme.of(context).colorScheme.primary;
 
     return AppBar(
       backgroundColor: barColor,
