@@ -167,6 +167,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         title: widget.event.name ?? AppLocalizations.of(context)!.unknownEvent,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             // Feature image

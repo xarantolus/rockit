@@ -393,6 +393,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         title: launchName,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             // If we have an image, we show it at the top

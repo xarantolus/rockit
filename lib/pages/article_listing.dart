@@ -124,6 +124,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
         isFinish: _finished,
         onLoadMore: _loadMore,
         child: ListView.builder(
+          physics: const BouncingScrollPhysics(),
           itemCount: articles.length,
           // We basically pre-compute this much info, that way images are often already there
           cacheExtent: MediaQuery.of(context).size.height * 2,

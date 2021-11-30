@@ -214,6 +214,7 @@ class _EventsListState extends State<EventsList> {
         isFinish: nextURL == null,
         onLoadMore: _loadMore,
         child: ListView.builder(
+          physics: const BouncingScrollPhysics(),
           controller: _eventListController,
           itemCount: events.length,
           // We pre-load up to 5 screens of info, that way images load already

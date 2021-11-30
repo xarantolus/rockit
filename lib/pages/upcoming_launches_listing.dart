@@ -214,6 +214,7 @@ class _LaunchesListState extends State<LaunchesList> {
         isFinish: nextURL == null,
         onLoadMore: _loadMore,
         child: ListView.builder(
+          physics: const BouncingScrollPhysics(),
           controller: _launchListController,
           itemCount: launches.length,
           // We pre-load up to 5 screens of info, that way images load already
