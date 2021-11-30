@@ -1,7 +1,9 @@
 {
   "dateTimeFormat": "EEE, dd. MMM yyyy, hh:mm a",
-  "dateFormat": "EEE, d. MMM yyyy",
   "timeFormat": "hh:mm a",
+  "dateTimeFormat24h": "EEE, dd. MMM yyyy, HH:mm",
+  "timeFormat24h": "HH:mm",
+  "dateFormat": "EEE, d. MMM yyyy",
 
   "unknownLaunchTime": "Unknown launch time",
 

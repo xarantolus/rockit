@@ -10,8 +10,12 @@ mixin DateFormatter {
   String formatDateTime(BuildContext context, DateTime d) {
     final localization = AppLocalizations.of(context)!;
 
-    final DateFormat formatter =
-        DateFormat(localization.dateTimeFormat, localization.localeName);
+    final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
+
+    final DateFormat formatter = DateFormat(
+      use24h ? localization.dateTimeFormat24h : localization.dateTimeFormat,
+      localization.localeName,
+    );
 
     return formatter.format(d);
   }
@@ -28,8 +32,12 @@ mixin DateFormatter {
   String formatTime(BuildContext context, DateTime d) {
     final localization = AppLocalizations.of(context)!;
 
-    final DateFormat formatter =
-        DateFormat(localization.timeFormat, localization.localeName);
+    final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
+
+    final DateFormat formatter = DateFormat(
+      use24h ? localization.timeFormat24h : localization.timeFormat,
+      localization.localeName,
+    );
 
     return formatter.format(d);
   }
