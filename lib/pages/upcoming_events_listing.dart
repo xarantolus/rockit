@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
@@ -150,7 +152,7 @@ class _EventsListState extends State<EventsList> {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
       final wheight = EventWidget.calculateHeight(context);
-      final targetOffset = wheight * idx - wheight / 2;
+      final targetOffset = max(wheight * idx - wheight / 2, 0.0);
 
       if (animated) {
         _eventListController.animateTo(
@@ -176,6 +178,7 @@ class _EventsListState extends State<EventsList> {
           );
 
           var pv = PageView.custom(
+            physics: const BouncingScrollPhysics(),
             childrenDelegate: SliverChildBuilderDelegate(
               (context, idx) {
                 if (idx >= events.length) {

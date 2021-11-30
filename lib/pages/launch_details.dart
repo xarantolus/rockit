@@ -43,12 +43,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   );
 
   Widget _zoomableImage() {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: max(MediaQuery.of(context).size.height / 3, 250),
-      ),
-      child: PinchZoomImage(
-        image: Center(
+    return PinchZoomImage(
+      image: Center(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: max(MediaQuery.of(context).size.height / 3, 250),
+          ),
           child: ImageWidget(
             widget.launch.image,
             heroTag: "launch-image",
