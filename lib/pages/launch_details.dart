@@ -7,6 +7,7 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
@@ -24,7 +25,12 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with DateFormatter, UrlLauncher, SourceAttribution, UpdateRenderer {
+    with
+        DateFormatter,
+        UrlLauncher,
+        SourceAttribution,
+        UpdateRenderer,
+        ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -485,6 +491,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               const Divider(),
               ..._launchPad(context, widget.launch.pad!),
             ],
+
+            if ((widget.launch.program ?? []).isNotEmpty) ...[
+              const Divider(),
+              ...renderProgramInfo(context, widget.launch.program!),
+            ]
           ],
         ),
       ),

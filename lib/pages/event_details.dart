@@ -7,6 +7,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
@@ -27,7 +28,12 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage>
-    with UrlLauncher, DateFormatter, SourceAttribution, UpdateRenderer {
+    with
+        UrlLauncher,
+        DateFormatter,
+        SourceAttribution,
+        UpdateRenderer,
+        ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -91,21 +97,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  List<Widget> _titledList(String title, Iterable<Widget> widgets) {
-    return [
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          title,
-          style: titleStyle,
-        ),
-      ),
-      ...widgets,
-    ];
-  }
-
   List<Widget> _renderLaunches(List<Launch> launches) {
-    return _titledList(
+    return titledList(
       launches.length == 1
           ? AppLocalizations.of(context)!.launch
           : AppLocalizations.of(context)!.launches,
@@ -125,7 +118,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   }
 
   List<Widget> _renderSpaceStations(List<Spacestation> stations) {
-    return _titledList(
+    return titledList(
       stations.length == 1
           ? AppLocalizations.of(context)!.station
           : AppLocalizations.of(context)!.stations,
@@ -216,8 +209,12 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             ],
             if ((widget.event.spacestations ?? []).isNotEmpty) ...[
               const Divider(),
-              ..._renderSpaceStations(widget.event.spacestations!)
+              ..._renderSpaceStations(widget.event.spacestations!),
             ],
+            if ((widget.event.program ?? []).isNotEmpty) ...[
+              const Divider(),
+              ...renderProgramInfo(context, widget.event.program!),
+            ]
           ],
         ),
       ),
