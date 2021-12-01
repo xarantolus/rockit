@@ -22,7 +22,7 @@ class EventWidget extends StatefulWidget {
 class _EventWidgetState extends State<EventWidget> with DateFormatter {
   String _netText(Event evt) {
     try {
-      return formatDate(context, evt.date!);
+      return formatDateFriendly(context, evt.date!);
     } catch (_) {}
     return AppLocalizations.of(context)!.netUnknown;
   }

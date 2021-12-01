@@ -47,6 +47,15 @@ mixin DateFormatter {
   }
 
   String formatDateTimeFriendly(BuildContext context, DateTime d) {
+    return formatFriendly(context, d, formatDateTime);
+  }
+
+  String formatDateFriendly(BuildContext context, DateTime d) {
+    return formatFriendly(context, d, formatDate);
+  }
+
+  String formatFriendly(BuildContext context, DateTime d,
+      String Function(BuildContext, DateTime) f) {
     d = d.toLocal();
     var now = DateTime.now().toLocal();
 
@@ -58,6 +67,10 @@ mixin DateFormatter {
       return "${AppLocalizations.of(context)!.yesterday}, ${formatTime(context, d)}";
     }
 
-    return formatDateTime(context, d);
+    if (_equalDay(d, now.add(const Duration(days: 1)))) {
+      return "${AppLocalizations.of(context)!.tomorrow}, ${formatTime(context, d)}";
+    }
+
+    return f(context, d);
   }
 }
