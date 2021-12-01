@@ -152,7 +152,8 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   if (widget.publishDate != null)
                     Container(
                       alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.fromLTRB(0, 0, 4, 4),
+                      padding: EdgeInsets.fromLTRB(
+                          0, (widget.summary ?? "").isEmpty ? 8 : 0, 4, 4),
                       child: Text(
                         formatDateTimeFriendly(context, widget.publishDate!),
                       ),
