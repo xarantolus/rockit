@@ -350,17 +350,17 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 ),
               if (windowStart != null)
                 descriptionRow(AppLocalizations.of(context)!.windowStart,
-                    formatDateTimeLocal(context, windowStart)),
+                    formatDateTimeFriendly(context, windowStart)),
               if (windowEnd != null)
                 descriptionRow(
                     AppLocalizations.of(context)!.windowEnd,
-                    formatDateTimeLocal(context, windowEnd) +
+                    formatDateTimeFriendly(context, windowEnd) +
                         (windowStart == windowEnd
                             ? " (${AppLocalizations.of(context)!.likeStartTime})"
                             : "")),
               if (lastUpdated != null)
                 descriptionRow(AppLocalizations.of(context)!.lastUpdate,
-                    formatDateTimeLocal(context, lastUpdated)),
+                    formatDateTimeFriendly(context, lastUpdated)),
             ],
           ),
         ],
