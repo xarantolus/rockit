@@ -155,6 +155,7 @@ class BackgroundHandler {
       // The first time we hit this, lastUpdateTime is null. We should
       // not send notifications at that point, because the user just clicked the
       // "Receive notifications" button.
+      DateTime? oldestUpdateTime;
       if (lastUpdateTime != null && launch.updates != null) {
         for (var update in launch.updates!) {
           if (update.createdOn == null) {
@@ -170,10 +171,17 @@ class BackgroundHandler {
               _getLaunchUpdateNotifDetails(launchId),
             );
           }
+
+          if (oldestUpdateTime == null ||
+              update.createdOn!.isAfter(oldestUpdateTime)) {
+            oldestUpdateTime = update.createdOn!;
+          }
         }
       }
 
-      await _saveDate(updateKey, DateTime.now().toUtc());
+      if (oldestUpdateTime != null) {
+        await _saveDate(updateKey, oldestUpdateTime);
+      }
     }
 
     if (launchTime.isBefore(DateTime.now())) {
@@ -393,6 +401,7 @@ class BackgroundHandler {
       // The first time we hit this, lastUpdateTime is null. We should
       // not send notifications at that point, because the user just clicked the
       // "Receive notifications" button.
+      DateTime? oldestUpdateTime;
       if (lastUpdateTime != null && event.updates != null) {
         for (var update in event.updates!) {
           if (update.createdOn == null) {
@@ -408,10 +417,17 @@ class BackgroundHandler {
               _getEventUpdateNotifDetails(eventId),
             );
           }
+
+          if (oldestUpdateTime == null ||
+              update.createdOn!.isAfter(oldestUpdateTime)) {
+            oldestUpdateTime = update.createdOn!;
+          }
         }
       }
 
-      await _saveDate(updateKey, DateTime.now().toUtc());
+      if (oldestUpdateTime != null) {
+        await _saveDate(updateKey, oldestUpdateTime);
+      }
     }
 
     if (startTime.isBefore(DateTime.now())) {
