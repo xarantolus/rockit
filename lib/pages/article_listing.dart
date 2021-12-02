@@ -23,34 +23,42 @@ class _ArticleListingPageState extends State<ArticleListingPage>
   @override
   bool get wantKeepAlive => true;
 
+  late Future<List<Article>> articlesFuture = widget.service.articles();
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
       child: FutureBuilder<List<Article>>(
-        future: widget.service.articles(),
+        future: articlesFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasData) {
-            final results = snapshot.data!;
-            if (results?.isEmpty ?? true) {
-              return Center(
-                child: Text(AppLocalizations.of(context)!.noNews),
-              );
-            } else {
-              return NewsList(
-                results,
-                widget.service,
-              );
-            }
-          } else if (snapshot.hasError) {
-            return GestureDetector(
-              child: ErrorWidget(
-                  "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-              onTap: () => setState(() {}),
-            );
-          } else {
-            return const CircularProgressIndicator();
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return const CircularProgressIndicator();
+            default:
+              if (snapshot.hasError) {
+                return GestureDetector(
+                  child: ErrorWidget(
+                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  onTap: () => setState(() {
+                    articlesFuture = widget.service.articles();
+                  }),
+                );
+              } else {
+                final results = snapshot.data!;
+                if (results?.isEmpty ?? true) {
+                  return Center(
+                    child: Text(AppLocalizations.of(context)!.noNews),
+                  );
+                } else {
+                  return NewsList(
+                    results,
+                    widget.service,
+                  );
+                }
+              }
           }
         },
       ),
