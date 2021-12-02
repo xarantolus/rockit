@@ -41,7 +41,7 @@ class BackgroundHandler {
         'Rocket Launch Notifications',
         'Rocket Launch Notifications',
         channelDescription:
-            'Notifications for Rocket launches, e.g. when a launch is about to happen.',
+            'Notifications for rocket launches, e.g. when a launch is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -55,7 +55,7 @@ class BackgroundHandler {
         'Rocket Launch Updates',
         'Rocket Launch Updates',
         channelDescription:
-            'Notifications when Rocket launches are updated, e.g. when a launch is delayed for some reason.',
+            'Notifications when rocket launches are updated, e.g. when a launch is delayed for some reason.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -298,6 +298,20 @@ class BackgroundHandler {
     );
   }
 
+  NotificationDetails _getEventUpdateNotifDetails(String tag) {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        'Event Updates',
+        'Event Updates',
+        channelDescription:
+            'Notifications when events are updated, e.g. when a space walk is delayed.',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        tag: tag,
+      ),
+    );
+  }
+
   static const eventsKey = "events";
   Future<bool> isSubscribedToEvent(String eventId) async {
     var markedIDs = await _loadIDs(eventsKey);
@@ -309,6 +323,10 @@ class BackgroundHandler {
     var markedEvents = await _loadIDs(eventsKey);
     markedEvents.remove(eventId);
     await _saveIDs(eventsKey, markedEvents);
+
+    try {
+      await _deleteKey(_getUpdateKey("event", eventId));
+    } catch (_) {}
 
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForEvent(eventId));
@@ -358,6 +376,7 @@ class BackgroundHandler {
 
     final eventTitle = event.name ?? "Unknown";
     final tag = "update:event:oneoff:$eventId";
+    final updateKey = _getUpdateKey("event", eventId);
 
     var notifs = await NotificationHandler.create();
 
@@ -367,12 +386,33 @@ class BackgroundHandler {
       return true;
     }
 
-    // Now we can just register all notifications for this event
-    const notificationSettings = [
-      _NotifSetting(Duration(hours: -1), "one hour"),
-      _NotifSetting(Duration(minutes: -15), "15 minutes"),
-      _NotifSetting(Duration(minutes: -5), "5 minutes"),
-    ];
+    // If we have any updates, we will send them as notification
+    {
+      var lastUpdateTime = await _loadDate(updateKey);
+
+      // The first time we hit this, lastUpdateTime is null. We should
+      // not send notifications at that point, because the user just clicked the
+      // "Receive notifications" button.
+      if (lastUpdateTime != null && event.updates != null) {
+        for (var update in event.updates!) {
+          if (update.createdOn == null) {
+            continue;
+          }
+
+          if (update.createdOn!.isAfter(lastUpdateTime) &&
+              (update.comment ?? "").isNotEmpty) {
+            await notifs.show(
+              update.id ?? 5021,
+              eventTitle,
+              update.comment!,
+              _getEventUpdateNotifDetails(eventId),
+            );
+          }
+        }
+      }
+
+      await _saveDate(updateKey, DateTime.now().toUtc());
+    }
 
     if (startTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
@@ -380,6 +420,13 @@ class BackgroundHandler {
 
       return true;
     }
+
+    // Now we can just register all notifications for this event
+    const notificationSettings = [
+      _NotifSetting(Duration(hours: -1), "one hour"),
+      _NotifSetting(Duration(minutes: -15), "15 minutes"),
+      _NotifSetting(Duration(minutes: -5), "5 minutes"),
+    ];
 
     // And now register all notifications
     var notifBaseTime = tz.TZDateTime.from(startTime.toUtc(), tz.UTC);
