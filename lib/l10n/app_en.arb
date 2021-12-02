@@ -66,7 +66,7 @@
 
   "launchSubscribe": "Receive notifications",
   "eventSubscribe": "Receive notifications",
-  "notificationDescription": "Three notifications will be shown one hour, 15 minutes and five minutes before launch.",
+  "notificationDescription": "Three notifications will be shown one hour, 15 minutes and five minutes before launch. You will also receive notifications for updates.",
 
   "netUnknown": "NET Unknown",
 

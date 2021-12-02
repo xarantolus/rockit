@@ -824,7 +824,7 @@ class Update {
   String? comment;
   String? infoUrl;
   String? createdBy;
-  String? createdOn;
+  DateTime? createdOn;
 
   Update({id, profileImage, comment, infoUrl, createdBy, createdOn});
 
@@ -834,7 +834,8 @@ class Update {
     comment = json["comment"];
     infoUrl = json["info_url"];
     createdBy = json["created_by"];
-    createdOn = json["created_on"];
+    createdOn =
+        json["created_on"] == null ? null : DateTime.parse(json["created_on"]);
   }
 
   Map<String, dynamic> toJson() {
@@ -844,7 +845,7 @@ class Update {
     data["comment"] = comment;
     data["info_url"] = infoUrl;
     data["created_by"] = createdBy;
-    data["created_on"] = createdOn;
+    data["created_on"] = createdOn?.toIso8601String();
     return data;
   }
 }

@@ -48,6 +48,20 @@ class BackgroundHandler {
     );
   }
 
+  NotificationDetails _getLaunchUpdateNotifDetails(String tag) {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        'Rocket Launch Updates',
+        'Rocket Launch Updates',
+        channelDescription:
+            'Notifications when Rocket launches are updated, e.g. when a launch is delayed for some reason.',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        tag: tag,
+      ),
+    );
+  }
+
   // Return true for successful tasks, false for failed tasks that need to be retried
   // and Future.error() for tasks that failed and don't need to be retried
   Future<bool> callback(String task, Map<String, dynamic>? inputData) async {
@@ -61,6 +75,31 @@ class BackgroundHandler {
     return true;
   }
 
+  Future<DateTime?> _loadDate(String key) async {
+    try {
+      var instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      return DateTime.tryParse(instance.getString(key)!);
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _saveDate(String key, DateTime date) async {
+    try {
+      var instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      await instance.setString(key, date.toIso8601String());
+    } catch (_) {}
+  }
+
+  Future<void> _deleteKey(String key) async {
+    var instance = await SharedPreferences.getInstance();
+    await instance.reload();
+    await instance.remove(key);
+  }
+
   Future<List<String>> _loadIDs(String key) async {
     try {
       var instance = await SharedPreferences.getInstance();
@@ -68,6 +107,10 @@ class BackgroundHandler {
       return instance.getStringList(key) ?? [];
     } catch (_) {}
     return [];
+  }
+
+  String _getUpdateKey(String type, String id) {
+    return "update:$type:lastupdate:$id";
   }
 
   Future<bool> handleLaunchUpdatePeriodic(
@@ -86,12 +129,48 @@ class BackgroundHandler {
 
     final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
+    final updateKey = _getUpdateKey("launch", launchId);
 
     var notifs = await NotificationHandler.create();
 
     var launchTime = DateTime.tryParse(launch.net ?? "");
     if (launchTime == null) {
       // If we cannot parse the time, we just try it on the next run
+      return true;
+    }
+
+    // If we have any updates, we will send them as notification
+    {
+      var lastUpdateTime = await _loadDate(updateKey);
+
+      // The first time we hit this, lastUpdateTime is null. We should
+      // not send notifications at that point, because the user just clicked the
+      // "Receive notifications" button.
+      if (lastUpdateTime != null && launch.updates != null) {
+        for (var update in launch.updates!) {
+          if (update.createdOn == null) {
+            continue;
+          }
+
+          if (update.createdOn!.isAfter(lastUpdateTime) &&
+              (update.comment ?? "").isNotEmpty) {
+            await notifs.show(
+              update.id ?? 5021,
+              launchTitle,
+              update.comment!,
+              _getLaunchUpdateNotifDetails(launchId),
+            );
+          }
+        }
+      }
+
+      await _saveDate(updateKey, DateTime.now().toUtc());
+    }
+
+    if (launchTime.isBefore(DateTime.now())) {
+      // Cancel this periodic task
+      await unsubscribeFromLaunch(launchId);
+
       return true;
     }
 
@@ -102,14 +181,6 @@ class BackgroundHandler {
       _NotifSetting(Duration(minutes: -5), "5 minutes"),
     ];
 
-    if (launchTime.isBefore(DateTime.now())) {
-      // Cancel this periodic task
-      await unsubscribeFromLaunch(launchId);
-
-      return true;
-    }
-
-    // And now register all notifications
     var notifBaseTime = tz.TZDateTime.from(launchTime.toUtc(), tz.UTC);
 
     var now = DateTime.now();
@@ -160,6 +231,10 @@ class BackgroundHandler {
     var markedLaunches = await _loadIDs(launchesKey);
     markedLaunches.remove(launchId);
     await _saveIDs(launchesKey, markedLaunches);
+
+    try {
+      await _deleteKey(_getUpdateKey("launch", launchId));
+    } catch (_) {}
 
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));

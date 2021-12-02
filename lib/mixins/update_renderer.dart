@@ -24,8 +24,10 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
   }
 
   Widget _update(BuildContext context, Update u) {
-    final date = formatDateTimeFriendly(context,
-        (DateTime.tryParse(u.createdOn ?? "") ?? DateTime.now()).toLocal());
+    final date = formatDateTimeFriendly(
+      context,
+      (u.createdOn ?? DateTime.now()).toLocal(),
+    );
 
     return RippleLinkWidget(
       (u.comment ?? "").isNotEmpty
