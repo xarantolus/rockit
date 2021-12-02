@@ -102,16 +102,10 @@ class BackgroundHandler {
       _NotifSetting(Duration(minutes: -5), "5 minutes"),
     ];
 
-    // Cancel all previously registered ones
-    try {
-      for (var i = 0; i < notificationSettings.length; i++) {
-        await notifs.cancel(i, tag: tag);
-      }
-    } catch (_) {}
-
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
       await unsubscribeFromLaunch(launchId);
+
       return true;
     }
 
@@ -127,6 +121,11 @@ class BackgroundHandler {
       if (notifTime.isBefore(now)) {
         continue;
       }
+
+      // Cancel the previously scheduled notification (if possible)
+      try {
+        await notifs.cancel(i, tag: tag);
+      } catch (_) {}
 
       await notifs.zonedSchedule(
         i,
@@ -286,16 +285,10 @@ class BackgroundHandler {
       _NotifSetting(Duration(minutes: -5), "5 minutes"),
     ];
 
-    // Cancel all previously registered ones
-    try {
-      for (var i = 0; i < notificationSettings.length; i++) {
-        await notifs.cancel(i, tag: tag);
-      }
-    } catch (_) {}
-
     if (startTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
       await unsubscribeFromEvent(eventId);
+
       return true;
     }
 
@@ -311,6 +304,11 @@ class BackgroundHandler {
       if (notifTime.isBefore(now)) {
         continue;
       }
+
+      // Cancel the previously scheduled notification (if possible)
+      try {
+        await notifs.cancel(i, tag: tag);
+      } catch (_) {}
 
       await notifs.zonedSchedule(
         i,
