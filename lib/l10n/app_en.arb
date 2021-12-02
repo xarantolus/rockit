@@ -1,7 +1,9 @@
 {
   "dateTimeFormat": "EEE, dd. MMM yyyy, hh:mm a",
-  "dateFormat": "EEE, d. MMM yyyy",
   "timeFormat": "hh:mm a",
+  "dateTimeFormat24h": "EEE, dd. MMM yyyy, HH:mm",
+  "timeFormat24h": "HH:mm",
+  "dateFormat": "EEE, d. MMM yyyy",
 
   "unknownLaunchTime": "Unknown launch time",
 
@@ -37,7 +39,9 @@
   "station": "Space Station",
   "stations": "Space Stations",
 
-  "openArticle": "Open article",
+  "program": "Program",
+  "programs": "Programs",
+
   "watchVideo": "Watch video",
 
   "inThePast": "Already over!",
@@ -61,6 +65,7 @@
   "likeStartTime" : "like start time",
 
   "launchSubscribe": "Receive notifications",
+  "eventSubscribe": "Receive notifications",
   "notificationDescription": "Three notifications will be shown one hour, 15 minutes and five minutes before launch.",
 
   "netUnknown": "NET Unknown",
@@ -87,6 +92,7 @@
 
   "today": "Today",
   "yesterday": "Yesterday",
+  "tomorrow": "Tomorrow",
 
   "source": "Source",
   "clickSource": "Click for more info",

@@ -17,10 +17,12 @@ class ArticleCardWidget extends StatefulWidget {
     this.publishDate,
     this.icon,
     this.customTab = true,
+    this.fullImage,
     Key? key,
   }) : super(key: key);
 
   final bool customTab;
+  final bool? fullImage;
 
   final String? title;
   final String? link;
@@ -47,6 +49,49 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
       return text + "...";
     }
     return text;
+  }
+
+  Widget _renderImage() {
+    final imageStack = Stack(
+      children: [
+        (widget.fullImage == true)
+            ? ImageWidget(widget.imageUrl)
+            : SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: ImageWidget(widget.imageUrl),
+              ),
+        if (widget.newsSite != null)
+          Container(
+            padding: EdgeInsets.zero,
+            margin: EdgeInsets.zero,
+            alignment: Alignment.bottomRight,
+            child: Text(
+              widget.newsSite!,
+              style: TextStyle(
+                backgroundColor:
+                    Theme.of(context).backgroundColor.withOpacity(.75),
+                fontWeight: FontWeight.w500,
+                fontSize: 14.0,
+              ),
+            ),
+          ),
+        if (widget.icon != null)
+          Center(
+            child: widget.icon,
+          ),
+      ],
+    );
+
+    if (widget.fullImage == true) {
+      return imageStack;
+    }
+
+    return SizedBox(
+      height: max(MediaQuery.of(context).size.height / 4, 200),
+      width: double.infinity,
+      child: imageStack,
+    );
   }
 
   @override
@@ -91,40 +136,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  if ((widget.imageUrl ?? "").isNotEmpty)
-                    SizedBox(
-                      height: max(MediaQuery.of(context).size.height / 4, 200),
-                      width: double.infinity,
-                      child: Stack(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            height: double.infinity,
-                            child: ImageWidget(widget.imageUrl),
-                          ),
-                          if (widget.newsSite != null)
-                            Container(
-                              padding: EdgeInsets.zero,
-                              margin: EdgeInsets.zero,
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                widget.newsSite!,
-                                style: TextStyle(
-                                  backgroundColor: Theme.of(context)
-                                      .backgroundColor
-                                      .withOpacity(.75),
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14.0,
-                                ),
-                              ),
-                            ),
-                          if (widget.icon != null)
-                            Center(
-                              child: widget.icon,
-                            ),
-                        ],
-                      ),
-                    ),
+                  if ((widget.imageUrl ?? "").isNotEmpty) _renderImage(),
                   if ((widget.summary ?? "").isNotEmpty)
                     Padding(
                       padding: widget.imageUrl == null
@@ -140,7 +152,8 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   if (widget.publishDate != null)
                     Container(
                       alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.fromLTRB(0, 0, 4, 4),
+                      padding: EdgeInsets.fromLTRB(
+                          0, (widget.summary ?? "").isEmpty ? 8 : 0, 4, 4),
                       child: Text(
                         formatDateTimeFriendly(context, widget.publishDate!),
                       ),

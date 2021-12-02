@@ -25,7 +25,7 @@ class _LaunchWidgetState extends State<LaunchWidget> with DateFormatter {
       var launchDate =
           DateTime.parse(launch.net ?? launch.windowStart ?? "").toLocal();
 
-      return formatDate(context, launchDate);
+      return formatDateFriendly(context, launchDate);
     } catch (_) {}
     return AppLocalizations.of(context)!.netUnknown;
   }

@@ -1,7 +1,9 @@
 {
   "dateTimeFormat": "EEE, dd. MMM yyyy, HH:mm 'Uhr'",
-  "dateFormat": "EEE, d. MMM yyyy",
   "timeFormat": "HH:mm 'Uhr'",
+  "dateTimeFormat24h": "EEE, dd. MMM yyyy, HH:mm 'Uhr'",
+  "timeFormat24h": "HH:mm 'Uhr'",
+  "dateFormat": "EEE, d. MMM yyyy",
 
   "unknownLaunchTime": "Unbekannte Startzeit",
 
@@ -37,7 +39,9 @@
   "station": "Raumstation",
   "stations": "Raumstationen",
 
-  "openArticle": "Artikel öffnen",
+  "program": "Programm",
+  "programs": "Programme",
+
   "watchVideo": "Video anschauen",
 
   "inThePast": "Schon vorbei!",
@@ -61,6 +65,7 @@
   "likeStartTime": "wie Startzeit",
 
   "launchSubscribe": "Benachrichtigungen erhalten",
+  "eventSubscribe": "Benachrichtigungen erhalten",
   "notificationDescription": "Drei Benachrichtigungen werden jeweils eine Stunde, 15 Minuten und fünf Minuten vor dem Start gezeigt.",
 
   "netUnknown": "NET Unbekannt",
@@ -86,6 +91,7 @@
 
   "today": "Heute",
   "yesterday": "Gestern",
+  "tomorrow": "Morgen",
 
   "source": "Quelle",
   "clickSource": "Klicken für mehr Info",

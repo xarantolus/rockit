@@ -5,8 +5,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
@@ -27,7 +29,12 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage>
-    with UrlLauncher, DateFormatter, SourceAttribution, UpdateRenderer {
+    with
+        UrlLauncher,
+        DateFormatter,
+        SourceAttribution,
+        UpdateRenderer,
+        ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -91,21 +98,28 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  List<Widget> _titledList(String title, Iterable<Widget> widgets) {
-    return [
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          title,
-          style: titleStyle,
-        ),
-      ),
-      ...widgets,
-    ];
+  Widget _subscription(String eventId) {
+    final subscriptionManager = BackgroundHandler();
+
+    return FutureBuilder<bool>(
+      future: subscriptionManager.isSubscribedToEvent(eventId),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasError) {
+          return ErrorWidget(snapshot.error!);
+        }
+        if (snapshot.hasData) {
+          var value = snapshot.data!;
+
+          return EventSubscriptionWidget(value, eventId, subscriptionManager);
+        }
+
+        return const CircularProgressIndicator();
+      },
+    );
   }
 
   List<Widget> _renderLaunches(List<Launch> launches) {
-    return _titledList(
+    return titledList(
       launches.length == 1
           ? AppLocalizations.of(context)!.launch
           : AppLocalizations.of(context)!.launches,
@@ -125,7 +139,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   }
 
   List<Widget> _renderSpaceStations(List<Spacestation> stations) {
-    return _titledList(
+    return titledList(
       stations.length == 1
           ? AppLocalizations.of(context)!.station
           : AppLocalizations.of(context)!.stations,
@@ -192,11 +206,14 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               if (widget.event.newsUrl != null)
                 _openURLButton(
                   Icons.open_in_browser,
-                  AppLocalizations.of(context)!.openArticle,
+                  AppLocalizations.of(context)!.moreInfo,
                   true,
                   widget.event.newsUrl!,
                 ),
             ],
+
+            const Divider(),
+            _subscription("${widget.event.id}"),
 
             // Show a countdown
             if (widget.event.date != null) ...[
@@ -216,11 +233,65 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             ],
             if ((widget.event.spacestations ?? []).isNotEmpty) ...[
               const Divider(),
-              ..._renderSpaceStations(widget.event.spacestations!)
+              ..._renderSpaceStations(widget.event.spacestations!),
             ],
+            if ((widget.event.program ?? []).isNotEmpty) ...[
+              const Divider(),
+              ...renderProgramInfo(context, widget.event.program!),
+            ]
           ],
         ),
       ),
+    );
+  }
+}
+
+class EventSubscriptionWidget extends StatefulWidget {
+  const EventSubscriptionWidget(
+      this.initialValue, this.eventId, this.subscriptionManager,
+      {Key? key})
+      : super(key: key);
+
+  final bool initialValue;
+  final String eventId;
+  final BackgroundHandler subscriptionManager;
+
+  @override
+  _EventSubscriptionWidgetState createState() =>
+      _EventSubscriptionWidgetState();
+}
+
+class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {
+  bool? value;
+
+  void _onCheckChange(newValue) async {
+    if (newValue == true) {
+      await widget.subscriptionManager.subscribeToEvent(widget.eventId);
+    } else if (newValue == false) {
+      await widget.subscriptionManager.unsubscribeFromEvent(widget.eventId);
+    }
+
+    setState(() {
+      value = newValue;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: Text(AppLocalizations.of(context)!.eventSubscribe),
+          onChanged: _onCheckChange,
+          value: value ?? widget.initialValue,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(
+            AppLocalizations.of(context)!.notificationDescription,
+          ),
+        ),
+      ],
     );
   }
 }

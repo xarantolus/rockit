@@ -23,35 +23,44 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
   @override
   bool get wantKeepAlive => true;
 
+  late Future<UpcomingEventsResponse> upcomingEventsFuture =
+      widget.service.upcomingEvents();
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
       child: FutureBuilder<UpcomingEventsResponse>(
-        future: widget.service.upcomingEvents(),
+        future: upcomingEventsFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final results = snapshot.data!.results;
-            if (results?.isEmpty ?? true) {
-              return Center(
-                child: Text(AppLocalizations.of(context)!.noEvents),
-              );
-            } else {
-              return EventsList(
-                results!,
-                snapshot.data!.next,
-                widget.service,
-              );
-            }
-          } else if (snapshot.hasError) {
-            return GestureDetector(
-              child: ErrorWidget(
-                  "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-              onTap: () => setState(() {}),
-            );
-          } else {
-            return const CircularProgressIndicator();
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return const CircularProgressIndicator();
+            default:
+              if (snapshot.hasError) {
+                return GestureDetector(
+                  child: ErrorWidget(
+                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  onTap: () => setState(() {
+                    upcomingEventsFuture = widget.service.upcomingEvents();
+                  }),
+                );
+              } else {
+                final results = snapshot.data!.results;
+                if (results?.isEmpty ?? true) {
+                  return Center(
+                    child: Text(AppLocalizations.of(context)!.noEvents),
+                  );
+                } else {
+                  return EventsList(
+                    results!,
+                    snapshot.data!.next,
+                    widget.service,
+                  );
+                }
+              }
           }
         },
       ),

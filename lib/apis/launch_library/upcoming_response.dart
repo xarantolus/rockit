@@ -1,3 +1,5 @@
+import 'package:rockit/apis/launch_library/events_response.dart';
+
 class UpcomingResponse {
   int? count;
   String? next;
@@ -53,7 +55,7 @@ class Launch {
   bool? webcastLive;
   String? image;
   dynamic? infographic;
-  List<dynamic>? program;
+  List<Program>? program;
   int? orbitalLaunchAttemptCount;
   int? locationLaunchAttemptCount;
   int? padLaunchAttemptCount;
@@ -138,7 +140,9 @@ class Launch {
     webcastLive = json["webcast_live"];
     image = json["image"];
     infographic = json["infographic"];
-    program = json["program"] ?? [];
+    program = json["program"] == null
+        ? null
+        : (json["program"] as List).map((e) => Program.fromJson(e)).toList();
     orbitalLaunchAttemptCount = json["orbital_launch_attempt_count"];
     locationLaunchAttemptCount = json["location_launch_attempt_count"];
     padLaunchAttemptCount = json["pad_launch_attempt_count"];
