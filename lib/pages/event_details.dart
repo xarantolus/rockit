@@ -206,7 +206,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               if (widget.event.newsUrl != null)
                 _openURLButton(
                   Icons.open_in_browser,
-                  AppLocalizations.of(context)!.openArticle,
+                  AppLocalizations.of(context)!.moreInfo,
                   true,
                   widget.event.newsUrl!,
                 ),
