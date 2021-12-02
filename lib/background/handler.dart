@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/notifications/create.dart';
@@ -65,14 +66,22 @@ class BackgroundHandler {
   // Return true for successful tasks, false for failed tasks that need to be retried
   // and Future.error() for tasks that failed and don't need to be retried
   Future<bool> callback(String task, Map<String, dynamic>? inputData) async {
-    switch (task) {
-      case periodicLaunchUpdateTaskName:
-        return await handleLaunchUpdatePeriodic(inputData);
-      case periodicEventUpdateTaskName:
-        return await handleEventUpdatePeriodic(inputData);
-      default:
+    try {
+      switch (task) {
+        case periodicLaunchUpdateTaskName:
+          return await handleLaunchUpdatePeriodic(inputData);
+        case periodicEventUpdateTaskName:
+          return await handleEventUpdatePeriodic(inputData);
+        default:
+          throw FormatException(
+              "Expected task name to be for event or update, but got \"$task\"");
+      }
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error in scheduled task: $err");
+      }
+      rethrow;
     }
-    return true;
   }
 
   Future<DateTime?> _loadDate(String key) async {
@@ -261,6 +270,7 @@ class BackgroundHandler {
       inputData: {
         "launchId": launchId,
       },
+      existingWorkPolicy: ExistingWorkPolicy.replace,
     );
   }
 
@@ -325,6 +335,7 @@ class BackgroundHandler {
       inputData: {
         "eventId": eventId,
       },
+      existingWorkPolicy: ExistingWorkPolicy.replace,
     );
   }
 
