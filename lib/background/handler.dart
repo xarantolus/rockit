@@ -255,6 +255,9 @@ class BackgroundHandler {
 
   Future<bool> handleEventUpdatePeriodic(
       Map<String, dynamic>? inputData) async {
+    // Adding this offset prevents notifications having the same id (as those of the launch notification)
+    const eventNotifIDOffset = 10;
+
     // At first, we load the associated event
     final eventId = inputData!["eventId"]! as String;
 
@@ -307,11 +310,11 @@ class BackgroundHandler {
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifs.cancel(i, tag: tag);
+        await notifs.cancel(eventNotifIDOffset + i, tag: tag);
       } catch (_) {}
 
       await notifs.zonedSchedule(
-        i,
+        eventNotifIDOffset + i,
         eventTitle,
         "This event will be in ${notificationSettings[i].displayed}",
         notifTime,
