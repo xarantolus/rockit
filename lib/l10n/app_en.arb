@@ -66,6 +66,7 @@
   "likeStartTime" : "like start time",
 
   "launchSubscribe": "Receive notifications",
+  "eventSubscribe": "Receive notifications",
   "notificationDescription": "Three notifications will be shown one hour, 15 minutes and five minutes before launch.",
 
   "netUnknown": "NET Unknown",

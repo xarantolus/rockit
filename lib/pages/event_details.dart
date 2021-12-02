@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/program_renderer.dart';
@@ -94,6 +95,26 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _subscription(String eventId) {
+    final subscriptionManager = BackgroundHandler();
+
+    return FutureBuilder<bool>(
+      future: subscriptionManager.isSubscribedToEvent(eventId),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasError) {
+          return ErrorWidget(snapshot.error!);
+        }
+        if (snapshot.hasData) {
+          var value = snapshot.data!;
+
+          return EventSubscriptionWidget(value, eventId, subscriptionManager);
+        }
+
+        return const CircularProgressIndicator();
+      },
     );
   }
 
@@ -191,6 +212,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                 ),
             ],
 
+            const Divider(),
+            _subscription("${widget.event.id}"),
+
             // Show a countdown
             if (widget.event.date != null) ...[
               const Divider(),
@@ -218,6 +242,56 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           ],
         ),
       ),
+    );
+  }
+}
+
+class EventSubscriptionWidget extends StatefulWidget {
+  const EventSubscriptionWidget(
+      this.initialValue, this.eventId, this.subscriptionManager,
+      {Key? key})
+      : super(key: key);
+
+  final bool initialValue;
+  final String eventId;
+  final BackgroundHandler subscriptionManager;
+
+  @override
+  _EventSubscriptionWidgetState createState() =>
+      _EventSubscriptionWidgetState();
+}
+
+class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {
+  bool? value;
+
+  void _onCheckChange(newValue) async {
+    if (newValue == true) {
+      await widget.subscriptionManager.subscribeToEvent(widget.eventId);
+    } else if (newValue == false) {
+      await widget.subscriptionManager.unsubscribeFromEvent(widget.eventId);
+    }
+
+    setState(() {
+      value = newValue;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: Text(AppLocalizations.of(context)!.eventSubscribe),
+          onChanged: _onCheckChange,
+          value: value ?? widget.initialValue,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(
+            AppLocalizations.of(context)!.notificationDescription,
+          ),
+        ),
+      ],
     );
   }
 }

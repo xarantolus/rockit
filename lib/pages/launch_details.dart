@@ -380,7 +380,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         if (snapshot.hasData) {
           var value = snapshot.data!;
 
-          return SubscriptionWidget(value, launchId, subscriptionManager);
+          return LaunchSubscriptionWidget(value, launchId, subscriptionManager);
         }
 
         return const CircularProgressIndicator();
@@ -503,8 +503,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 }
 
-class SubscriptionWidget extends StatefulWidget {
-  const SubscriptionWidget(
+class LaunchSubscriptionWidget extends StatefulWidget {
+  const LaunchSubscriptionWidget(
       this.initialValue, this.launchId, this.subscriptionManager,
       {Key? key})
       : super(key: key);
@@ -514,10 +514,11 @@ class SubscriptionWidget extends StatefulWidget {
   final BackgroundHandler subscriptionManager;
 
   @override
-  _SubscriptionWidgetState createState() => _SubscriptionWidgetState();
+  _LaunchSubscriptionWidgetState createState() =>
+      _LaunchSubscriptionWidgetState();
 }
 
-class _SubscriptionWidgetState extends State<SubscriptionWidget> {
+class _LaunchSubscriptionWidgetState extends State<LaunchSubscriptionWidget> {
   bool? value;
 
   void _onCheckChange(newValue) async {

@@ -56,7 +56,8 @@ class LaunchLibraryAPI extends APIClient {
     return Launch.fromJson(decoded);
   }
 
-  Future<Event> event(int id) async {
+  // the id given should be either a String or int
+  Future<Event> event(dynamic id) async {
     var uri = _endpoint("/event/$id", {});
 
     return Event.fromJson(await fetchJSON(uri));
