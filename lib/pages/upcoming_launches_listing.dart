@@ -23,35 +23,44 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
   @override
   bool get wantKeepAlive => true;
 
+  late Future<UpcomingResponse> upcomingLaunchesFuture =
+      widget.service.upcomingLaunches();
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
       child: FutureBuilder<UpcomingResponse>(
-        future: widget.service.upcomingLaunches(),
+        future: upcomingLaunchesFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final results = snapshot.data!.results;
-            if (results?.isEmpty ?? true) {
-              return Center(
-                child: Text(AppLocalizations.of(context)!.noLaunches),
-              );
-            } else {
-              return LaunchesList(
-                results!,
-                snapshot.data!.next,
-                widget.service,
-              );
-            }
-          } else if (snapshot.hasError) {
-            return GestureDetector(
-              child: ErrorWidget(
-                  "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-              onTap: () => setState(() {}),
-            );
-          } else {
-            return const CircularProgressIndicator();
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return const CircularProgressIndicator();
+            default:
+              if (snapshot.hasError) {
+                return GestureDetector(
+                  child: ErrorWidget(
+                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  onTap: () => setState(() {
+                    upcomingLaunchesFuture = widget.service.upcomingLaunches();
+                  }),
+                );
+              } else {
+                final results = snapshot.data!.results;
+                if (results?.isEmpty ?? true) {
+                  return Center(
+                    child: Text(AppLocalizations.of(context)!.noLaunches),
+                  );
+                } else {
+                  return LaunchesList(
+                    results!,
+                    snapshot.data!.next,
+                    widget.service,
+                  );
+                }
+              }
           }
         },
       ),
