@@ -68,10 +68,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   Widget _missionDetails(BuildContext context, Mission m) {
     return ListTile(
       title: Center(
-        child: Text(
-          m.name ?? AppLocalizations.of(context)!.unknown,
-          style: titleStyle,
-          textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            m.name ?? AppLocalizations.of(context)!.unknown,
+            style: titleStyle,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
       subtitle: Text(
@@ -86,10 +89,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   Widget _reducedMissionDetails(BuildContext context, Launch l) {
     return Center(
-      child: Text(
-        l.name ?? AppLocalizations.of(context)!.unknown,
-        textAlign: TextAlign.center,
-        style: titleStyle,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          l.name ?? AppLocalizations.of(context)!.unknown,
+          textAlign: TextAlign.center,
+          style: titleStyle,
+        ),
       ),
     );
   }
@@ -409,7 +415,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             // Then a mission description
             ...[
-              const Divider(),
               if (widget.launch.mission == null)
                 _reducedMissionDetails(context, widget.launch)
               else

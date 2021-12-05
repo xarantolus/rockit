@@ -55,10 +55,13 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   Widget _eventDetails(BuildContext context, Event e) {
     return ListTile(
       title: Center(
-        child: Text(
-          e.name ?? AppLocalizations.of(context)!.unknown,
-          style: titleStyle,
-          textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            e.name ?? AppLocalizations.of(context)!.unknown,
+            style: titleStyle,
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
       subtitle: Text(
@@ -73,10 +76,13 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   Widget _reducedEventDetails(BuildContext context, Event e) {
     return Center(
-      child: Text(
-        e.name ?? AppLocalizations.of(context)!.unknown,
-        textAlign: TextAlign.center,
-        style: titleStyle,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          e.name ?? AppLocalizations.of(context)!.unknown,
+          textAlign: TextAlign.center,
+          style: titleStyle,
+        ),
       ),
     );
   }
@@ -191,7 +197,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
             // Mission title & description if possible
             ...[
-              const Divider(),
               if (widget.event.description == null)
                 _reducedEventDetails(context, widget.event)
               else
