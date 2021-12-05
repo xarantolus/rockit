@@ -12,21 +12,38 @@ class APIClient {
 
   static const _key = 'http-cache';
 
-  static final _cacheManager = CacheManager(
-    Config(
-      _key,
-      stalePeriod: const Duration(days: 3),
-      repo: JsonCacheInfoRepository(databaseName: _key),
-      fileService: HttpFileService(),
-    ),
-  );
+  static final CacheManager? _cacheManager = () {
+    try {
+      return CacheManager(
+        Config(
+          _key,
+          stalePeriod: const Duration(days: 3),
+          repo: JsonCacheInfoRepository(databaseName: _key),
+          fileService: HttpFileService(),
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Could not initialize cache manager: $e");
+      }
+    }
+    return null;
+  }();
 
   Future<dynamic> fetchJSON(Uri url) async {
     return jsonDecode(await fetch(url));
   }
 
   Future<String> fetch(Uri url) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    PackageInfo? packageInfo;
+
+    try {
+      packageInfo = await PackageInfo.fromPlatform();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Could not retrieve package info when fetching URL: $e");
+      }
+    }
 
     Uint8List responseBytes;
 
@@ -39,7 +56,7 @@ class APIClient {
       var response = await _httpClient.get(url, headers: {
         "Accept": "application/json",
         "User-Agent":
-            "RockItApp (${packageInfo.packageName} ${packageInfo.version} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
+            "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
       });
 
       if (kDebugMode) {
@@ -55,11 +72,17 @@ class APIClient {
 
       // If everything worked, we can put the file into the cache. That way, we can
       // access it in case of no internet or a rate limit
-      await _cacheManager.putFile(
-        url.toString(),
-        responseBytes,
-        key: url.toString(),
-      );
+      try {
+        await _cacheManager?.putFile(
+          url.toString(),
+          responseBytes,
+          key: url.toString(),
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint("Error putting ${url.toString()} into cache: $e");
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error fetching ${url.toString()}: $e");
@@ -68,7 +91,7 @@ class APIClient {
       // We likely have no internet, or we have hit a rate limit
       try {
         // Now we can try to get this content from the cache.
-        var file = await _cacheManager.getFileFromCache(url.toString());
+        var file = await _cacheManager?.getFileFromCache(url.toString());
         if (file == null) {
           throw Exception("This URL hasn't been cached before");
         }

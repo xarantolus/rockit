@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
@@ -19,26 +20,43 @@ class _ImageWidgetState extends State<ImageWidget>
   @override
   bool get wantKeepAlive => true;
 
-  static final _cacheManager = CacheManager(
-    Config(
-      'images',
-      stalePeriod: const Duration(days: 7),
-    ),
-  );
+  static final CacheManager? _cacheManager = () {
+    try {
+      return CacheManager(
+        Config(
+          'images',
+          stalePeriod: const Duration(days: 7),
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Could not initialize cache manager: $e");
+      }
+    }
+    return null;
+  }();
 
   Widget _image(BuildContext context, String? _imageURL) {
     if (_imageURL != null) {
-      return CachedNetworkImage(
-        imageUrl: _imageURL,
-        cacheManager: _cacheManager,
-        fadeInDuration: const Duration(milliseconds: 125),
-        fadeOutDuration: const Duration(milliseconds: 250),
-        fit: BoxFit.cover,
-        progressIndicatorBuilder: (context, url, downloadProgress) => Center(
-          child: CircularProgressIndicator(value: downloadProgress.progress),
-        ),
-        errorWidget: (context, url, error) => _defaultImage(),
-      );
+      try {
+        return CachedNetworkImage(
+          imageUrl: _imageURL,
+          cacheManager: _cacheManager,
+          fadeInDuration: const Duration(milliseconds: 125),
+          fadeOutDuration: const Duration(milliseconds: 250),
+          fit: BoxFit.cover,
+          progressIndicatorBuilder: (context, url, downloadProgress) => Center(
+            child: CircularProgressIndicator(value: downloadProgress.progress),
+          ),
+          errorWidget: (context, url, error) => _defaultImage(),
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint("Creating cached network image for $_imageURL");
+        }
+
+        return Image.network(_imageURL);
+      }
     }
 
     return _defaultImage();
