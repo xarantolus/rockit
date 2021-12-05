@@ -320,8 +320,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ),
           ),
           Table(
-            border: TableBorder.symmetric(
-              inside: BorderSide(
+            border: TableBorder(
+              horizontalInside: BorderSide(
                   color: Theme.of(context)
                       .textTheme
                       .bodyText2!
