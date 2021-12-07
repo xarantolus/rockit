@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 
 class RippleLinkWidget extends StatefulWidget {
@@ -15,7 +16,8 @@ class RippleLinkWidget extends StatefulWidget {
   _RippleLinkWidgetState createState() => _RippleLinkWidgetState();
 }
 
-class _RippleLinkWidgetState extends State<RippleLinkWidget> with UrlLauncher {
+class _RippleLinkWidgetState extends State<RippleLinkWidget>
+    with UrlLauncher, LinkCopier {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -28,6 +30,7 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget> with UrlLauncher {
             await openCustomTab(context, widget.url!);
           }
         },
+        onLongPress: () => copyLink(context, widget.url),
         child: ListTile(
           title: Text(
             widget.mainText,

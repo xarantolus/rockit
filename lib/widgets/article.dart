@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,7 +38,7 @@ class ArticleCardWidget extends StatefulWidget {
 }
 
 class _ArticleCardWidgetState extends State<ArticleCardWidget>
-    with UrlLauncher, DateFormatter {
+    with UrlLauncher, DateFormatter, LinkCopier {
   bool _isLetter(String letter) {
     final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
     return alpha.hasMatch(letter);
@@ -108,6 +109,9 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
           borderRadius: radius,
           child: InkWell(
             borderRadius: radius,
+            onLongPress: widget.link == null
+                ? null
+                : () => copyLink(context, widget.link),
             onTap: () async {
               setState(() {});
               if (widget.link != null) {
