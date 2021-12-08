@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
@@ -160,8 +161,14 @@ class _EventsListState extends State<EventsList> {
     void scrollToIndex(int idx, [bool animated = false]) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
+
       final wheight = EventWidget.calculateHeight(context);
-      final targetOffset = max(wheight * idx - wheight / 2, 0.0);
+      final isLandscape =
+          MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset = max(
+          wheight * (isLandscape ? idx / 2 : idx) -
+              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0);
 
       if (animated) {
         _eventListController.animateTo(
@@ -222,23 +229,27 @@ class _EventsListState extends State<EventsList> {
       onRefresh: () async {
         await _updateEvents(true);
       },
-      child: LoadMore(
-        isFinish: nextURL == null,
-        onLoadMore: _loadMore,
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          controller: _eventListController,
-          itemCount: events.length,
-          // We pre-load up to 5 screens of info, that way images load already
-          cacheExtent: MediaQuery.of(context).size.height * 5,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              child: EventWidget(events[index]),
-              onTap: () => _openEventDetails(context, index),
-            );
-          },
+      child: InfiniteGridView(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount:
+              MediaQuery.of(context).orientation == Orientation.landscape
+                  ? 2
+                  : 1,
+          mainAxisExtent: EventWidget.calculateHeight(context),
         ),
-        textBuilder: _buildLoadingText,
+        hasNext: nextURL != null,
+        nextData: _loadMore,
+        physics: const BouncingScrollPhysics(),
+        controller: _eventListController,
+        itemCount: events.length,
+        // We pre-load up to 5 screens of info, that way images load already
+        cacheExtent: MediaQuery.of(context).size.height * 5,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            child: EventWidget(events[index]),
+            onTap: () => _openEventDetails(context, index),
+          );
+        },
       ),
     );
   }

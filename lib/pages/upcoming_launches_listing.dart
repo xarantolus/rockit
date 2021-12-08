@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
@@ -161,7 +162,12 @@ class _LaunchesListState extends State<LaunchesList> {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
       final wheight = LaunchWidget.calculateHeight(context);
-      final targetOffset = max(wheight * idx - wheight / 2, 0.0);
+      final isLandscape =
+          MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset = max(
+          wheight * (isLandscape ? idx / 2 : idx) -
+              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0);
 
       if (animated) {
         _launchListController.animateTo(
@@ -222,23 +228,27 @@ class _LaunchesListState extends State<LaunchesList> {
       onRefresh: () async {
         await _updateLaunches(true);
       },
-      child: LoadMore(
-        isFinish: nextURL == null,
-        onLoadMore: _loadMore,
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          controller: _launchListController,
-          itemCount: launches.length,
-          // We pre-load up to 5 screens of info, that way images load already
-          cacheExtent: MediaQuery.of(context).size.height * 5,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              child: LaunchWidget(launches[index]),
-              onTap: () => _openLaunchDetails(context, index),
-            );
-          },
+      child: InfiniteGridView(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount:
+              MediaQuery.of(context).orientation == Orientation.landscape
+                  ? 2
+                  : 1,
+          mainAxisExtent: LaunchWidget.calculateHeight(context),
         ),
-        textBuilder: _buildLoadingText,
+        hasNext: nextURL != null,
+        nextData: _loadMore,
+        physics: const BouncingScrollPhysics(),
+        controller: _launchListController,
+        itemCount: launches.length,
+        // We pre-load up to 5 screens of info, that way images load already
+        cacheExtent: MediaQuery.of(context).size.height * 5,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            child: LaunchWidget(launches[index]),
+            onTap: () => _openLaunchDetails(context, index),
+          );
+        },
       ),
     );
   }
