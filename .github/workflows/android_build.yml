@@ -51,6 +51,15 @@ jobs:
       - name: Show APK hashes
         run: find build/app/outputs -type f -name "*.apk" | xargs -L1 sha256sum
 
+      - name: Generate diff from commit messages
+        run: |
+          # Download tags which the following git command needs
+          git fetch --prune --unshallow
+
+          # Now generate a diff using commit messages
+          echo "Changes:" > out.md
+          git log $(git describe --tags --abbrev=0)..HEAD --oneline --decorate=no | sed "s/^[^ ]* /* /" >> out.md
+
       - name: Upload release
         uses: softprops/action-gh-release@v1
         with:
@@ -60,6 +69,7 @@ jobs:
           name: ${{ env.COMMIT_MESSAGE }}
           fail_on_unmatched_files: true
           draft: true 
+          body_path: out.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}
