@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:infinite_widgets/infinite_widgets.dart';
-import 'package:loadmore/loadmore.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
@@ -24,7 +24,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<UpcomingEventsResponse> upcomingEventsFuture =
+  late Future<ErrorDetails<UpcomingEventsResponse>> upcomingEventsFuture =
       widget.service.upcomingEvents();
 
   @override
@@ -32,7 +32,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
     super.build(context);
 
     return Center(
-      child: FutureBuilder<UpcomingEventsResponse>(
+      child: FutureBuilder<ErrorDetails<UpcomingEventsResponse>>(
         future: upcomingEventsFuture,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -49,7 +49,9 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                   }),
                 );
               } else {
-                final results = snapshot.data!.results;
+                snapshot.data!.maybeShowSnack(context);
+
+                final results = snapshot.data!.data.results;
                 if (results?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noEvents),
@@ -57,7 +59,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                 } else {
                   return EventsList(
                     results!,
-                    snapshot.data!.next,
+                    snapshot.data!.data.next,
                     widget.service,
                   );
                 }
@@ -103,7 +105,9 @@ class _EventsListState extends State<EventsList> {
 
       var _newEvents = await widget.service.upcomingEvents(_nextURL);
 
-      newList = _newEvents.results ?? [];
+      _newEvents.maybeShowSnack(context);
+
+      newList = _newEvents.data.results ?? [];
 
       setState(() {
         // Refresh? => replace
@@ -119,7 +123,7 @@ class _EventsListState extends State<EventsList> {
           events.addAll(newList);
         }
 
-        nextURL = _newEvents.next;
+        nextURL = _newEvents.data.next;
       });
     } catch (e) {
       error = e;
@@ -139,21 +143,6 @@ class _EventsListState extends State<EventsList> {
       return await _updateEvents(false);
     } catch (_) {
       return false;
-    }
-  }
-
-  String _buildLoadingText(LoadMoreStatus status) {
-    switch (status) {
-      case LoadMoreStatus.fail:
-        return AppLocalizations.of(context)!.loadingEventsFail;
-      case LoadMoreStatus.idle:
-        return AppLocalizations.of(context)!.loadingEventsIdle;
-      case LoadMoreStatus.loading:
-        return AppLocalizations.of(context)!.loadingEventsLoading;
-      case LoadMoreStatus.nomore:
-        return AppLocalizations.of(context)!.loadingEventsNoMore;
-      default:
-        return AppLocalizations.of(context)!.unknown;
     }
   }
 

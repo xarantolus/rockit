@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rockit/apis/error_details.dart';
 
 class APIClient {
   static final _httpClient = http.Client();
@@ -21,11 +22,13 @@ class APIClient {
     ),
   );
 
-  Future<dynamic> fetchJSON(Uri url) async {
-    return jsonDecode(await fetch(url));
+  Future<ErrorDetails<dynamic>> fetchJSON(Uri url) async {
+    var details = await fetch(url);
+
+    return details.bubble(jsonDecode(details.data));
   }
 
-  Future<String> fetch(Uri url) async {
+  Future<ErrorDetails<String>> fetch(Uri url) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
     Uint8List responseBytes;
@@ -33,6 +36,8 @@ class APIClient {
     if (kDebugMode) {
       debugPrint("Fetching URL ${url.toString()}");
     }
+
+    error_type? etype;
 
     try {
       // At first, we try to get the response by fetching it from the web server
@@ -74,6 +79,8 @@ class APIClient {
         }
 
         responseBytes = await File(file.file.path).readAsBytes();
+
+        etype = error_type.cachedFallback;
       } catch (ec) {
         throw Exception(
             "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
@@ -81,6 +88,6 @@ class APIClient {
     }
 
     // We need to decode utf8, else text like "äöü" will be decoded wrong
-    return utf8.decode(responseBytes);
+    return ErrorDetails(utf8.decode(responseBytes), etype);
   }
 }

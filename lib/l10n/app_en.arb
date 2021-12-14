@@ -110,5 +110,7 @@
     }
   },
 
-  "copiedToClipboard": "Copied link to clipboard"
+  "copiedToClipboard": "Copied link to clipboard",
+
+  "showingCachedFallback": "Could not get latest data, showing previous response."
 }
