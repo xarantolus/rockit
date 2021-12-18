@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
@@ -23,7 +25,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<UpcomingResponse> upcomingLaunchesFuture =
+  late Future<ErrorDetails<UpcomingResponse>> upcomingLaunchesFuture =
       widget.service.upcomingLaunches();
 
   @override
@@ -31,7 +33,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
     super.build(context);
 
     return Center(
-      child: FutureBuilder<UpcomingResponse>(
+      child: FutureBuilder<ErrorDetails<UpcomingResponse>>(
         future: upcomingLaunchesFuture,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -48,7 +50,8 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
                   }),
                 );
               } else {
-                final results = snapshot.data!.results;
+                snapshot.data!.maybeShowSnack(context);
+                final results = snapshot.data!.data.results;
                 if (results?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noLaunches),
@@ -56,7 +59,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
                 } else {
                   return LaunchesList(
                     results!,
-                    snapshot.data!.next,
+                    snapshot.data!.data.next,
                     widget.service,
                   );
                 }
@@ -102,7 +105,9 @@ class _LaunchesListState extends State<LaunchesList> {
 
       var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
 
-      newList = _newLaunches.results ?? [];
+      _newLaunches.maybeShowSnack(context);
+
+      newList = _newLaunches.data.results ?? [];
 
       setState(() {
         // Refresh? => replace
@@ -118,7 +123,7 @@ class _LaunchesListState extends State<LaunchesList> {
           launches.addAll(newList);
         }
 
-        nextURL = _newLaunches.next;
+        nextURL = _newLaunches.data.next;
       });
     } catch (e) {
       error = e;
@@ -141,27 +146,17 @@ class _LaunchesListState extends State<LaunchesList> {
     }
   }
 
-  String _buildLoadingText(LoadMoreStatus status) {
-    switch (status) {
-      case LoadMoreStatus.fail:
-        return AppLocalizations.of(context)!.loadingLaunchFail;
-      case LoadMoreStatus.idle:
-        return AppLocalizations.of(context)!.loadingLaunchIdle;
-      case LoadMoreStatus.loading:
-        return AppLocalizations.of(context)!.loadingLaunchLoading;
-      case LoadMoreStatus.nomore:
-        return AppLocalizations.of(context)!.loadingLaunchNoMore;
-      default:
-        return AppLocalizations.of(context)!.unknown;
-    }
-  }
-
   void _openLaunchDetails(BuildContext context, int index) async {
     void scrollToIndex(int idx, [bool animated = false]) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
       final wheight = LaunchWidget.calculateHeight(context);
-      final targetOffset = max(wheight * idx - wheight / 2, 0.0);
+      final isLandscape =
+          MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset = max(
+          wheight * (isLandscape ? idx / 2 : idx) -
+              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0);
 
       if (animated) {
         _launchListController.animateTo(
@@ -222,23 +217,27 @@ class _LaunchesListState extends State<LaunchesList> {
       onRefresh: () async {
         await _updateLaunches(true);
       },
-      child: LoadMore(
-        isFinish: nextURL == null,
-        onLoadMore: _loadMore,
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          controller: _launchListController,
-          itemCount: launches.length,
-          // We pre-load up to 5 screens of info, that way images load already
-          cacheExtent: MediaQuery.of(context).size.height * 5,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              child: LaunchWidget(launches[index]),
-              onTap: () => _openLaunchDetails(context, index),
-            );
-          },
+      child: InfiniteGridView(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount:
+              MediaQuery.of(context).orientation == Orientation.landscape
+                  ? 2
+                  : 1,
+          mainAxisExtent: LaunchWidget.calculateHeight(context),
         ),
-        textBuilder: _buildLoadingText,
+        hasNext: nextURL != null,
+        nextData: _loadMore,
+        physics: const BouncingScrollPhysics(),
+        controller: _launchListController,
+        itemCount: launches.length,
+        // We pre-load up to 5 screens of info, that way images load already
+        cacheExtent: MediaQuery.of(context).size.height * 5,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            child: LaunchWidget(launches[index]),
+            onTap: () => _openLaunchDetails(context, index),
+          );
+        },
       ),
     );
   }

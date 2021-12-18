@@ -134,7 +134,7 @@ class BackgroundHandler {
       return true;
     }
 
-    final launch = await LaunchLibraryAPI().launch(launchId);
+    final launch = (await LaunchLibraryAPI().launch(launchId)).data;
 
     final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
@@ -380,7 +380,7 @@ class BackgroundHandler {
       return true;
     }
 
-    final event = await LaunchLibraryAPI().event(eventId);
+    final event = (await LaunchLibraryAPI().event(eventId)).data;
 
     final eventTitle = event.name ?? "Unknown";
     final tag = "update:event:oneoff:$eventId";

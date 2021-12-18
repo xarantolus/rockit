@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
@@ -23,14 +24,15 @@ class _ArticleListingPageState extends State<ArticleListingPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<List<Article>> articlesFuture = widget.service.articles();
+  late Future<ErrorDetails<List<Article>>> articlesFuture =
+      widget.service.articles();
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
-      child: FutureBuilder<List<Article>>(
+      child: FutureBuilder<ErrorDetails<List<Article>>>(
         future: articlesFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
@@ -48,13 +50,15 @@ class _ArticleListingPageState extends State<ArticleListingPage>
                 );
               } else {
                 final results = snapshot.data!;
-                if (results?.isEmpty ?? true) {
+                results.maybeShowSnack();
+
+                if (results.data?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noNews),
                   );
                 } else {
                   return NewsList(
-                    results,
+                    results.data,
                     widget.service,
                   );
                 }
@@ -85,19 +89,21 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
     var _newArticles =
         await widget.service.articles(refresh == true ? null : articles.length);
 
+    _newArticles.maybeShowSnack(context);
+
     setState(() {
       if (refresh == true) {
-        articles = _newArticles;
+        articles = _newArticles.data;
       } else {
         // See upcoming_launches_listing.dart for more info, but in short:
         // This makes sure that cached responses do not lead to duplicate display of content
-        _newArticles.removeWhere((newArticle) =>
+        _newArticles.data.removeWhere((newArticle) =>
             articles.any((article) => article.id == newArticle.id));
 
-        articles.addAll(_newArticles);
+        articles.addAll(_newArticles.data);
       }
 
-      _finished = _newArticles.isEmpty;
+      _finished = _newArticles.data.isEmpty;
     });
 
     return articles.isNotEmpty;

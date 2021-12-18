@@ -99,5 +99,8 @@
   "sources": "Quellen",
   "failedURLLaunch": "Starten des Browsers fehlgeschlagen!",
 
-  "onTwitter": "@{account} auf Twitter"
+  "onTwitter": "@{account} auf Twitter",
+
+  "copiedToClipboard": "Link wurde kopiert",
+  "showingCachedFallback": "Die neuesten Daten konnten nicht abgerufen werden. Gezeigt wird die vorherige Antwort."
 }

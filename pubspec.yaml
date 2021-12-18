@@ -45,6 +45,7 @@ dependencies:
   shared_preferences: ^2.0.8
   flutter_local_notifications: ^9.0.2
   timezone: ^0.8.0
+  infinite_widgets: ^2.0.0
   
 
 dev_dependencies:

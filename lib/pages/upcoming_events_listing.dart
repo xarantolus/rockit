@@ -2,7 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:loadmore/loadmore.dart';
+import 'package:infinite_widgets/infinite_widgets.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
@@ -23,7 +24,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<UpcomingEventsResponse> upcomingEventsFuture =
+  late Future<ErrorDetails<UpcomingEventsResponse>> upcomingEventsFuture =
       widget.service.upcomingEvents();
 
   @override
@@ -31,7 +32,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
     super.build(context);
 
     return Center(
-      child: FutureBuilder<UpcomingEventsResponse>(
+      child: FutureBuilder<ErrorDetails<UpcomingEventsResponse>>(
         future: upcomingEventsFuture,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -48,7 +49,9 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                   }),
                 );
               } else {
-                final results = snapshot.data!.results;
+                snapshot.data!.maybeShowSnack(context);
+
+                final results = snapshot.data!.data.results;
                 if (results?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noEvents),
@@ -56,7 +59,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                 } else {
                   return EventsList(
                     results!,
-                    snapshot.data!.next,
+                    snapshot.data!.data.next,
                     widget.service,
                   );
                 }
@@ -102,7 +105,9 @@ class _EventsListState extends State<EventsList> {
 
       var _newEvents = await widget.service.upcomingEvents(_nextURL);
 
-      newList = _newEvents.results ?? [];
+      _newEvents.maybeShowSnack(context);
+
+      newList = _newEvents.data.results ?? [];
 
       setState(() {
         // Refresh? => replace
@@ -118,7 +123,7 @@ class _EventsListState extends State<EventsList> {
           events.addAll(newList);
         }
 
-        nextURL = _newEvents.next;
+        nextURL = _newEvents.data.next;
       });
     } catch (e) {
       error = e;
@@ -141,27 +146,18 @@ class _EventsListState extends State<EventsList> {
     }
   }
 
-  String _buildLoadingText(LoadMoreStatus status) {
-    switch (status) {
-      case LoadMoreStatus.fail:
-        return AppLocalizations.of(context)!.loadingEventsFail;
-      case LoadMoreStatus.idle:
-        return AppLocalizations.of(context)!.loadingEventsIdle;
-      case LoadMoreStatus.loading:
-        return AppLocalizations.of(context)!.loadingEventsLoading;
-      case LoadMoreStatus.nomore:
-        return AppLocalizations.of(context)!.loadingEventsNoMore;
-      default:
-        return AppLocalizations.of(context)!.unknown;
-    }
-  }
-
   void _openEventDetails(BuildContext context, int index) async {
     void scrollToIndex(int idx, [bool animated = false]) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
+
       final wheight = EventWidget.calculateHeight(context);
-      final targetOffset = max(wheight * idx - wheight / 2, 0.0);
+      final isLandscape =
+          MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset = max(
+          wheight * (isLandscape ? idx / 2 : idx) -
+              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0);
 
       if (animated) {
         _eventListController.animateTo(
@@ -222,23 +218,27 @@ class _EventsListState extends State<EventsList> {
       onRefresh: () async {
         await _updateEvents(true);
       },
-      child: LoadMore(
-        isFinish: nextURL == null,
-        onLoadMore: _loadMore,
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          controller: _eventListController,
-          itemCount: events.length,
-          // We pre-load up to 5 screens of info, that way images load already
-          cacheExtent: MediaQuery.of(context).size.height * 5,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              child: EventWidget(events[index]),
-              onTap: () => _openEventDetails(context, index),
-            );
-          },
+      child: InfiniteGridView(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount:
+              MediaQuery.of(context).orientation == Orientation.landscape
+                  ? 2
+                  : 1,
+          mainAxisExtent: EventWidget.calculateHeight(context),
         ),
-        textBuilder: _buildLoadingText,
+        hasNext: nextURL != null,
+        nextData: _loadMore,
+        physics: const BouncingScrollPhysics(),
+        controller: _eventListController,
+        itemCount: events.length,
+        // We pre-load up to 5 screens of info, that way images load already
+        cacheExtent: MediaQuery.of(context).size.height * 5,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            child: EventWidget(events[index]),
+            onTap: () => _openEventDetails(context, index),
+          );
+        },
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -35,7 +36,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         DateFormatter,
         SourceAttribution,
         UpdateRenderer,
-        ProgramRenderer {
+        ProgramRenderer,
+        LinkCopier {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -175,6 +177,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           await launch(url);
         }
       },
+      onLongPress: () => copyLink(context, url),
       icon: Icon(icon),
       label: Text(text),
     );
