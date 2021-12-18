@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
@@ -421,9 +422,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 _missionDetails(context, widget.launch.mission!),
             ],
 
-            const Divider(),
-
-            if (widget.launch.id != null) _subscription(widget.launch.id!),
+            if (widget.launch.id != null && !kIsWeb) ...[
+              const Divider(),
+              _subscription(widget.launch.id!),
+            ],
 
             // The countdown should always be displayed
             const Divider(),

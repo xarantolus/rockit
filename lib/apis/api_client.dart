@@ -70,17 +70,19 @@ class APIClient {
 
       responseBytes = response.bodyBytes;
 
-      // If everything worked, we can put the file into the cache. That way, we can
-      // access it in case of no internet or a rate limit
-      try {
-        await _cacheManager?.putFile(
-          url.toString(),
-          responseBytes,
-          key: url.toString(),
-        );
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint("Error putting ${url.toString()} into cache: $e");
+      if (!kIsWeb) {
+        // If everything worked, we can put the file into the cache. That way, we can
+        // access it in case of no internet or a rate limit
+        try {
+          await _cacheManager?.putFile(
+            url.toString(),
+            responseBytes,
+            key: url.toString(),
+          );
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint("Error putting ${url.toString()} into cache: $e");
+          }
         }
       }
     } catch (e) {
