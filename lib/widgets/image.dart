@@ -39,15 +39,10 @@ class _ImageWidgetState extends State<ImageWidget>
   Widget _image(BuildContext context, String? _imageURL) {
     if (_imageURL != null) {
       try {
-        if (kIsWeb) {
-          return Image.network(
-            "https://corsanywhere.herokuapp.com/$_imageURL",
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _defaultImage(),
-          );
-        }
         return CachedNetworkImage(
-          imageUrl: _imageURL,
+          imageUrl: kIsWeb
+              ? "https://corsanywhere.herokuapp.com/$_imageURL"
+              : _imageURL,
           cacheManager: _cacheManager,
           fadeInDuration: const Duration(milliseconds: 125),
           fadeOutDuration: const Duration(milliseconds: 250),
