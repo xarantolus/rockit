@@ -50,7 +50,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
                 );
               } else {
                 final results = snapshot.data!;
-                results.maybeShowSnack();
+                results.maybeShowSnack(context);
 
                 if (results.data?.isEmpty ?? true) {
                   return Center(

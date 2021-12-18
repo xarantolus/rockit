@@ -37,7 +37,7 @@ class APIClient {
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<String> fetch(Uri url) async {
+  Future<ErrorDetails<String>> fetch(Uri url) async {
     PackageInfo? packageInfo;
 
     try {
