@@ -36,7 +36,9 @@ void main() async {
 }
 
 class RockItApp extends StatelessWidget {
-  const RockItApp({Key? key}) : super(key: key);
+  const RockItApp({Key? key, this.disableBanner = false}) : super(key: key);
+
+  final bool disableBanner;
 
   static const _themeColor = Color.fromRGBO(0x3A, 0x88, 0xFF, 1.0);
   static const _secondaryColor = Color.fromRGBO(0x70, 0xA2, 0xFF, 1.0);
@@ -50,6 +52,7 @@ class RockItApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appName,
+      debugShowCheckedModeBanner: disableBanner ? false : kDebugMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.from(
