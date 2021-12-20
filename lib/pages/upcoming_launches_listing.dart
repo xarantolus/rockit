@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:infinite_widgets/infinite_widgets.dart';
-import 'package:loadmore/loadmore.dart';
-import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
@@ -25,15 +23,27 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<ErrorDetails<UpcomingResponse>> upcomingLaunchesFuture =
-      widget.service.upcomingLaunches();
+  static Future<UpcomingResponse> load(
+    BuildContext context,
+    LaunchLibraryAPI api, [
+    String? next,
+  ]) async {
+    var res = await api.upcomingLaunches(next);
+
+    res.maybeShowSnack(context);
+
+    return res.data;
+  }
+
+  late Future<UpcomingResponse> upcomingLaunchesFuture =
+      load(context, widget.service);
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
-      child: FutureBuilder<ErrorDetails<UpcomingResponse>>(
+      child: FutureBuilder<UpcomingResponse>(
         future: upcomingLaunchesFuture,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -46,12 +56,11 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
                   child: ErrorWidget(
                       "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
-                    upcomingLaunchesFuture = widget.service.upcomingLaunches();
+                    upcomingLaunchesFuture = load(context, widget.service);
                   }),
                 );
               } else {
-                snapshot.data!.maybeShowSnack(context);
-                final results = snapshot.data!.data.results;
+                final results = snapshot.data!.results;
                 if (results?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noLaunches),
@@ -59,7 +68,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
                 } else {
                   return LaunchesList(
                     results!,
-                    snapshot.data!.data.next,
+                    snapshot.data!.next,
                     widget.service,
                   );
                 }
@@ -97,17 +106,19 @@ class _LaunchesListState extends State<LaunchesList> {
     }
     _currentlyLoading = true;
 
-    var error;
+    Object? error;
 
     List<Launch> newList = [];
     try {
       var _nextURL = refresh == true ? null : nextURL;
 
-      var _newLaunches = await widget.service.upcomingLaunches(_nextURL);
+      var _newLaunches = await _UpcomingLaunchesPageState.load(
+        context,
+        widget.service,
+        _nextURL,
+      );
 
-      _newLaunches.maybeShowSnack(context);
-
-      newList = _newLaunches.data.results ?? [];
+      newList = _newLaunches.results ?? [];
 
       setState(() {
         // Refresh? => replace
@@ -123,12 +134,14 @@ class _LaunchesListState extends State<LaunchesList> {
           launches.addAll(newList);
         }
 
-        nextURL = _newLaunches.data.next;
+        nextURL = _newLaunches.next;
       });
     } catch (e) {
       error = e;
     } finally {
-      _currentlyLoading = false;
+      setState(() {
+        _currentlyLoading = false;
+      });
     }
 
     if (error != null) {
