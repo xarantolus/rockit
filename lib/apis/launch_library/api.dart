@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:rockit/apis/api_client.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 
@@ -24,7 +25,8 @@ class LaunchLibraryAPI extends APIClient {
     return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
 
-  Future<UpcomingResponse> upcomingLaunches([String? next]) async {
+  Future<ErrorDetails<UpcomingResponse>> upcomingLaunches(
+      [String? next]) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/launch/upcoming/", {
@@ -35,31 +37,39 @@ class LaunchLibraryAPI extends APIClient {
             "related": "false",
           });
 
-    return UpcomingResponse.fromJson(await fetchJSON(uri));
+    var res = await fetchJSON(uri);
+
+    return res.bubble(UpcomingResponse.fromJson(res.data));
   }
 
-  Future<UpcomingEventsResponse> upcomingEvents([String? next]) async {
+  Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents(
+      [String? next]) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/event/upcoming/", {
             "limit": "25",
           });
+    var res = await fetchJSON(uri);
 
-    return UpcomingEventsResponse.fromJson(await fetchJSON(uri));
+    return res.bubble(UpcomingEventsResponse.fromJson(res.data));
   }
 
-  Future<Launch> launch(String id) async {
+  Future<ErrorDetails<Launch>> launch(String id) async {
     var uri = _endpoint("/launch/" + id, {});
 
-    var decoded = jsonDecode(await fetch(uri));
+    var res = await fetch(uri);
 
-    return Launch.fromJson(decoded);
+    var decoded = jsonDecode(res.data);
+
+    return res.bubble(Launch.fromJson(decoded));
   }
 
   // the id given should be either a String or int
-  Future<Event> event(dynamic id) async {
+  Future<ErrorDetails<Event>> event(dynamic id) async {
     var uri = _endpoint("/event/$id", {});
 
-    return Event.fromJson(await fetchJSON(uri));
+    var res = await fetchJSON(uri);
+
+    return res.bubble(Event.fromJson(res.data));
   }
 }

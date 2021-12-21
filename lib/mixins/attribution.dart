@@ -8,6 +8,7 @@ mixin SourceAttribution {
       // Make sure it's a link to a tweet, e.g. like
       // https://twitter.com/accountname/status/1897358912732835
       if (uri.pathSegments.length >= 3 &&
+          uri.pathSegments[0] != "i" &&
           uri.pathSegments[1] == "status" &&
           int.tryParse(uri.pathSegments[2]) != null) {
         return AppLocalizations.of(context)!.onTwitter(uri.pathSegments.first);
@@ -45,6 +46,7 @@ mixin SourceAttribution {
     "spacex.com": (_, __) => "SpaceX",
     "blueorigin.com": (_, __) => "Blue Origin",
     "boeing.com": (_, __) => "Boeing",
+    "astra.com": (_, __) => "Astra",
     "virginorbit.com": (_, __) => "Virgin Orbit",
     "virgingalactic.com": (_, __) => "Virgin Galactic",
     "mhi.com": (_, __) => "Mitsubishi Heavy Industries",

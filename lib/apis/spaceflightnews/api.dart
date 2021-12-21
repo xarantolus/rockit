@@ -1,4 +1,5 @@
 import 'package:rockit/apis/api_client.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 
 class SpaceFlightNewsAPI extends APIClient {
@@ -15,7 +16,7 @@ class SpaceFlightNewsAPI extends APIClient {
     return Uri.https('api.spaceflightnewsapi.net', "/v3" + path, query);
   }
 
-  Future<List<Article>> articles([int? _after]) async {
+  Future<ErrorDetails<List<Article>>> articles([int? _after]) async {
     var query = <String, dynamic>{};
 
     if (_after != null) {
@@ -24,8 +25,10 @@ class SpaceFlightNewsAPI extends APIClient {
 
     var uri = _endpoint("/articles", query);
 
-    var list = await fetchJSON(uri) as List<dynamic>;
+    var res = await fetchJSON(uri);
 
-    return list.map((e) => Article.fromJson(e)).toList();
+    var list = res.data as List<dynamic>;
+
+    return res.bubble(list.map((e) => Article.fromJson(e)).toList());
   }
 }

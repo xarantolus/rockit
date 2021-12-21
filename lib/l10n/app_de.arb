@@ -85,6 +85,8 @@
   "loadingEventsLoading": "Laden weiterer Events...",
   "loadingEventsNoMore": "Du hast das Ende der Liste erreicht!",
 
+  "loadingFail":"Laden fehlgeschlagen.",
+
   "inYourLocalTime": "in deiner Zeitzone",
 
   "tapToTryAgain": "Tippe, um es nochmal zu versuchen.",
@@ -99,5 +101,8 @@
   "sources": "Quellen",
   "failedURLLaunch": "Starten des Browsers fehlgeschlagen!",
 
-  "onTwitter": "@{account} auf Twitter"
+  "onTwitter": "@{account} auf Twitter",
+
+  "copiedToClipboard": "Link wurde kopiert",
+  "showingCachedFallback": "Die neuesten Daten konnten nicht abgerufen werden. Gezeigt wird die vorherige Antwort."
 }

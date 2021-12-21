@@ -23,7 +23,33 @@ class _ArticleListingPageState extends State<ArticleListingPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<List<Article>> articlesFuture = widget.service.articles();
+  late Future<List<Article>> articlesFuture = load(context, widget.service);
+
+  static Future<List<Article>> load(
+    BuildContext context,
+    SpaceFlightNewsAPI api, [
+    int? after,
+  ]) async {
+    try {
+      var res = await api.articles(after);
+
+      res.maybeShowSnack(context);
+
+      return res.data;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error loading articles: $e");
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.loadingFail),
+        ),
+      );
+
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +58,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
     return Center(
       child: FutureBuilder<List<Article>>(
         future: articlesFuture,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
+        builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
@@ -43,12 +69,12 @@ class _ArticleListingPageState extends State<ArticleListingPage>
                   child: ErrorWidget(
                       "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
-                    articlesFuture = widget.service.articles();
+                    articlesFuture = load(context, widget.service);
                   }),
                 );
               } else {
                 final results = snapshot.data!;
-                if (results?.isEmpty ?? true) {
+                if (results.isEmpty) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noNews),
                   );
@@ -82,8 +108,11 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   bool _finished = false;
 
   Future<bool> _updateArticles([bool? refresh]) async {
-    var _newArticles =
-        await widget.service.articles(refresh == true ? null : articles.length);
+    var _newArticles = await _ArticleListingPageState.load(
+      context,
+      widget.service,
+      refresh == true ? null : articles.length,
+    );
 
     setState(() {
       if (refresh == true) {

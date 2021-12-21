@@ -19,11 +19,13 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize background tasks
-  Workmanager().initialize(
-    backgroundTaskCallback,
-    isInDebugMode: kDebugMode,
-  );
+  if (!kIsWeb) {
+    // Initialize background tasks
+    Workmanager().initialize(
+      backgroundTaskCallback,
+      isInDebugMode: kDebugMode,
+    );
+  }
 
   // Allow a bit more render image cache, this makes images reload less
   // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.

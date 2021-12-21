@@ -85,6 +85,7 @@
   "loadingEventsLoading": "Loading more events...",
   "loadingEventsNoMore": "You've reached the end of the list!",
 
+  "loadingFail": "Loading failed.",
 
   "inYourLocalTime": "in your local time",
 
@@ -108,5 +109,9 @@
         "example": "SpaceX"
       }
     }
-  }
+  },
+
+  "copiedToClipboard": "Copied link to clipboard",
+
+  "showingCachedFallback": "Could not get latest data, showing previous response."
 }

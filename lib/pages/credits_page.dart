@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class CreditPage extends StatelessWidget {
+class CreditPage extends StatelessWidget with LinkCopier {
   const CreditPage({Key? key}) : super(key: key);
 
   @override
@@ -29,6 +30,9 @@ class CreditPage extends StatelessWidget {
       }
     }
 
+    const spaceDevsLink = "https://thespacedevs.com/";
+    const projectLink = "https://github.com/xarantolus/rockit";
+
     return Scaffold(
       appBar: CustomAppBar.create(
         context,
@@ -46,8 +50,9 @@ class CreditPage extends StatelessWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.open_in_browser),
               onPressed: () async {
-                await _launchURL("https://thespacedevs.com/");
+                await _launchURL(spaceDevsLink);
               },
+              onLongPress: () => copyLink(context, spaceDevsLink),
               label: const Text("Open Website"),
             ),
             const Divider(),
@@ -59,8 +64,9 @@ class CreditPage extends StatelessWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.open_in_browser),
               onPressed: () async {
-                await _launchURL("https://github.com/xarantolus/rockit");
+                await _launchURL(projectLink);
               },
+              onLongPress: () => copyLink(context, projectLink),
               label: const Text("Open project page"),
             ),
           ],
