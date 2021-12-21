@@ -60,8 +60,9 @@ class APIClient {
       // At first, we try to get the response by fetching it from the web server
       var response = await _httpClient.get(url, headers: {
         "Accept": "application/json",
-        "User-Agent":
-            "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
+        if (!kIsWeb)
+          "User-Agent":
+              "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
       });
 
       if (kDebugMode) {
