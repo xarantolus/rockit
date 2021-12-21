@@ -1,11 +1,11 @@
 {
-    "name": "rockit",
+    "name": "Rock It!",
     "short_name": "rockit",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#70A2FF",
+    "theme_color": "#70A2FF",
+    "description": "Rock It! is an app that helps you stay informed on all things space.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
