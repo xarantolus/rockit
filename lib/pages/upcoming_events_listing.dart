@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:infinite_widgets/infinite_widgets.dart';
-import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
@@ -24,15 +23,27 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<ErrorDetails<UpcomingEventsResponse>> upcomingEventsFuture =
-      widget.service.upcomingEvents();
+  late Future<UpcomingEventsResponse> upcomingEventsFuture =
+      load(context, widget.service);
+
+  static Future<UpcomingEventsResponse> load(
+    BuildContext context,
+    LaunchLibraryAPI api, [
+    String? next,
+  ]) async {
+    var res = await api.upcomingEvents(next);
+
+    res.maybeShowSnack(context);
+
+    return res.data;
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
-      child: FutureBuilder<ErrorDetails<UpcomingEventsResponse>>(
+      child: FutureBuilder<UpcomingEventsResponse>(
         future: upcomingEventsFuture,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
@@ -45,13 +56,11 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                   child: ErrorWidget(
                       "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
-                    upcomingEventsFuture = widget.service.upcomingEvents();
+                    upcomingEventsFuture = load(context, widget.service);
                   }),
                 );
               } else {
-                snapshot.data!.maybeShowSnack(context);
-
-                final results = snapshot.data!.data.results;
+                final results = snapshot.data!.results;
                 if (results?.isEmpty ?? true) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noEvents),
@@ -59,7 +68,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
                 } else {
                   return EventsList(
                     results!,
-                    snapshot.data!.data.next,
+                    snapshot.data!.next,
                     widget.service,
                   );
                 }
@@ -97,17 +106,16 @@ class _EventsListState extends State<EventsList> {
     }
     _currentlyLoading = true;
 
-    var error;
+    Object? error;
 
     List<Event> newList = [];
     try {
       var _nextURL = refresh == true ? null : nextURL;
 
-      var _newEvents = await widget.service.upcomingEvents(_nextURL);
+      var _newEvents = await _UpcomingEventsPageState.load(
+          context, widget.service, _nextURL);
 
-      _newEvents.maybeShowSnack(context);
-
-      newList = _newEvents.data.results ?? [];
+      newList = _newEvents.results ?? [];
 
       setState(() {
         // Refresh? => replace
@@ -123,7 +131,7 @@ class _EventsListState extends State<EventsList> {
           events.addAll(newList);
         }
 
-        nextURL = _newEvents.data.next;
+        nextURL = _newEvents.next;
       });
     } catch (e) {
       error = e;
