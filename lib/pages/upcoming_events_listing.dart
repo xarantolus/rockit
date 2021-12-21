@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:infinite_widgets/infinite_widgets.dart';
@@ -31,11 +32,30 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
     LaunchLibraryAPI api, [
     String? next,
   ]) async {
-    var res = await api.upcomingEvents(next);
+    try {
+      var res = await api.upcomingEvents(next);
 
-    res.maybeShowSnack(context);
+      res.maybeShowSnack(context);
 
-    return res.data;
+      return res.data;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error loading events: $e");
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.loadingFail),
+        ),
+      );
+
+      return UpcomingEventsResponse(
+        count: 0,
+        next: next,
+        previous: null,
+        results: [],
+      );
+    }
   }
 
   @override

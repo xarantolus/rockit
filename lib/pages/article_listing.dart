@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
@@ -24,17 +23,42 @@ class _ArticleListingPageState extends State<ArticleListingPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<ErrorDetails<List<Article>>> articlesFuture =
-      widget.service.articles();
+  late Future<List<Article>> articlesFuture = load(context, widget.service);
+
+  static Future<List<Article>> load(
+    BuildContext context,
+    SpaceFlightNewsAPI api, [
+    int? after,
+  ]) async {
+    try {
+      var res = await api.articles(after);
+
+      res.maybeShowSnack(context);
+
+      return res.data;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error loading articles: $e");
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.loadingFail),
+        ),
+      );
+
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Center(
-      child: FutureBuilder<ErrorDetails<List<Article>>>(
+      child: FutureBuilder<List<Article>>(
         future: articlesFuture,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
+        builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
@@ -45,20 +69,18 @@ class _ArticleListingPageState extends State<ArticleListingPage>
                   child: ErrorWidget(
                       "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
-                    articlesFuture = widget.service.articles();
+                    articlesFuture = load(context, widget.service);
                   }),
                 );
               } else {
                 final results = snapshot.data!;
-                results.maybeShowSnack(context);
-
-                if (results.data?.isEmpty ?? true) {
+                if (results.isEmpty) {
                   return Center(
                     child: Text(AppLocalizations.of(context)!.noNews),
                   );
                 } else {
                   return NewsList(
-                    results.data,
+                    results,
                     widget.service,
                   );
                 }
@@ -86,24 +108,25 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   bool _finished = false;
 
   Future<bool> _updateArticles([bool? refresh]) async {
-    var _newArticles =
-        await widget.service.articles(refresh == true ? null : articles.length);
-
-    _newArticles.maybeShowSnack(context);
+    var _newArticles = await _ArticleListingPageState.load(
+      context,
+      widget.service,
+      refresh == true ? null : articles.length,
+    );
 
     setState(() {
       if (refresh == true) {
-        articles = _newArticles.data;
+        articles = _newArticles;
       } else {
         // See upcoming_launches_listing.dart for more info, but in short:
         // This makes sure that cached responses do not lead to duplicate display of content
-        _newArticles.data.removeWhere((newArticle) =>
+        _newArticles.removeWhere((newArticle) =>
             articles.any((article) => article.id == newArticle.id));
 
-        articles.addAll(_newArticles.data);
+        articles.addAll(_newArticles);
       }
 
-      _finished = _newArticles.data.isEmpty;
+      _finished = _newArticles.isEmpty;
     });
 
     return articles.isNotEmpty;
