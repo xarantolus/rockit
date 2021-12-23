@@ -96,6 +96,10 @@ class APIClient {
         debugPrint("Error fetching ${url.toString()}: $e");
       }
 
+      if (kIsWeb) {
+        rethrow;
+      }
+
       // We likely have no internet, or we have hit a rate limit
       try {
         // Now we can try to get this content from the cache.
