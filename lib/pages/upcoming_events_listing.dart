@@ -133,7 +133,10 @@ class _EventsListState extends State<EventsList> {
       var _nextURL = refresh == true ? null : nextURL;
 
       var _newEvents = await _UpcomingEventsPageState.load(
-          context, widget.service, _nextURL);
+        context,
+        widget.service,
+        _nextURL,
+      );
 
       newList = _newEvents.results ?? [];
 
@@ -156,7 +159,9 @@ class _EventsListState extends State<EventsList> {
     } catch (e) {
       error = e;
     } finally {
-      _currentlyLoading = false;
+      setState(() {
+        _currentlyLoading = false;
+      });
     }
 
     if (error != null) {
