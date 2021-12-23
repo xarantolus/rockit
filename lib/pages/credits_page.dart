@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/mixins/link_copy.dart';
+import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class CreditPage extends StatelessWidget with LinkCopier {
+// This page is not localized because I wanted to keep the original description from the space devs
+class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
   const CreditPage({Key? key}) : super(key: key);
 
   @override
@@ -17,21 +18,9 @@ class CreditPage extends StatelessWidget with LinkCopier {
       fontSize: 18,
     );
 
-    Future<void> _launchURL(String _url) async {
-      try {
-        await launch(_url);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                "${AppLocalizations.of(context)!.failedURLLaunch} ($_url)"),
-          ),
-        );
-      }
-    }
-
     const spaceDevsLink = "https://thespacedevs.com/";
     const projectLink = "https://github.com/xarantolus/rockit";
+    const twitterBotLink = "https://twitter.com/wenhopbot";
 
     return Scaffold(
       appBar: CustomAppBar.create(
@@ -42,32 +31,55 @@ class CreditPage extends StatelessWidget with LinkCopier {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            const Text('Data from The Space Devs', style: titleStyle),
-            const Text(
-              'The Space Devs is a group of space enthusiast developers working on a range of services, united in a common goal to improve public knowledge and accessibility of spaceflight information. They aim to bring space app developers together into a thriving community by providing helpful data and tools, accessible to everyone for free.',
+            Text(
+              AppLocalizations.of(context)!.sourceSpaceDevs,
+              style: titleStyle,
+            ),
+            Text(
+              AppLocalizations.of(context)!.sourceSpaceDevsDescription,
               style: descStyle,
             ),
             OutlinedButton.icon(
               icon: const Icon(Icons.open_in_browser),
               onPressed: () async {
-                await _launchURL(spaceDevsLink);
+                await launchURL(context, spaceDevsLink);
               },
               onLongPress: () => copyLink(context, spaceDevsLink),
-              label: const Text("Open Website"),
+              label: Text(AppLocalizations.of(context)!.openWebsite),
             ),
             const Divider(),
-            const Text("Development", style: titleStyle),
-            const Text(
-              "This app is developed on GitHub. If you want to see or contribute to the code, feel free to check it out!",
+            Text(
+              AppLocalizations.of(context)!.development,
+              style: titleStyle,
+            ),
+            Text(
+              AppLocalizations.of(context)!.developmentDescription,
               style: descStyle,
             ),
             OutlinedButton.icon(
               icon: const Icon(Icons.open_in_browser),
               onPressed: () async {
-                await _launchURL(projectLink);
+                await launchURL(context, projectLink);
               },
               onLongPress: () => copyLink(context, projectLink),
-              label: const Text("Open project page"),
+              label: Text(AppLocalizations.of(context)!.openWebsite),
+            ),
+            const Divider(),
+            Text(
+              AppLocalizations.of(context)!.twitterBot,
+              style: titleStyle,
+            ),
+            Text(
+              AppLocalizations.of(context)!.twitterBotDescription,
+              style: descStyle,
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.open_in_browser),
+              onPressed: () async {
+                await launchURL(context, twitterBotLink);
+              },
+              onLongPress: () => copyLink(context, twitterBotLink),
+              label: Text(AppLocalizations.of(context)!.openWebsite),
             ),
           ],
         ),

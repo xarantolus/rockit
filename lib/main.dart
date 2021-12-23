@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/background/handler.dart';
+import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
@@ -94,7 +95,36 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with UrlLauncher {
+  Future<void> _openAppDownloadLink() async {
+    var ok = await showDialog<bool?>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.downloadApp),
+        content: Text(AppLocalizations.of(context)!.downloadAppDescription),
+        actions: [
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.cancel),
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+          ),
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.openWebsite),
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+
+    launchURL(context, "https://github.com/xarantolus/rockit/releases/latest");
+  }
+
   @override
   Widget build(BuildContext context) {
     final lightTheme = Theme.of(context).brightness == Brightness.light;
@@ -113,6 +143,14 @@ class _MyHomePageState extends State<MyHomePage> {
           titleStyle: const TextStyle(fontWeight: FontWeight.w900),
           icon: appIcon,
           actions: [
+            if (kIsWeb)
+              IconButton(
+                icon: const Icon(Icons.download),
+                tooltip: AppLocalizations.of(context)!.downloadApp,
+                onPressed: () async {
+                  await _openAppDownloadLink();
+                },
+              ),
             IconButton(
               icon: const Icon(Icons.info_outline),
               tooltip: AppLocalizations.of(context)!.sources,

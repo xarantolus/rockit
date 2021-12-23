@@ -19,5 +19,8 @@ jobs:
       - uses: subosito/flutter-action@v1
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}
 
+      - name: Run tests
+        run: flutter test
+
       - uses: bluefireteam/flutter-gh-pages@v7
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}

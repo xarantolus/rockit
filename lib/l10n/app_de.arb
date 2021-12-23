@@ -104,5 +104,19 @@
   "onTwitter": "@{account} auf Twitter",
 
   "copiedToClipboard": "Link wurde kopiert",
-  "showingCachedFallback": "Die neuesten Daten konnten nicht abgerufen werden. Gezeigt wird die vorherige Antwort."
+  "showingCachedFallback": "Die neuesten Daten konnten nicht abgerufen werden. Gezeigt wird die vorherige Antwort.",
+
+  "sourceSpaceDevs": "Daten von The Space Devs",
+  "sourceSpaceDevsDescription": "The Space Devs ist eine Gruppe von raumfahrtbegeisterten Entwicklern, die an einer Reihe von Diensten arbeiten und das gemeinsame Ziel verfolgen, das öffentliche Wissen und die Zugänglichkeit von Raumfahrtinformationen zu verbessern. Sie wollen Entwickler von Raumfahrt-Apps zu einer lebendigen Gemeinschaft zusammenführen, indem sie hilfreiche Daten und Tools bereitstellen, die für jeden kostenlos zugänglich sind.",
+  "openWebsite": "Internetseite öffnen",
+
+  "development": "Entwicklung",
+  "developmentDescription": "Diese App wird auf GitHub entwickelt. Wenn Sie den Code sehen möchten oder etwas dazu beitragen wollen, können Sie ihn sich gerne ansehen!",
+
+  "twitterBot": "Twitter bot",
+  "twitterBotDescription": "Wenn du dich für Starship Neuigkeiten interessierst, kannst du meinem Starship Bot auf Twitter folgen.",
+
+  "downloadApp": "App herunterladen",
+  "downloadAppDescription": "Mit der Android App kannst du noch viel besser informiert bleiben.",
+  "cancel": "Abbrechen"
 }

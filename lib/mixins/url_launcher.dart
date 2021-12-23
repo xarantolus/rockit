@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
-import 'package:flutter_custom_tabs_platform_interface/flutter_custom_tabs_platform_interface.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 mixin UrlLauncher {
   Future<void> openCustomTab(BuildContext context, String url) async {
@@ -20,5 +20,18 @@ mixin UrlLauncher {
         ],
       ),
     );
+  }
+
+  Future<void> launchURL(BuildContext context, String _url) async {
+    try {
+      await launch(_url);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text("${AppLocalizations.of(context)!.failedURLLaunch} ($_url)"),
+        ),
+      );
+    }
   }
 }

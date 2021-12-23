@@ -112,6 +112,19 @@
   },
 
   "copiedToClipboard": "Copied link to clipboard",
+  "showingCachedFallback": "Could not get latest data, showing previous response.",
 
-  "showingCachedFallback": "Could not get latest data, showing previous response."
+  "sourceSpaceDevs": "Data from The Space Devs",
+  "sourceSpaceDevsDescription": "The Space Devs is a group of space enthusiast developers working on a range of services, united in a common goal to improve public knowledge and accessibility of spaceflight information. They aim to bring space app developers together into a thriving community by providing helpful data and tools, accessible to everyone for free.",
+  "openWebsite":"Open Website",
+ 
+  "development": "Development",
+  "developmentDescription": "This app is developed on GitHub. If you want to see or contribute to the code, feel free to check it out!",
+
+  "twitterBot": "Twitter bot",
+  "twitterBotDescription": "If you're interested in Starship updates, you can follow my Starship bot on Twitter.",
+
+  "downloadApp": "Download app",
+  "downloadAppDescription": "The Android App helps you stay informed even better.",
+  "cancel": "Cancel"
 }
