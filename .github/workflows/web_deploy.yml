@@ -21,6 +21,7 @@ jobs:
 
       - name: Run tests
         run: flutter test
+        if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}
 
       - uses: bluefireteam/flutter-gh-pages@v7
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}
