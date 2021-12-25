@@ -41,7 +41,7 @@ class _ImageWidgetState extends State<ImageWidget>
       try {
         return CachedNetworkImage(
           imageUrl: kIsWeb
-              ? "https://corsanywhere.herokuapp.com/$_imageURL"
+              ? "https://fuckcors.app/$_imageURL"
               : _imageURL,
           cacheManager: _cacheManager,
           fadeInDuration: const Duration(milliseconds: 125),
