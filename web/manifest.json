@@ -1,6 +1,6 @@
 {
     "name": "Rock It!",
-    "short_name": "rockit",
+    "short_name": "Rock It!",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#70A2FF",
