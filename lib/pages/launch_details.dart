@@ -6,6 +6,7 @@ import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -29,6 +30,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         UrlLauncher,
         SourceAttribution,
         UpdateRenderer,
+        LinkCopier,
         ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
@@ -99,7 +101,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _launchPad(BuildContext context, Pad pad) {
+  Widget _launchPad(BuildContext context, Pad pad) {
     return _titleImageDescription(
       context,
       clickURL: pad.mapUrl ?? pad.infoUrl ?? pad.wikiUrl,
@@ -111,7 +113,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _launchServiceProvider(
+  Widget _launchServiceProvider(
       BuildContext context, LaunchServiceProvider provider) {
     return _titleImageDescription(
       context,
@@ -122,7 +124,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _rocketConfiguration(BuildContext context, Configuration cfg) {
+  Widget _rocketConfiguration(BuildContext context, Configuration cfg) {
     return _titleImageDescription(
       context,
       title: cfg.fullName,
@@ -132,7 +134,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _titleImageDescription(
+  Widget _titleImageDescription(
     BuildContext context, {
     String? title,
     String? description,
@@ -149,45 +151,48 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
     final imageWidget = imageURL == null ? null : ImageWidget(imageURL);
 
-    return [
-      GestureDetector(
-        onTap: openClickURL,
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          child: Text(
-            title ?? AppLocalizations.of(context)!.unknown,
-            style: titleStyle,
-            textAlign: TextAlign.center,
-          ),
+    return Material(
+      child: InkWell(
+        onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
+        onLongPress:
+            (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(16),
+              child: Text(
+                title ?? AppLocalizations.of(context)!.unknown,
+                style: titleStyle,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            if (imageURL != null)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                constraints: shrinkImage
+                    ? BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height / 5,
+                      )
+                    : null,
+                child: zoomableImage
+                    ? PinchZoomImage(
+                        image: Center(
+                          child: imageWidget,
+                        ),
+                      )
+                    : imageWidget,
+              ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                description ?? AppLocalizations.of(context)!.unknown,
+                style: textStyle,
+              ),
+            ),
+          ],
         ),
       ),
-      if (imageURL != null)
-        GestureDetector(
-          onTap: openClickURL,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            constraints: shrinkImage
-                ? BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height / 5,
-                  )
-                : null,
-            child: zoomableImage
-                ? PinchZoomImage(
-                    image: Center(
-                      child: imageWidget,
-                    ),
-                  )
-                : imageWidget,
-          ),
-        ),
-      Container(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          description ?? AppLocalizations.of(context)!.unknown,
-          style: textStyle,
-        ),
-      )
-    ];
+    );
   }
 
   List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
@@ -477,14 +482,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // An informative description of the rocket
             if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
-              ..._rocketConfiguration(
+              _rocketConfiguration(
                   context, widget.launch.rocket!.configuration!),
             ],
 
             // And a bunch of info about the launch provider
             if (widget.launch.launchServiceProvider?.description != null) ...[
               const Divider(),
-              ..._launchServiceProvider(
+              _launchServiceProvider(
                 context,
                 widget.launch.launchServiceProvider!,
               ),
@@ -494,7 +499,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.pad != null &&
                 widget.launch.pad?.location?.countryCode != "UNK") ...[
               const Divider(),
-              ..._launchPad(context, widget.launch.pad!),
+              _launchPad(context, widget.launch.pad!),
             ],
 
             if ((widget.launch.program ?? []).isNotEmpty) ...[
