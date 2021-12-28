@@ -67,15 +67,21 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
           forceCountdown = !forceCountdown;
         });
       },
-      child: Column(
-        children: [
-          if (textAbove.isNotEmpty) Text(textAbove),
-          Text(
-            dateText,
-            style: bigTextStyle,
-          ),
-          if (additionalNote.isNotEmpty) Text(additionalNote),
-        ],
+      child: Container(
+        color: Colors.transparent,
+        width: double.infinity,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (textAbove.isNotEmpty) Text(textAbove),
+            Text(
+              dateText,
+              style: bigTextStyle,
+            ),
+            if (additionalNote.isNotEmpty) Text(additionalNote),
+          ],
+        ),
       ),
     );
   }

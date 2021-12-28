@@ -101,15 +101,23 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
           forceCountdown = !forceCountdown;
         });
       },
-      child: Column(
-        children: [
-          if (textAbove.isNotEmpty) Text(textAbove),
-          Text(
-            dateText,
-            style: bigTextStyle,
-          ),
-          if (additionalNote.isNotEmpty) Text(additionalNote),
-        ],
+      child: Container(
+        // OK, this is really weird:
+        // The container only takes the full width when we set a background color
+        color: Colors.transparent,
+        width: double.infinity,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (textAbove.isNotEmpty) Text(textAbove),
+            Text(
+              dateText,
+              style: bigTextStyle,
+            ),
+            if (additionalNote.isNotEmpty) Text(additionalNote),
+          ],
+        ),
       ),
     );
   }
