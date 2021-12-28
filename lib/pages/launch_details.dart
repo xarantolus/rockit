@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -54,7 +52,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       image: Center(
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: max(MediaQuery.of(context).size.height / 3, 250),
+            maxHeight: MediaQuery.of(context).size.height / 2,
           ),
           child: ImageWidget(
             widget.launch.image,
@@ -170,7 +168,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             margin: const EdgeInsets.symmetric(horizontal: 16),
             constraints: shrinkImage
                 ? BoxConstraints(
-                    maxHeight: max(MediaQuery.of(context).size.height / 8, 50),
+                    maxHeight: MediaQuery.of(context).size.height / 5,
                   )
                 : null,
             child: zoomableImage

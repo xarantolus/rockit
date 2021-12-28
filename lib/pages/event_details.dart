@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -95,7 +93,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       image: Center(
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: max(MediaQuery.of(context).size.height / 3, 250),
+            maxHeight: MediaQuery.of(context).size.height / 2,
           ),
           child: ImageWidget(
             widget.event.featureImage,
