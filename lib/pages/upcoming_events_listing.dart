@@ -7,6 +7,7 @@ import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
+import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/event.dart';
 
 class UpcomingEventsPage extends StatefulWidget {
@@ -69,7 +70,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return const CircularProgressIndicator();
+              return const PlanetLoadingAnimation();
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
@@ -262,6 +263,7 @@ class _EventsListState extends State<EventsList> {
         hasNext: nextURL != null,
         nextData: _loadMore,
         physics: const BouncingScrollPhysics(),
+        loadingWidget: const PlanetLoadingAnimation(),
         controller: _eventListController,
         itemCount: events.length,
         // We pre-load up to 5 screens of info, that way images load already

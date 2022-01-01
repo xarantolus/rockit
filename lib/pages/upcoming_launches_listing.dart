@@ -7,6 +7,7 @@ import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/launch.dart';
 
 class UpcomingLaunchesPage extends StatefulWidget {
@@ -69,7 +70,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return const CircularProgressIndicator();
+              return const PlanetLoadingAnimation();
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
@@ -260,6 +261,7 @@ class _LaunchesListState extends State<LaunchesList> {
         ),
         hasNext: nextURL != null,
         nextData: _loadMore,
+        loadingWidget: const PlanetLoadingAnimation(),
         physics: const BouncingScrollPhysics(),
         controller: _launchListController,
         itemCount: launches.length,

@@ -11,6 +11,7 @@ import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch_countdown.dart';
@@ -393,7 +394,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           return LaunchSubscriptionWidget(value, launchId, subscriptionManager);
         }
 
-        return const CircularProgressIndicator();
+        return const PlanetLoadingAnimation();
       },
     );
   }

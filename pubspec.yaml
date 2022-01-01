@@ -46,6 +46,7 @@ dependencies:
   flutter_local_notifications: ^9.0.2
   timezone: ^0.8.0
   infinite_widgets: ^2.0.0
+  rive: ^0.8.1
   
 
 dev_dependencies:
@@ -83,6 +84,7 @@ flutter:
     - assets/rocket-black.png
     - assets/rocket-white-small.png
     - assets/rocket-black-small.png
+    - assets/animations/One_Planet.riv
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

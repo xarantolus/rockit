@@ -6,6 +6,7 @@ import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 
 class ArticleListingPage extends StatefulWidget {
@@ -62,7 +63,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return const CircularProgressIndicator();
+              return const PlanetLoadingAnimation();
             default:
               if (snapshot.hasError) {
                 return GestureDetector(

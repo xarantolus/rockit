@@ -2,6 +2,7 @@
     "name": "Rock It!",
     "short_name": "Rock It!",
     "start_url": ".",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#70A2FF",
     "theme_color": "#70A2FF",
