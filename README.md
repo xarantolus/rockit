@@ -1,7 +1,7 @@
 # rockit
 Rock It! is an Android app that helps you stay informed on all things space. It displays upcoming launches and current space news curated by [The Space Devs](https://thespacedevs.com/).
 
-If you just want to try it out quickly, you can open [the web version](https://rockit.010.one/). Please note that it might not work on all browsers (depending on Flutter web support for that browser/version etc.); and also note that the Android version is better.
+If you just want to try it out quickly, you can open [the web version](https://rockit.010.one/). Please note that it might not work on all browsers (depending on Flutter web support for that browser/version, blocker addons etc.). The experience in the Android app is much better.
 
 
 ### Features
