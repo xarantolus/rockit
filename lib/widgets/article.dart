@@ -52,6 +52,19 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
     return text;
   }
 
+  Widget _newsSite({bool? background}) {
+    return Text(
+      widget.newsSite!,
+      style: TextStyle(
+        backgroundColor: background == true
+            ? Theme.of(context).backgroundColor.withOpacity(.75)
+            : null,
+        fontWeight: FontWeight.w700,
+        fontSize: 14.0,
+      ),
+    );
+  }
+
   Widget _renderImage() {
     final imageStack = Stack(
       children: [
@@ -67,15 +80,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
             padding: EdgeInsets.zero,
             margin: EdgeInsets.zero,
             alignment: Alignment.bottomRight,
-            child: Text(
-              widget.newsSite!,
-              style: TextStyle(
-                backgroundColor:
-                    Theme.of(context).backgroundColor.withOpacity(.75),
-                fontWeight: FontWeight.w500,
-                fontSize: 14.0,
-              ),
-            ),
+            child: _newsSite(background: true),
           ),
         if (widget.icon != null)
           Center(
@@ -98,6 +103,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(10.0);
+    final hasImage = (widget.imageUrl ?? "").isNotEmpty;
     return Center(
       child: Card(
         shape: RoundedRectangleBorder(
@@ -140,7 +146,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  if ((widget.imageUrl ?? "").isNotEmpty) _renderImage(),
+                  if (hasImage) _renderImage(),
                   if ((widget.summary ?? "").isNotEmpty)
                     Padding(
                       padding: widget.imageUrl == null
@@ -153,13 +159,35 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                         ),
                       ),
                     ),
-                  if (widget.publishDate != null)
-                    Container(
-                      alignment: Alignment.bottomRight,
-                      padding: EdgeInsets.fromLTRB(
-                          0, (widget.summary ?? "").isEmpty ? 8 : 0, 4, 4),
-                      child: Text(
-                        formatDateTimeFriendly(context, widget.publishDate!),
+
+                  // Show publish date and news site next to each other
+                  // If we have an image, the newsSite is rendered on top of it (and thus not needed here).
+                  // But if we don't have an image, we still want to display the newsSite
+                  if (widget.publishDate != null ||
+                      !hasImage && widget.newsSite != null)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 8,
+                        right: 8,
+                        bottom: 4,
+                        top: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (!hasImage && widget.newsSite != null)
+                            _newsSite()
+                          else
+                            // Put an empty box here to make sure the next widget will be right-aligned
+                            const SizedBox(),
+                          if (widget.publishDate != null)
+                            Text(
+                              formatDateTimeFriendly(
+                                context,
+                                widget.publishDate!,
+                              ),
+                            )
+                        ],
                       ),
                     ),
                 ],
