@@ -4,6 +4,7 @@
   "dateTimeFormat24h": "EEE, dd. MMM yyyy, HH:mm",
   "timeFormat24h": "HH:mm",
   "dateFormat": "EEE, d. MMM yyyy",
+  "currentYearDateFormat": "EEEE, d. MMM",
 
   "unknownLaunchTime": "Unknown launch time",
 

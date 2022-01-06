@@ -23,8 +23,12 @@ mixin DateFormatter {
   String formatDate(BuildContext context, DateTime d) {
     final localization = AppLocalizations.of(context)!;
 
-    final DateFormat formatter =
-        DateFormat(localization.dateFormat, localization.localeName);
+    final DateFormat formatter = DateFormat(
+      d.year == DateTime.now().year
+          ? localization.currentYearDateFormat
+          : localization.dateFormat,
+      localization.localeName,
+    );
 
     return formatter.format(d);
   }
