@@ -149,7 +149,7 @@ class BackgroundHandler {
     }
 
     // If we have any updates, we will send them as notification
-    {
+    try {
       var lastUpdateTime = await _loadDate(updateKey);
 
       // The first time we hit this, lastUpdateTime is null. We should
@@ -179,10 +179,8 @@ class BackgroundHandler {
         }
       }
 
-      if (oldestUpdateTime != null) {
-        await _saveDate(updateKey, oldestUpdateTime);
-      }
-    }
+      await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
+    } catch (_) {}
 
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
@@ -270,6 +268,8 @@ class BackgroundHandler {
     markedLaunches.add(launchId);
     await _saveIDs(launchesKey, markedLaunches);
 
+    await _saveDate(_getUpdateKey("launch", launchId), DateTime.now());
+
     // Now tell the work manager to do periodic updates for this launch
     await Workmanager().registerPeriodicTask(
       _taskNameForLaunch(launchId),
@@ -353,6 +353,8 @@ class BackgroundHandler {
     markedEvents.add(eventId);
     await _saveIDs(eventsKey, markedEvents);
 
+    await _saveDate(_getUpdateKey("event", eventId), DateTime.now());
+
     // Now tell the work manager to do periodic updates for this launch
     await Workmanager().registerPeriodicTask(
       _taskNameForEvent(eventId),
@@ -395,7 +397,7 @@ class BackgroundHandler {
     }
 
     // If we have any updates, we will send them as notification
-    {
+    try {
       var lastUpdateTime = await _loadDate(updateKey);
 
       // The first time we hit this, lastUpdateTime is null. We should
@@ -425,10 +427,8 @@ class BackgroundHandler {
         }
       }
 
-      if (oldestUpdateTime != null) {
-        await _saveDate(updateKey, oldestUpdateTime);
-      }
-    }
+      await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
+    } catch (_) {}
 
     if (startTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
