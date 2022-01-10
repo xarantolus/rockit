@@ -53,14 +53,21 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
   }
 
   Widget _newsSite({bool? background}) {
-    return Text(
-      widget.newsSite!,
-      style: TextStyle(
-        backgroundColor: background == true
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(topLeft: Radius.circular(4)),
+      child: Container(
+        color: background == true
             ? Theme.of(context).backgroundColor.withOpacity(.75)
             : null,
-        fontWeight: FontWeight.w700,
-        fontSize: 14.0,
+        padding: const EdgeInsets.all(4),
+        margin: EdgeInsets.zero,
+        child: Text(
+          widget.newsSite!,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 14.0,
+          ),
+        ),
       ),
     );
   }
@@ -68,17 +75,18 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
   Widget _renderImage() {
     final imageStack = Stack(
       children: [
-        (widget.fullImage == true)
-            ? ImageWidget(widget.imageUrl)
-            : SizedBox(
-                width: double.infinity,
-                height: double.infinity,
-                child: ImageWidget(widget.imageUrl),
-              ),
+        if (widget.fullImage == true)
+          ImageWidget(widget.imageUrl)
+        else
+          // This SizedBox makes sure the image covers the entire area it's shown in,
+          // cutting off parts of the image if it is too high/wide
+          SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: ImageWidget(widget.imageUrl),
+          ),
         if (widget.newsSite != null)
-          Container(
-            padding: EdgeInsets.zero,
-            margin: EdgeInsets.zero,
+          Align(
             alignment: Alignment.bottomRight,
             child: _newsSite(background: true),
           ),
@@ -94,8 +102,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
     }
 
     return SizedBox(
-      height: max(MediaQuery.of(context).size.height / 4, 200),
-      width: double.infinity,
+      height: max(MediaQuery.of(context).size.height / 3, 200),
       child: imageStack,
     );
   }
