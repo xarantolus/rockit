@@ -53,19 +53,21 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
   }
 
   Widget _newsSite({bool? background}) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(topLeft: Radius.circular(4)),
-      child: Container(
-        color: background == true
-            ? Theme.of(context).backgroundColor.withOpacity(.75)
-            : null,
-        padding: const EdgeInsets.all(4),
-        margin: EdgeInsets.zero,
-        child: Text(
-          widget.newsSite!,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 14.0,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: Container(
+          color: background == true
+              ? Theme.of(context).backgroundColor.withOpacity(.75)
+              : null,
+          padding: const EdgeInsets.all(4),
+          child: Text(
+            widget.newsSite!,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14.0,
+            ),
           ),
         ),
       ),
@@ -173,11 +175,11 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   if (widget.publishDate != null ||
                       !hasImage && widget.newsSite != null)
                     Padding(
-                      padding: const EdgeInsets.only(
+                      padding: EdgeInsets.only(
                         left: 8,
                         right: 8,
                         bottom: 4,
-                        top: 0,
+                        top: (widget.summary ?? "").isNotEmpty ? 0 : 8,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
