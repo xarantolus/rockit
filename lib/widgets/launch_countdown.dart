@@ -69,8 +69,19 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
     final timeIsSpeculation = (widget.launch.status?.abbrev != "Go");
 
     if (timeUntil.isNegative) {
-      textAbove = AppLocalizations.of(context)!.launchWasOn;
-      dateText = formatDateTimeLocal(context, displayedDate);
+      final formattedDate = formatDateTimeFriendly(
+        context,
+        displayedDate.toLocal(),
+      );
+
+      textAbove = formattedDate.isFriendly
+          ? AppLocalizations.of(context)!.launchWas
+          : AppLocalizations.of(context)!.launchWasOn;
+
+      dateText = formattedDate.text;
+      if (formattedDate.isFriendly) {
+        additionalNote = formatDateTimeLocal(context, displayedDate);
+      }
     } else if (timeUntil < const Duration(days: 7) || forceCountdown) {
       if (net != null) {
         textAbove = timeIsSpeculation

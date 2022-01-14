@@ -2,6 +2,21 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+class FriendlyDateResult {
+  String text;
+  bool isFriendly;
+
+  FriendlyDateResult(this.text, {this.isFriendly = false});
+
+  factory FriendlyDateResult.no(String t) {
+    return FriendlyDateResult(t);
+  }
+
+  factory FriendlyDateResult.yes(String t) {
+    return FriendlyDateResult(t, isFriendly: true);
+  }
+}
+
 mixin DateFormatter {
   String formatDateTimeLocal(BuildContext context, DateTime d) {
     return formatDateTime(context, d.toLocal());
@@ -50,31 +65,41 @@ mixin DateFormatter {
     return d1.day == d2.day && d1.month == d2.month && d1.year == d2.year;
   }
 
-  String formatDateTimeFriendly(BuildContext context, DateTime d) {
+  String formatDateTimeFriendlyText(BuildContext context, DateTime d) {
+    return formatFriendly(context, d, formatDateTime).text;
+  }
+
+  FriendlyDateResult formatDateTimeFriendly(BuildContext context, DateTime d) {
     return formatFriendly(context, d, formatDateTime);
   }
 
   String formatDateFriendly(BuildContext context, DateTime d) {
-    return formatFriendly(context, d, formatDate);
+    return formatFriendly(context, d, formatDate).text;
   }
 
-  String formatFriendly(BuildContext context, DateTime d,
+  FriendlyDateResult formatFriendly(BuildContext context, DateTime d,
       String Function(BuildContext, DateTime) f) {
     d = d.toLocal();
     var now = DateTime.now().toLocal();
 
     if (_equalDay(d, now)) {
-      return "${AppLocalizations.of(context)!.today}, ${formatTime(context, d)}";
+      return FriendlyDateResult.yes(
+        "${AppLocalizations.of(context)!.today}, ${formatTime(context, d)}",
+      );
     }
 
     if (_equalDay(d, now.subtract(const Duration(days: 1)))) {
-      return "${AppLocalizations.of(context)!.yesterday}, ${formatTime(context, d)}";
+      return FriendlyDateResult.yes(
+        "${AppLocalizations.of(context)!.yesterday}, ${formatTime(context, d)}",
+      );
     }
 
     if (_equalDay(d, now.add(const Duration(days: 1)))) {
-      return "${AppLocalizations.of(context)!.tomorrow}, ${formatTime(context, d)}";
+      return FriendlyDateResult.yes(
+        "${AppLocalizations.of(context)!.tomorrow}, ${formatTime(context, d)}",
+      );
     }
 
-    return f(context, d);
+    return FriendlyDateResult.no(f(context, d));
   }
 }

@@ -24,7 +24,7 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
   }
 
   Widget _update(BuildContext context, Update u) {
-    final date = formatDateTimeFriendly(
+    final date = formatDateTimeFriendlyText(
       context,
       (u.createdOn ?? DateTime.now()).toLocal(),
     );

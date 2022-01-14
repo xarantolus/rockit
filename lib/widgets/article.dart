@@ -191,7 +191,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                             const SizedBox(),
                           if (widget.publishDate != null)
                             Text(
-                              formatDateTimeFriendly(
+                              formatDateTimeFriendlyText(
                                 context,
                                 widget.publishDate!,
                               ),

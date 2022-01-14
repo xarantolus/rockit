@@ -47,8 +47,20 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
 
     var timeUntil = timeDiff(date);
     if (timeUntil.isNegative) {
-      textAbove = AppLocalizations.of(context)!.eventWasOn;
-      dateText = formatDateTimeLocal(context, date);
+      final formattedDate = formatDateTimeFriendly(
+        context,
+        date.toLocal(),
+      );
+
+      textAbove = formattedDate.isFriendly
+          ? AppLocalizations.of(context)!.eventWas
+          : AppLocalizations.of(context)!.eventWasOn;
+
+      dateText = formattedDate.text;
+
+      if (formattedDate.isFriendly) {
+        additionalNote = formatDateTimeLocal(context, date);
+      }
     } else if (timeUntil < const Duration(days: 7) || forceCountdown) {
       textAbove = AppLocalizations.of(context)!.eventIsIn;
 
