@@ -30,13 +30,7 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage>
-    with
-        UrlLauncher,
-        DateFormatter,
-        SourceAttribution,
-        UpdateRenderer,
-        ProgramRenderer,
-        LinkCopier {
+    with UrlLauncher, DateFormatter, SourceAttribution, UpdateRenderer, ProgramRenderer, LinkCopier {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -128,9 +122,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   List<Widget> _renderLaunches(List<Launch> launches) {
     return titledList(
-      launches.length == 1
-          ? AppLocalizations.of(context)!.launch
-          : AppLocalizations.of(context)!.launches,
+      launches.length == 1 ? AppLocalizations.of(context)!.launch : AppLocalizations.of(context)!.launches,
       launches.map((l) {
         return GestureDetector(
           child: LaunchWidget(l),
@@ -148,9 +140,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   List<Widget> _renderSpaceStations(List<Spacestation> stations) {
     return titledList(
-      stations.length == 1
-          ? AppLocalizations.of(context)!.station
-          : AppLocalizations.of(context)!.stations,
+      stations.length == 1 ? AppLocalizations.of(context)!.station : AppLocalizations.of(context)!.stations,
       stations.map(
         (station) {
           // Yes, reusing the article card widget here is a bit weird,
@@ -166,8 +156,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  Widget _openURLButton(
-      IconData icon, String text, bool customTab, String url) {
+  Widget _openURLButton(IconData icon, String text, bool customTab, String url) {
     return OutlinedButton.icon(
       onPressed: () async {
         if (customTab) {
@@ -257,9 +246,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 }
 
 class EventSubscriptionWidget extends StatefulWidget {
-  const EventSubscriptionWidget(
-      this.initialValue, this.eventId, this.subscriptionManager,
-      {Key? key})
+  const EventSubscriptionWidget(this.initialValue, this.eventId, this.subscriptionManager, {Key? key})
       : super(key: key);
 
   final bool initialValue;
@@ -267,8 +254,7 @@ class EventSubscriptionWidget extends StatefulWidget {
   final BackgroundHandler subscriptionManager;
 
   @override
-  _EventSubscriptionWidgetState createState() =>
-      _EventSubscriptionWidgetState();
+  _EventSubscriptionWidgetState createState() => _EventSubscriptionWidgetState();
 }
 
 class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {

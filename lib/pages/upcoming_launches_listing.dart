@@ -19,8 +19,7 @@ class UpcomingLaunchesPage extends StatefulWidget {
   _UpcomingLaunchesPageState createState() => _UpcomingLaunchesPageState();
 }
 
-class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
-    with AutomaticKeepAliveClientMixin {
+class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> with AutomaticKeepAliveClientMixin {
   // Make sure this page is cached, else it would reload often when switching between tabs
   @override
   bool get wantKeepAlive => true;
@@ -56,8 +55,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
     }
   }
 
-  late Future<UpcomingResponse> upcomingLaunchesFuture =
-      load(context, widget.service);
+  late Future<UpcomingResponse> upcomingLaunchesFuture = load(context, widget.service);
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +72,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
-                  child: ErrorWidget(
-                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
                     upcomingLaunchesFuture = load(context, widget.service);
                   }),
@@ -102,9 +99,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage>
 }
 
 class LaunchesList extends StatefulWidget {
-  const LaunchesList(this.initialLaunches, this.initialNextURL, this.service,
-      {Key? key})
-      : super(key: key);
+  const LaunchesList(this.initialLaunches, this.initialNextURL, this.service, {Key? key}) : super(key: key);
 
   final LaunchLibraryAPI service;
 
@@ -149,8 +144,7 @@ class _LaunchesListState extends State<LaunchesList> {
           // When we cache responses, it can happen that a page further down the
           // list has been cached, but contains launches that were on the previous (non-cached)
           // page. By removing all known launches, we make sure this doesn't show up in the UI
-          newList.removeWhere((newLaunch) =>
-              launches.any((launch) => newLaunch.id == launch.id));
+          newList.removeWhere((newLaunch) => launches.any((launch) => newLaunch.id == launch.id));
 
           launches.addAll(newList);
         }
@@ -185,12 +179,9 @@ class _LaunchesListState extends State<LaunchesList> {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
       final wheight = LaunchWidget.calculateHeight(context);
-      final isLandscape =
-          MediaQuery.of(context).orientation == Orientation.landscape;
-      final targetOffset = max(
-          wheight * (isLandscape ? idx / 2 : idx) -
-              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
-          0.0);
+      final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset =
+          max(wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2, 0.0);
 
       if (animated) {
         _launchListController.animateTo(
@@ -253,10 +244,7 @@ class _LaunchesListState extends State<LaunchesList> {
       },
       child: InfiniteGridView(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount:
-              MediaQuery.of(context).orientation == Orientation.landscape
-                  ? 2
-                  : 1,
+          crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
           mainAxisExtent: LaunchWidget.calculateHeight(context),
         ),
         hasNext: nextURL != null,

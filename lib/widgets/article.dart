@@ -37,8 +37,7 @@ class ArticleCardWidget extends StatefulWidget {
   _ArticleCardWidgetState createState() => _ArticleCardWidgetState();
 }
 
-class _ArticleCardWidgetState extends State<ArticleCardWidget>
-    with UrlLauncher, DateFormatter, LinkCopier {
+class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher, DateFormatter, LinkCopier {
   bool _isLetter(String letter) {
     final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
     return alpha.hasMatch(letter);
@@ -58,9 +57,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: Container(
-          color: background == true
-              ? Theme.of(context).backgroundColor.withOpacity(.75)
-              : null,
+          color: background == true ? Theme.of(context).backgroundColor.withOpacity(.75) : null,
           padding: const EdgeInsets.all(4),
           child: Text(
             widget.newsSite!,
@@ -124,9 +121,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
           borderRadius: radius,
           child: InkWell(
             borderRadius: radius,
-            onLongPress: widget.link == null
-                ? null
-                : () => copyLink(context, widget.link),
+            onLongPress: widget.link == null ? null : () => copyLink(context, widget.link),
             onTap: () async {
               setState(() {});
               if (widget.link != null) {
@@ -138,9 +133,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
               }
             },
             child: Container(
-              margin: (widget.summary ?? "").isEmpty
-                  ? const EdgeInsets.only(bottom: 8)
-                  : EdgeInsets.zero,
+              margin: (widget.summary ?? "").isEmpty ? const EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -172,8 +165,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   // Show publish date and news site next to each other
                   // If we have an image, the newsSite is rendered on top of it (and thus not needed here).
                   // But if we don't have an image, we still want to display the newsSite
-                  if (widget.publishDate != null ||
-                      !hasImage && widget.newsSite != null)
+                  if (widget.publishDate != null || !hasImage && widget.newsSite != null)
                     Padding(
                       padding: EdgeInsets.only(
                         left: 8,

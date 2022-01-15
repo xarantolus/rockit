@@ -19,14 +19,12 @@ class UpcomingEventsPage extends StatefulWidget {
   _UpcomingEventsPageState createState() => _UpcomingEventsPageState();
 }
 
-class _UpcomingEventsPageState extends State<UpcomingEventsPage>
-    with AutomaticKeepAliveClientMixin {
+class _UpcomingEventsPageState extends State<UpcomingEventsPage> with AutomaticKeepAliveClientMixin {
   // Make sure this page is cached, else it would reload often when switching between tabs
   @override
   bool get wantKeepAlive => true;
 
-  late Future<UpcomingEventsResponse> upcomingEventsFuture =
-      load(context, widget.service);
+  late Future<UpcomingEventsResponse> upcomingEventsFuture = load(context, widget.service);
 
   static Future<UpcomingEventsResponse> load(
     BuildContext context,
@@ -74,8 +72,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
-                  child: ErrorWidget(
-                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
                     upcomingEventsFuture = load(context, widget.service);
                   }),
@@ -102,9 +99,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage>
 }
 
 class EventsList extends StatefulWidget {
-  const EventsList(this.initialEvents, this.initialNextURL, this.service,
-      {Key? key})
-      : super(key: key);
+  const EventsList(this.initialEvents, this.initialNextURL, this.service, {Key? key}) : super(key: key);
 
   final LaunchLibraryAPI service;
 
@@ -149,8 +144,7 @@ class _EventsListState extends State<EventsList> {
           // When we cache responses, it can happen that a page further down the
           // list has been cached, but contains events that were on the previous (non-cached)
           // page. By removing all known events, we make sure this doesn't show up in the UI
-          newList.removeWhere(
-              (newEvent) => events.any((_evt) => newEvent.id == _evt.id));
+          newList.removeWhere((newEvent) => events.any((_evt) => newEvent.id == _evt.id));
 
           events.addAll(newList);
         }
@@ -186,12 +180,9 @@ class _EventsListState extends State<EventsList> {
       // the list will have scrolled to the last viewed item, which is nice
 
       final wheight = EventWidget.calculateHeight(context);
-      final isLandscape =
-          MediaQuery.of(context).orientation == Orientation.landscape;
-      final targetOffset = max(
-          wheight * (isLandscape ? idx / 2 : idx) -
-              (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
-          0.0);
+      final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+      final targetOffset =
+          max(wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2, 0.0);
 
       if (animated) {
         _eventListController.animateTo(
@@ -254,10 +245,7 @@ class _EventsListState extends State<EventsList> {
       },
       child: InfiniteGridView(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount:
-              MediaQuery.of(context).orientation == Orientation.landscape
-                  ? 2
-                  : 1,
+          crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
           mainAxisExtent: EventWidget.calculateHeight(context),
         ),
         hasNext: nextURL != null,

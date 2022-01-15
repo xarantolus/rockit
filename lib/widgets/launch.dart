@@ -22,8 +22,7 @@ class LaunchWidget extends StatefulWidget {
 class _LaunchWidgetState extends State<LaunchWidget> with DateFormatter {
   String _netText(Launch launch) {
     try {
-      var launchDate =
-          DateTime.parse(launch.net ?? launch.windowStart ?? "").toLocal();
+      var launchDate = DateTime.parse(launch.net ?? launch.windowStart ?? "").toLocal();
 
       return formatDateFriendly(context, launchDate);
     } catch (_) {}
@@ -48,8 +47,7 @@ class _LaunchWidgetState extends State<LaunchWidget> with DateFormatter {
         ),
       ),
       subtitle: Text(
-        launch.launchServiceProvider?.name ??
-            AppLocalizations.of(context)!.unknown,
+        launch.launchServiceProvider?.name ?? AppLocalizations.of(context)!.unknown,
         style: const TextStyle(
           overflow: TextOverflow.ellipsis,
           fontSize: 16.0,

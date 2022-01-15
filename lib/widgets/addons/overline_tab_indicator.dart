@@ -97,11 +97,8 @@ class _OverlinePainter extends BoxPainter {
     assert(configuration.size != null);
     final Rect rect = offset & configuration.size!;
     final TextDirection textDirection = configuration.textDirection!;
-    final Rect indicator = decoration
-        ._indicatorRectFor(rect, textDirection)
-        .deflate(decoration.borderSide.width / 2.0);
-    final Paint paint = decoration.borderSide.toPaint()
-      ..strokeCap = StrokeCap.square;
+    final Rect indicator = decoration._indicatorRectFor(rect, textDirection).deflate(decoration.borderSide.width / 2.0);
+    final Paint paint = decoration.borderSide.toPaint()..strokeCap = StrokeCap.square;
     canvas.drawLine(indicator.bottomLeft, indicator.bottomRight, paint);
   }
 }

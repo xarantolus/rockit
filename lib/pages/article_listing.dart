@@ -18,8 +18,7 @@ class ArticleListingPage extends StatefulWidget {
   _ArticleListingPageState createState() => _ArticleListingPageState();
 }
 
-class _ArticleListingPageState extends State<ArticleListingPage>
-    with AutomaticKeepAliveClientMixin {
+class _ArticleListingPageState extends State<ArticleListingPage> with AutomaticKeepAliveClientMixin {
   // Make sure this page is cached, else it would reload often when switching between tabs
   @override
   bool get wantKeepAlive => true;
@@ -67,8 +66,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
-                  child: ErrorWidget(
-                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
                     articlesFuture = load(context, widget.service);
                   }),
@@ -94,8 +92,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
 }
 
 class NewsList extends StatefulWidget {
-  const NewsList(this.initialArticles, this.service, {Key? key})
-      : super(key: key);
+  const NewsList(this.initialArticles, this.service, {Key? key}) : super(key: key);
 
   final List<Article> initialArticles;
   final SpaceFlightNewsAPI service;
@@ -121,8 +118,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
       } else {
         // See upcoming_launches_listing.dart for more info, but in short:
         // This makes sure that cached responses do not lead to duplicate display of content
-        _newArticles.removeWhere((newArticle) =>
-            articles.any((article) => article.id == newArticle.id));
+        _newArticles.removeWhere((newArticle) => articles.any((article) => article.id == newArticle.id));
 
         articles.addAll(_newArticles);
       }

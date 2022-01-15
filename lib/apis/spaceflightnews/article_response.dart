@@ -33,19 +33,12 @@ class Article {
       imageUrl: json["imageUrl"],
       newsSite: json["newsSite"],
       summary: json["summary"],
-      publishedAt: json["publishedAt"] == null
-          ? null
-          : DateTime.parse(json["publishedAt"]),
-      updatedAt:
-          json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
+      publishedAt: json["publishedAt"] == null ? null : DateTime.parse(json["publishedAt"]),
+      updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
       featured: json["featured"],
-      launches: json["launches"] == null
-          ? null
-          : List<LaunchInfo>.from(
-              json["launches"].map((x) => LaunchInfo.fromJson(x))),
-      events: json["events"] == null
-          ? null
-          : List<Event>.from(json["events"].map((x) => Event.fromJson(x))),
+      launches:
+          json["launches"] == null ? null : List<LaunchInfo>.from(json["launches"].map((x) => LaunchInfo.fromJson(x))),
+      events: json["events"] == null ? null : List<Event>.from(json["events"].map((x) => Event.fromJson(x))),
     );
   }
 }

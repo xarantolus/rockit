@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ImageWidget extends StatefulWidget {
-  const ImageWidget(this.imageURL, {this.heroTag, this.id, Key? key})
-      : super(key: key);
+  const ImageWidget(this.imageURL, {this.heroTag, this.id, Key? key}) : super(key: key);
 
   final String? imageURL;
   final String? heroTag;
@@ -15,8 +14,7 @@ class ImageWidget extends StatefulWidget {
   _ImageWidgetState createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends State<ImageWidget>
-    with AutomaticKeepAliveClientMixin {
+class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -40,9 +38,7 @@ class _ImageWidgetState extends State<ImageWidget>
     if (_imageURL != null) {
       try {
         return CachedNetworkImage(
-          imageUrl: kIsWeb
-              ? "https://fuckcors.app/$_imageURL"
-              : _imageURL,
+          imageUrl: kIsWeb ? "https://fuckcors.app/$_imageURL" : _imageURL,
           cacheManager: _cacheManager,
           fadeInDuration: const Duration(milliseconds: 125),
           fadeOutDuration: const Duration(milliseconds: 250),

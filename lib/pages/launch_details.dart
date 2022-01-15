@@ -26,13 +26,7 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with
-        DateFormatter,
-        UrlLauncher,
-        SourceAttribution,
-        UpdateRenderer,
-        LinkCopier,
-        ProgramRenderer {
+    with DateFormatter, UrlLauncher, SourceAttribution, UpdateRenderer, LinkCopier, ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -114,8 +108,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _launchServiceProvider(
-      BuildContext context, LaunchServiceProvider provider) {
+  Widget _launchServiceProvider(BuildContext context, LaunchServiceProvider provider) {
     return _titleImageDescription(
       context,
       clickURL: provider.infoUrl,
@@ -155,8 +148,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return Material(
       child: InkWell(
         onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
-        onLongPress:
-            (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
+        onLongPress: (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
         child: Column(
           children: [
             Container(
@@ -197,8 +189,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
-    final importantPatches =
-        l.where((element) => (element.imageUrl ?? "").isNotEmpty);
+    final importantPatches = l.where((element) => (element.imageUrl ?? "").isNotEmpty);
     if (importantPatches.isEmpty) {
       return List.empty();
     }
@@ -207,9 +198,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
         child: Text(
-          l.length == 1
-              ? AppLocalizations.of(context)!.missionPatch
-              : AppLocalizations.of(context)!.missionPatches,
+          l.length == 1 ? AppLocalizations.of(context)!.missionPatch : AppLocalizations.of(context)!.missionPatches,
           style: titleStyle,
         ),
       ),
@@ -217,8 +206,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
-  Widget _missionPatch(
-      BuildContext context, MissionPatch patch, bool isSingle) {
+  Widget _missionPatch(BuildContext context, MissionPatch patch, bool isSingle) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -250,8 +238,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   ) {
     final widgets = l
         .map((info) {
-          if (info.title == null &&
-              (info.description == null || info.featureImage == null)) {
+          if (info.title == null && (info.description == null || info.featureImage == null)) {
             return null;
           }
           return mapFunction(context, info);
@@ -276,8 +263,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
-  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
-      [bool customTab = true, Icon? icon]) {
+  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info, [bool customTab = true, Icon? icon]) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
@@ -326,52 +312,39 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ),
           Table(
             border: TableBorder(
-              horizontalInside: BorderSide(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyText2!
-                      .color!
-                      .withOpacity(.5)),
+              horizontalInside: BorderSide(color: Theme.of(context).textTheme.bodyText2!.color!.withOpacity(.5)),
             ),
             columnWidths: const {
               0: IntrinsicColumnWidth(),
               1: FlexColumnWidth(),
             },
             children: [
-              descriptionRow(AppLocalizations.of(context)!.status,
-                  l.status?.name ?? AppLocalizations.of(context)!.unknown),
               descriptionRow(
-                  AppLocalizations.of(context)!.statusDescription,
-                  l.status?.description ??
-                      AppLocalizations.of(context)!.unknown),
+                  AppLocalizations.of(context)!.status, l.status?.name ?? AppLocalizations.of(context)!.unknown),
+              descriptionRow(AppLocalizations.of(context)!.statusDescription,
+                  l.status?.description ?? AppLocalizations.of(context)!.unknown),
               if ((l.probability ?? -1) > 0)
-                descriptionRow(AppLocalizations.of(context)!.startProbability,
-                    "${l.probability!}%"),
+                descriptionRow(AppLocalizations.of(context)!.startProbability, "${l.probability!}%"),
               if ((l.holdreason ?? "").isNotEmpty)
-                descriptionRow(
-                    AppLocalizations.of(context)!.holdReason, l.holdreason!),
+                descriptionRow(AppLocalizations.of(context)!.holdReason, l.holdreason!),
               if ((l.failreason ?? "").isNotEmpty)
-                descriptionRow(
-                    AppLocalizations.of(context)!.failReason, l.failreason!),
+                descriptionRow(AppLocalizations.of(context)!.failReason, l.failreason!),
               if (l.mission?.orbit != null)
                 descriptionRow(
                   AppLocalizations.of(context)!.targetOrbit,
-                  l.mission!.orbit!.name ??
-                      AppLocalizations.of(context)!.unknown,
+                  l.mission!.orbit!.name ?? AppLocalizations.of(context)!.unknown,
                 ),
               if (windowStart != null)
-                descriptionRow(AppLocalizations.of(context)!.windowStart,
-                    formatDateTimeFriendlyText(context, windowStart)),
+                descriptionRow(
+                    AppLocalizations.of(context)!.windowStart, formatDateTimeFriendlyText(context, windowStart)),
               if (windowEnd != null)
                 descriptionRow(
                     AppLocalizations.of(context)!.windowEnd,
                     formatDateTimeFriendlyText(context, windowEnd) +
-                        (windowStart == windowEnd
-                            ? " (${AppLocalizations.of(context)!.likeStartTime})"
-                            : "")),
+                        (windowStart == windowEnd ? " (${AppLocalizations.of(context)!.likeStartTime})" : "")),
               if (lastUpdated != null)
-                descriptionRow(AppLocalizations.of(context)!.lastUpdate,
-                    formatDateTimeFriendlyText(context, lastUpdated)),
+                descriptionRow(
+                    AppLocalizations.of(context)!.lastUpdate, formatDateTimeFriendlyText(context, lastUpdated)),
             ],
           ),
         ],
@@ -401,8 +374,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-    final launchName =
-        widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
+    final launchName = widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
     return Scaffold(
       appBar: CustomAppBar.create(
@@ -470,8 +442,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               context,
               widget.launch.vidUrls ?? [],
               AppLocalizations.of(context)!.videos,
-              (ctx, vid) => _urlInfoArticleWidget(
-                  ctx, vid, false, const Icon(Icons.play_arrow, size: 72)),
+              (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false, const Icon(Icons.play_arrow, size: 72)),
             ),
 
             // Now a list of updates to the data
@@ -483,8 +454,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // An informative description of the rocket
             if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
-              _rocketConfiguration(
-                  context, widget.launch.rocket!.configuration!),
+              _rocketConfiguration(context, widget.launch.rocket!.configuration!),
             ],
 
             // And a bunch of info about the launch provider
@@ -497,8 +467,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // There are some incomplete pads that we shouldn't render6
-            if (widget.launch.pad != null &&
-                widget.launch.pad?.location?.countryCode != "UNK") ...[
+            if (widget.launch.pad != null && widget.launch.pad?.location?.countryCode != "UNK") ...[
               const Divider(),
               _launchPad(context, widget.launch.pad!),
             ],
@@ -515,9 +484,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 }
 
 class LaunchSubscriptionWidget extends StatefulWidget {
-  const LaunchSubscriptionWidget(
-      this.initialValue, this.launchId, this.subscriptionManager,
-      {Key? key})
+  const LaunchSubscriptionWidget(this.initialValue, this.launchId, this.subscriptionManager, {Key? key})
       : super(key: key);
 
   final bool initialValue;
@@ -525,8 +492,7 @@ class LaunchSubscriptionWidget extends StatefulWidget {
   final BackgroundHandler subscriptionManager;
 
   @override
-  _LaunchSubscriptionWidgetState createState() =>
-      _LaunchSubscriptionWidgetState();
+  _LaunchSubscriptionWidgetState createState() => _LaunchSubscriptionWidgetState();
 }
 
 class _LaunchSubscriptionWidgetState extends State<LaunchSubscriptionWidget> {

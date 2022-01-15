@@ -39,9 +39,7 @@ mixin DateFormatter {
     final localization = AppLocalizations.of(context)!;
 
     final DateFormat formatter = DateFormat(
-      d.year == DateTime.now().year
-          ? localization.currentYearDateFormat
-          : localization.dateFormat,
+      d.year == DateTime.now().year ? localization.currentYearDateFormat : localization.dateFormat,
       localization.localeName,
     );
 
@@ -77,8 +75,7 @@ mixin DateFormatter {
     return formatFriendly(context, d, formatDate).text;
   }
 
-  FriendlyDateResult formatFriendly(BuildContext context, DateTime d,
-      String Function(BuildContext, DateTime) f) {
+  FriendlyDateResult formatFriendly(BuildContext context, DateTime d, String Function(BuildContext, DateTime) f) {
     d = d.toLocal();
     var now = DateTime.now().toLocal();
 

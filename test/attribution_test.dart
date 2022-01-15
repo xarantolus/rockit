@@ -21,7 +21,6 @@ void main() {
     expect(sa.urlHost("https://www.nasa.gov"), "nasa.gov");
     expect(sa.urlHost("https://mars.nasa.gov"), "mars.nasa.gov");
 
-    expect(sa.urlHost("https://twitter.com/status/example/102385913859?s=25"),
-        "twitter.com");
+    expect(sa.urlHost("https://twitter.com/status/example/102385913859?s=25"), "twitter.com");
   });
 }

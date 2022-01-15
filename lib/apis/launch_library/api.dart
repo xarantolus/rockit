@@ -25,8 +25,7 @@ class LaunchLibraryAPI extends APIClient {
     return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
 
-  Future<ErrorDetails<UpcomingResponse>> upcomingLaunches(
-      [String? next]) async {
+  Future<ErrorDetails<UpcomingResponse>> upcomingLaunches([String? next]) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/launch/upcoming/", {
@@ -42,8 +41,7 @@ class LaunchLibraryAPI extends APIClient {
     return res.bubble(UpcomingResponse.fromJson(res.data));
   }
 
-  Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents(
-      [String? next]) async {
+  Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents([String? next]) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/event/upcoming/", {

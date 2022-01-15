@@ -66,8 +66,7 @@ mixin SourceAttribution {
       if (specialHostFuncs.containsKey(infoHost?.toLowerCase())) {
         final uri = Uri.tryParse(infoURL);
         if (uri != null) {
-          var newText =
-              specialHostFuncs[infoHost!.toLowerCase()]!(context, uri);
+          var newText = specialHostFuncs[infoHost!.toLowerCase()]!(context, uri);
           if (newText != null) {
             infoText = newText;
           }

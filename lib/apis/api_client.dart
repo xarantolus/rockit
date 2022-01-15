@@ -66,8 +66,7 @@ class APIClient {
       });
 
       if (kDebugMode) {
-        debugPrint(
-            "Got response for ${url.toString()}: status ${response.statusCode}");
+        debugPrint("Got response for ${url.toString()}: status ${response.statusCode}");
       }
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -112,8 +111,7 @@ class APIClient {
 
         etype = error_type.cachedFallback;
       } catch (ec) {
-        throw Exception(
-            "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
+        throw Exception("Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
       }
     }
 

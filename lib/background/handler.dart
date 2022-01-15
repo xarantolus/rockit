@@ -40,8 +40,7 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Rocket Launch Notifications',
         'Rocket Launch Notifications',
-        channelDescription:
-            'Notifications for rocket launches, e.g. when a launch is about to happen.',
+        channelDescription: 'Notifications for rocket launches, e.g. when a launch is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -73,8 +72,7 @@ class BackgroundHandler {
         case periodicEventUpdateTaskName:
           return await handleEventUpdatePeriodic(inputData);
         default:
-          throw FormatException(
-              "Expected task name to be for event or update, but got \"$task\"");
+          throw FormatException("Expected task name to be for event or update, but got \"$task\"");
       }
     } catch (err) {
       if (kDebugMode) {
@@ -122,8 +120,7 @@ class BackgroundHandler {
     return "update:$type:lastupdate:$id";
   }
 
-  Future<bool> handleLaunchUpdatePeriodic(
-      Map<String, dynamic>? inputData) async {
+  Future<bool> handleLaunchUpdatePeriodic(Map<String, dynamic>? inputData) async {
     // At first, we load the associated launch
     final launchId = inputData!["launchId"]!;
 
@@ -162,8 +159,7 @@ class BackgroundHandler {
             continue;
           }
 
-          if (update.createdOn!.isAfter(lastUpdateTime) &&
-              (update.comment ?? "").isNotEmpty) {
+          if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
             await notifs.show(
               update.id ?? 5021,
               launchTitle,
@@ -172,8 +168,7 @@ class BackgroundHandler {
             );
           }
 
-          if (oldestUpdateTime == null ||
-              update.createdOn!.isAfter(oldestUpdateTime)) {
+          if (oldestUpdateTime == null || update.createdOn!.isAfter(oldestUpdateTime)) {
             oldestUpdateTime = update.createdOn!;
           }
         }
@@ -219,8 +214,7 @@ class BackgroundHandler {
         "This launch will be in ${notificationSettings[i].displayed}",
         notifTime,
         _getLaunchNotifDetails(tag),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidAllowWhileIdle: true,
       );
     }
@@ -297,8 +291,7 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Event Notifications',
         'Event Notifications',
-        channelDescription:
-            'Notifications for Events, e.g. when a space walk is about to happen.',
+        channelDescription: 'Notifications for Events, e.g. when a space walk is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -311,8 +304,7 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Event Updates',
         'Event Updates',
-        channelDescription:
-            'Notifications when events are updated, e.g. when a space walk is delayed.',
+        channelDescription: 'Notifications when events are updated, e.g. when a space walk is delayed.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -367,8 +359,7 @@ class BackgroundHandler {
     );
   }
 
-  Future<bool> handleEventUpdatePeriodic(
-      Map<String, dynamic>? inputData) async {
+  Future<bool> handleEventUpdatePeriodic(Map<String, dynamic>? inputData) async {
     // Adding this offset prevents notifications having the same id (as those of the launch notification)
     const eventNotifIDOffset = 10;
 
@@ -410,8 +401,7 @@ class BackgroundHandler {
             continue;
           }
 
-          if (update.createdOn!.isAfter(lastUpdateTime) &&
-              (update.comment ?? "").isNotEmpty) {
+          if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
             await notifs.show(
               update.id ?? 5021,
               eventTitle,
@@ -420,8 +410,7 @@ class BackgroundHandler {
             );
           }
 
-          if (oldestUpdateTime == null ||
-              update.createdOn!.isAfter(oldestUpdateTime)) {
+          if (oldestUpdateTime == null || update.createdOn!.isAfter(oldestUpdateTime)) {
             oldestUpdateTime = update.createdOn!;
           }
         }
@@ -468,8 +457,7 @@ class BackgroundHandler {
         "This event will be in ${notificationSettings[i].displayed}",
         notifTime,
         _getEventNotifDetails(tag),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidAllowWhileIdle: true,
       );
     }

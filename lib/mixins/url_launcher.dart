@@ -28,8 +28,7 @@ mixin UrlLauncher {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text("${AppLocalizations.of(context)!.failedURLLaunch} ($_url)"),
+          content: Text("${AppLocalizations.of(context)!.failedURLLaunch} ($_url)"),
         ),
       );
     }

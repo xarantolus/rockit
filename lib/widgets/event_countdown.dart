@@ -15,8 +15,7 @@ class EventCountDownWidget extends StatefulWidget {
   _EventCountDownWidgetState createState() => _EventCountDownWidgetState();
 }
 
-class _EventCountDownWidgetState extends State<EventCountDownWidget>
-    with DateFormatter, TimeDiff {
+class _EventCountDownWidgetState extends State<EventCountDownWidget> with DateFormatter, TimeDiff {
   late Timer _timer;
 
   @override
@@ -52,9 +51,8 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
         date.toLocal(),
       );
 
-      textAbove = formattedDate.isFriendly
-          ? AppLocalizations.of(context)!.eventWas
-          : AppLocalizations.of(context)!.eventWasOn;
+      textAbove =
+          formattedDate.isFriendly ? AppLocalizations.of(context)!.eventWas : AppLocalizations.of(context)!.eventWasOn;
 
       dateText = formattedDate.text;
 

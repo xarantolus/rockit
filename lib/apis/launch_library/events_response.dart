@@ -18,9 +18,7 @@ class UpcomingEventsResponse {
       count: json["count"],
       next: json["next"],
       previous: json["previous"],
-      results: json["results"] == null
-          ? null
-          : List<Event>.from(json["results"].map((x) => Event.fromJson(x))),
+      results: json["results"] == null ? null : List<Event>.from(json["results"].map((x) => Event.fromJson(x))),
     );
   }
 }
@@ -68,9 +66,7 @@ class Event {
       url: json["url"],
       slug: json["slug"],
       name: json["name"],
-      updates: json["updates"] == null
-          ? null
-          : (json["updates"] as List).map((e) => Update.fromJson(e)).toList(),
+      updates: json["updates"] == null ? null : (json["updates"] as List).map((e) => Update.fromJson(e)).toList(),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
       description: json["description"],
       location: json["location"],
@@ -78,20 +74,14 @@ class Event {
       videoUrl: json["video_url"],
       featureImage: json["feature_image"],
       date: json["date"] == null ? null : DateTime.parse(json["date"]),
-      launches: json["launches"] == null
-          ? null
-          : List<Launch>.from(json["launches"].map((x) => Launch.fromJson(x))),
+      launches: json["launches"] == null ? null : List<Launch>.from(json["launches"].map((x) => Launch.fromJson(x))),
       expeditions: json["expeditions"] == null
           ? null
-          : List<Expedition>.from(
-              json["expeditions"].map((x) => Expedition.fromJson(x))),
+          : List<Expedition>.from(json["expeditions"].map((x) => Expedition.fromJson(x))),
       spacestations: json["spacestations"] == null
           ? null
-          : List<Spacestation>.from(
-              json["spacestations"].map((x) => Spacestation.fromJson(x))),
-      program: json["program"] == null
-          ? null
-          : List<Program>.from(json["program"].map((x) => Program.fromJson(x))),
+          : List<Spacestation>.from(json["spacestations"].map((x) => Spacestation.fromJson(x))),
+      program: json["program"] == null ? null : List<Program>.from(json["program"].map((x) => Program.fromJson(x))),
     );
   }
 }
@@ -122,13 +112,10 @@ class Expedition {
       name: json["name"],
       start: json["start"] == null ? null : DateTime.parse(json["start"]),
       end: json["end"] == null ? null : DateTime.parse(json["end"]),
-      spacestation: json["spacestation"] == null
-          ? null
-          : Spacestation.fromJson(json["spacestation"]),
+      spacestation: json["spacestation"] == null ? null : Spacestation.fromJson(json["spacestation"]),
       missionPatches: json["mission_patches"] == null
           ? null
-          : List<MissionPatch>.from(
-              json["mission_patches"].map((x) => MissionPatch.fromJson(x))),
+          : List<MissionPatch>.from(json["mission_patches"].map((x) => MissionPatch.fromJson(x))),
     );
   }
 }
@@ -154,9 +141,7 @@ class MissionPatch {
       name: json["name"],
       priority: json["priority"],
       imageUrl: json["image_url"],
-      agency: json["agency"] == null
-          ? null
-          : LaunchServiceProvider.fromJson(json["agency"]),
+      agency: json["agency"] == null ? null : LaunchServiceProvider.fromJson(json["agency"]),
     );
   }
 }
@@ -303,18 +288,14 @@ class Program {
       description: json["description"],
       agencies: json["agencies"] == null
           ? null
-          : List<LaunchServiceProvider>.from(
-              json["agencies"].map((x) => LaunchServiceProvider.fromJson(x))),
+          : List<LaunchServiceProvider>.from(json["agencies"].map((x) => LaunchServiceProvider.fromJson(x))),
       imageUrl: json["image_url"],
-      startDate: json["start_date"] == null
-          ? null
-          : DateTime.parse(json["start_date"]),
+      startDate: json["start_date"] == null ? null : DateTime.parse(json["start_date"]),
       endDate: json["end_date"],
       infoUrl: json["info_url"],
       wikiUrl: json["wiki_url"],
-      missionPatches: json["mission_patches"] == null
-          ? null
-          : List<dynamic>.from(json["mission_patches"].map((x) => x)),
+      missionPatches:
+          json["mission_patches"] == null ? null : List<dynamic>.from(json["mission_patches"].map((x) => x)),
     );
   }
 }

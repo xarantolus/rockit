@@ -15,8 +15,7 @@ class LaunchCountDownWidget extends StatefulWidget {
   _LaunchCountDownWidgetState createState() => _LaunchCountDownWidgetState();
 }
 
-class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
-    with DateFormatter, TimeDiff {
+class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget> with DateFormatter, TimeDiff {
   late Timer _timer;
 
   late DateTime? net;

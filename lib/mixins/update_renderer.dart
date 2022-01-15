@@ -30,9 +30,7 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
     );
 
     return RippleLinkWidget(
-      (u.comment ?? "").isNotEmpty
-          ? u.comment!
-          : AppLocalizations.of(context)!.unknown,
+      (u.comment ?? "").isNotEmpty ? u.comment! : AppLocalizations.of(context)!.unknown,
       bottomRight: date,
       bottomLeft: sourceAttributionText(context, u.infoUrl),
       url: u.infoUrl,
