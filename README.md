@@ -9,7 +9,6 @@ If you just want to try it out quickly, you can open [the web version](https://r
 - Show launch/event details and a countdown (including the date and time in your local timezone)
 - List latest space news articles
 - Subscribe to launches or events to receive notifications before the start or when times are updated
-- Localization for English and German (UI only, data is in English)
 - No internet? No problem! The app caches offline content for a few days and updates it when connected to the internet
 
 ### Anti-Features
