@@ -31,7 +31,7 @@ class LaunchLibraryAPI extends APIClient {
         : _endpoint("/launch/upcoming/", {
             "hide_recent_previous": "false",
             "include_suborbital": "true",
-            "limit": "25",
+            "limit": "50",
             "mode": "detailed",
             "related": "false",
           });
@@ -45,7 +45,7 @@ class LaunchLibraryAPI extends APIClient {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/event/upcoming/", {
-            "limit": "25",
+            "limit": "50",
           });
     var res = await fetchJSON(uri);
 
