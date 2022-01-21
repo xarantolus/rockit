@@ -33,23 +33,27 @@ class APIClient {
 
   Future<ErrorDetails<dynamic>> fetchJSON(
     Uri url, [
-    bool cacheOnly = false,
+    bool preferCache = false,
   ]) async {
-    var details = await fetch(url, cacheOnly);
+    var details = await fetch(url, preferCache);
 
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<ErrorDetails<String>> fetch(Uri url, [bool cacheOnly = false]) async {
-    if (cacheOnly) {
-      var file = await _cacheManager?.getFileFromCache(url.toString());
-      if (file == null) {
-        throw Exception("This URL hasn't been cached before");
+  Future<ErrorDetails<String>> fetch(Uri url, [bool preferCache = false]) async {
+    if (preferCache) {
+      try {
+        var file = await _cacheManager?.getFileFromCache(url.toString());
+        if (file != null) {
+          return ErrorDetails(
+            utf8.decode(await File(file.file.path).readAsBytes()),
+          );
+        }
+      } catch (err) {
+        if (kDebugMode) {
+          debugPrint("Did not load from cache, even though it was prefered: $err");
+        }
       }
-
-      return ErrorDetails(
-        utf8.decode(await File(file.file.path).readAsBytes()),
-      );
     }
 
     PackageInfo? packageInfo;
