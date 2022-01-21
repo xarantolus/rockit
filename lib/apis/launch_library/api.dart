@@ -52,10 +52,13 @@ class LaunchLibraryAPI extends APIClient {
     return res.bubble(UpcomingEventsResponse.fromJson(res.data));
   }
 
-  Future<ErrorDetails<Launch>> launch(String id) async {
+  Future<ErrorDetails<Launch>> launch(
+    String id, [
+    bool cacheOnly = false,
+  ]) async {
     var uri = _endpoint("/launch/" + id, {});
 
-    var res = await fetch(uri);
+    var res = await fetch(uri, cacheOnly);
 
     var decoded = jsonDecode(res.data);
 
@@ -63,10 +66,13 @@ class LaunchLibraryAPI extends APIClient {
   }
 
   // the id given should be either a String or int
-  Future<ErrorDetails<Event>> event(dynamic id) async {
+  Future<ErrorDetails<Event>> event(
+    dynamic id, [
+    bool cacheOnly = false,
+  ]) async {
     var uri = _endpoint("/event/$id", {});
 
-    var res = await fetchJSON(uri);
+    var res = await fetchJSON(uri, cacheOnly);
 
     return res.bubble(Event.fromJson(res.data));
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rockit/apis/launch_library/api.dart';
-import 'package:rockit/notifications/create.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -24,11 +23,26 @@ class _NotifSetting {
 }
 
 class BackgroundHandler {
-  static final instance = BackgroundHandler._internal();
-  factory BackgroundHandler() {
-    return instance;
+  static const actionLaunchDetails = "launch-details";
+  static const actionEventDetails = "event-details";
+
+  static BackgroundHandler? instance;
+
+  FlutterLocalNotificationsPlugin notifications;
+
+  factory BackgroundHandler.withNotifications(
+    FlutterLocalNotificationsPlugin notifs,
+  ) {
+    instance ??= BackgroundHandler._internal(notifs);
+
+    return instance!;
   }
-  BackgroundHandler._internal() {
+
+  factory BackgroundHandler() {
+    return instance!;
+  }
+
+  BackgroundHandler._internal(this.notifications) {
     tz.initializeTimeZones();
   }
 
@@ -137,8 +151,6 @@ class BackgroundHandler {
     final tag = "update:launch:oneoff:$launchId";
     final updateKey = _getUpdateKey("launch", launchId);
 
-    var notifs = await NotificationHandler.create();
-
     var launchTime = DateTime.tryParse(launch.net ?? "");
     if (launchTime == null) {
       // If we cannot parse the time, we just try it on the next run
@@ -160,11 +172,12 @@ class BackgroundHandler {
           }
 
           if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
-            await notifs.show(
+            await notifications.show(
               update.id ?? 5021,
               launchTitle,
               update.comment!,
               _getLaunchUpdateNotifDetails(launchId),
+              payload: "$actionLaunchDetails::$launchId",
             );
           }
 
@@ -205,10 +218,10 @@ class BackgroundHandler {
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifs.cancel(i, tag: tag);
+        await notifications.cancel(i, tag: tag);
       } catch (_) {}
 
-      await notifs.zonedSchedule(
+      await notifications.zonedSchedule(
         i,
         launchTitle,
         "This launch will be in ${notificationSettings[i].displayed}",
@@ -216,6 +229,7 @@ class BackgroundHandler {
         _getLaunchNotifDetails(tag),
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidAllowWhileIdle: true,
+        payload: "$actionLaunchDetails::$launchId",
       );
     }
 
@@ -379,8 +393,6 @@ class BackgroundHandler {
     final tag = "update:event:oneoff:$eventId";
     final updateKey = _getUpdateKey("event", eventId);
 
-    var notifs = await NotificationHandler.create();
-
     var startTime = event.date;
     if (startTime == null) {
       // If we cannot get a time, we just try it on the next run
@@ -402,11 +414,12 @@ class BackgroundHandler {
           }
 
           if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
-            await notifs.show(
+            await notifications.show(
               update.id ?? 5021,
               eventTitle,
               update.comment!,
               _getEventUpdateNotifDetails(eventId),
+              payload: "$actionEventDetails::$eventId",
             );
           }
 
@@ -448,10 +461,10 @@ class BackgroundHandler {
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifs.cancel(eventNotifIDOffset + i, tag: tag);
+        await notifications.cancel(eventNotifIDOffset + i, tag: tag);
       } catch (_) {}
 
-      await notifs.zonedSchedule(
+      await notifications.zonedSchedule(
         eventNotifIDOffset + i,
         eventTitle,
         "This event will be in ${notificationSettings[i].displayed}",
@@ -459,6 +472,7 @@ class BackgroundHandler {
         _getEventNotifDetails(tag),
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidAllowWhileIdle: true,
+        payload: "$actionEventDetails::$eventId",
       );
     }
 

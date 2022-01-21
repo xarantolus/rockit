@@ -31,13 +31,27 @@ class APIClient {
     return null;
   }();
 
-  Future<ErrorDetails<dynamic>> fetchJSON(Uri url) async {
-    var details = await fetch(url);
+  Future<ErrorDetails<dynamic>> fetchJSON(
+    Uri url, [
+    bool cacheOnly = false,
+  ]) async {
+    var details = await fetch(url, cacheOnly);
 
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<ErrorDetails<String>> fetch(Uri url) async {
+  Future<ErrorDetails<String>> fetch(Uri url, [bool cacheOnly = false]) async {
+    if (cacheOnly) {
+      var file = await _cacheManager?.getFileFromCache(url.toString());
+      if (file == null) {
+        throw Exception("This URL hasn't been cached before");
+      }
+
+      return ErrorDetails(
+        utf8.decode(await File(file.file.path).readAsBytes()),
+      );
+    }
+
     PackageInfo? packageInfo;
 
     try {
