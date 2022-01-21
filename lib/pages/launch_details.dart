@@ -441,8 +441,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ..._urlInfoList(
               context,
               widget.launch.vidUrls ?? [],
-              AppLocalizations.of(context)!.videos,
-              (ctx, vid) => _urlInfoArticleWidget(ctx, vid, false, const Icon(Icons.play_arrow, size: 72)),
+              (widget.launch.vidUrls ?? []).length == 1
+                  ? AppLocalizations.of(context)!.video
+                  : AppLocalizations.of(context)!.videos,
+              (ctx, vid) => _urlInfoArticleWidget(
+                ctx,
+                vid,
+                false,
+                const Icon(Icons.play_arrow, size: 72),
+              ),
             ),
 
             // Now a list of updates to the data
