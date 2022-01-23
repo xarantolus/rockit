@@ -1,6 +1,9 @@
+import 'dart:core';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/notifications/create.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -9,7 +12,7 @@ import 'package:workmanager/workmanager.dart';
 // This function will be called by Android when a task should be run
 void backgroundTaskCallback() {
   Workmanager().executeTask((task, inputData) async {
-    var handler = BackgroundHandler();
+    var handler = BackgroundHandler.withNotifications(await NotificationHandler.create());
 
     return await handler.callback(task, inputData);
   });
@@ -28,7 +31,7 @@ class BackgroundHandler {
 
   static BackgroundHandler? instance;
 
-  FlutterLocalNotificationsPlugin notifications;
+  FlutterLocalNotificationsPlugin? notifications;
 
   factory BackgroundHandler.withNotifications(
     FlutterLocalNotificationsPlugin notifs,
@@ -39,6 +42,12 @@ class BackgroundHandler {
   }
 
   factory BackgroundHandler() {
+    if (instance == null) {
+      throw Exception("BackgroundHandler() initialized when instance was null");
+    }
+    if (instance!.notifications == null) {
+      throw Exception("BackgroundHandler() initialized when instance notification plugin was null");
+    }
     return instance!;
   }
 
@@ -102,7 +111,11 @@ class BackgroundHandler {
       await instance.reload();
 
       return DateTime.tryParse(instance.getString(key)!);
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error loading date: $err");
+      }
+    }
     return null;
   }
 
@@ -112,7 +125,11 @@ class BackgroundHandler {
       await instance.reload();
 
       await instance.setString(key, date.toIso8601String());
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error in scheduled task: $err");
+      }
+    }
   }
 
   Future<void> _deleteKey(String key) async {
@@ -126,7 +143,11 @@ class BackgroundHandler {
       var instance = await SharedPreferences.getInstance();
       await instance.reload();
       return instance.getStringList(key) ?? [];
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error loading IDs ($key): $err");
+      }
+    }
     return [];
   }
 
@@ -172,10 +193,10 @@ class BackgroundHandler {
           }
 
           if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
-            await notifications.show(
-              update.id ?? 5021,
+            await notifications!.show(
+              update.id ?? (update.hashCode.abs()),
               launchTitle,
-              update.comment!,
+              update.comment ?? "No info",
               _getLaunchUpdateNotifDetails(launchId),
               payload: "$actionLaunchDetails::$launchId",
             );
@@ -188,7 +209,11 @@ class BackgroundHandler {
       }
 
       await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error while processing launch updates: $err");
+      }
+    }
 
     if (launchTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
@@ -211,6 +236,8 @@ class BackgroundHandler {
     for (var i = 0; i < notificationSettings.length; i++) {
       Duration offset = notificationSettings[i].offset;
 
+      final notifID = ((launch.id ?? launchId).hashCode.abs()) + i;
+
       var notifTime = notifBaseTime.add(offset);
       if (notifTime.isBefore(now)) {
         continue;
@@ -218,11 +245,15 @@ class BackgroundHandler {
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifications.cancel(i, tag: tag);
-      } catch (_) {}
+        await notifications!.cancel(notifID, tag: tag);
+      } catch (err) {
+        if (kDebugMode) {
+          debugPrint("Error cancelling launch notification $notifID: $err");
+        }
+      }
 
-      await notifications.zonedSchedule(
-        i,
+      await notifications!.zonedSchedule(
+        notifID,
         launchTitle,
         "This launch will be in ${notificationSettings[i].displayed}",
         notifTime,
@@ -257,7 +288,11 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Deleting update key for launch while unsubscribing: $err");
+      }
+    }
 
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));
@@ -340,7 +375,11 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("event", eventId));
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Deleting update key for event while unsubscribing: $err");
+      }
+    }
 
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForEvent(eventId));
@@ -375,7 +414,7 @@ class BackgroundHandler {
 
   Future<bool> handleEventUpdatePeriodic(Map<String, dynamic>? inputData) async {
     // Adding this offset prevents notifications having the same id (as those of the launch notification)
-    const eventNotifIDOffset = 10;
+    const eventNotifIDOffset = 0x0F000000;
 
     // At first, we load the associated event
     final eventId = inputData!["eventId"]! as String;
@@ -414,10 +453,10 @@ class BackgroundHandler {
           }
 
           if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
-            await notifications.show(
-              update.id ?? 5021,
+            await notifications!.show(
+              update.id ?? update.hashCode,
               eventTitle,
-              update.comment!,
+              update.comment ?? "No info",
               _getEventUpdateNotifDetails(eventId),
               payload: "$actionEventDetails::$eventId",
             );
@@ -430,7 +469,11 @@ class BackgroundHandler {
       }
 
       await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
-    } catch (_) {}
+    } catch (err) {
+      if (kDebugMode) {
+        debugPrint("Error while processing event updates: $err");
+      }
+    }
 
     if (startTime.isBefore(DateTime.now())) {
       // Cancel this periodic task
@@ -459,13 +502,19 @@ class BackgroundHandler {
         continue;
       }
 
+      final notifID = eventNotifIDOffset + (notificationSettings.length * event.id).abs() + i;
+
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifications.cancel(eventNotifIDOffset + i, tag: tag);
-      } catch (_) {}
+        await notifications!.cancel(notifID, tag: tag);
+      } catch (err) {
+        if (kDebugMode) {
+          debugPrint("Error cancelling event notification $notifID: $err");
+        }
+      }
 
-      await notifications.zonedSchedule(
-        eventNotifIDOffset + i,
+      await notifications!.zonedSchedule(
+        notifID,
         eventTitle,
         "This event will be in ${notificationSettings[i].displayed}",
         notifTime,
