@@ -36,9 +36,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> with Automa
 
       return res.data;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error loading launches: $e");
-      }
+      debugPrint("Error loading launches: $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

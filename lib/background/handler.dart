@@ -98,9 +98,7 @@ class BackgroundHandler {
           throw FormatException("Expected task name to be for event or update, but got \"$task\"");
       }
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error in scheduled task: $err");
-      }
+      debugPrint("Error in scheduled task: $err");
       rethrow;
     }
   }
@@ -112,9 +110,7 @@ class BackgroundHandler {
 
       return DateTime.tryParse(instance.getString(key)!);
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error loading date: $err");
-      }
+      debugPrint("Error loading date: $err");
     }
     return null;
   }
@@ -126,9 +122,7 @@ class BackgroundHandler {
 
       await instance.setString(key, date.toIso8601String());
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error in scheduled task: $err");
-      }
+      debugPrint("Error in scheduled task: $err");
     }
   }
 
@@ -144,9 +138,7 @@ class BackgroundHandler {
       await instance.reload();
       return instance.getStringList(key) ?? [];
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error loading IDs ($key): $err");
-      }
+      debugPrint("Error loading IDs ($key): $err");
     }
     return [];
   }
@@ -210,9 +202,7 @@ class BackgroundHandler {
 
       await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error while processing launch updates: $err");
-      }
+      debugPrint("Error while processing launch updates: $err");
     }
 
     if (launchTime.isBefore(DateTime.now())) {
@@ -247,9 +237,7 @@ class BackgroundHandler {
       try {
         await notifications!.cancel(notifID, tag: tag);
       } catch (err) {
-        if (kDebugMode) {
-          debugPrint("Error cancelling launch notification $notifID: $err");
-        }
+        debugPrint("Error cancelling launch notification $notifID: $err");
       }
 
       await notifications!.zonedSchedule(
@@ -289,9 +277,7 @@ class BackgroundHandler {
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Deleting update key for launch while unsubscribing: $err");
-      }
+      debugPrint("Deleting update key for launch while unsubscribing: $err");
     }
 
     // Unsubscribe the recurring task
@@ -376,9 +362,7 @@ class BackgroundHandler {
     try {
       await _deleteKey(_getUpdateKey("event", eventId));
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Deleting update key for event while unsubscribing: $err");
-      }
+      debugPrint("Deleting update key for event while unsubscribing: $err");
     }
 
     // Unsubscribe the recurring task
@@ -470,9 +454,7 @@ class BackgroundHandler {
 
       await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
     } catch (err) {
-      if (kDebugMode) {
-        debugPrint("Error while processing event updates: $err");
-      }
+      debugPrint("Error while processing event updates: $err");
     }
 
     if (startTime.isBefore(DateTime.now())) {
@@ -508,9 +490,7 @@ class BackgroundHandler {
       try {
         await notifications!.cancel(notifID, tag: tag);
       } catch (err) {
-        if (kDebugMode) {
-          debugPrint("Error cancelling event notification $notifID: $err");
-        }
+        debugPrint("Error cancelling event notification $notifID: $err");
       }
 
       await notifications!.zonedSchedule(

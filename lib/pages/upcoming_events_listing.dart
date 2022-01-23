@@ -38,9 +38,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> with AutomaticK
 
       return res.data;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error loading events: $e");
-      }
+      debugPrint("Error loading events: $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

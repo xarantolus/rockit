@@ -24,9 +24,7 @@ class APIClient {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Could not initialize cache manager: $e");
-      }
+      debugPrint("Could not initialize cache manager: $e");
     }
     return null;
   }();
@@ -50,9 +48,7 @@ class APIClient {
           );
         }
       } catch (err) {
-        if (kDebugMode) {
-          debugPrint("Did not load from cache, even though it was prefered: $err");
-        }
+        debugPrint("Did not load URL $url from cache, even though it was prefered: $err");
       }
     }
 
@@ -61,16 +57,12 @@ class APIClient {
     try {
       packageInfo = await PackageInfo.fromPlatform();
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Could not retrieve package info when fetching URL: $e");
-      }
+      debugPrint("Could not retrieve package info when fetching URL: $e");
     }
 
     Uint8List responseBytes;
 
-    if (kDebugMode) {
-      debugPrint("Fetching URL ${url.toString()}");
-    }
+    debugPrint("Fetching URL ${url.toString()}");
 
     error_type? etype;
 
@@ -83,9 +75,7 @@ class APIClient {
               "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
       });
 
-      if (kDebugMode) {
-        debugPrint("Got response for ${url.toString()}: status ${response.statusCode}");
-      }
+      debugPrint("Got response for ${url.toString()}: status ${response.statusCode}");
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw HttpException("Unexpected status code ${response.statusCode}");
@@ -103,15 +93,11 @@ class APIClient {
             key: url.toString(),
           );
         } catch (e) {
-          if (kDebugMode) {
-            debugPrint("Error putting ${url.toString()} into cache: $e");
-          }
+          debugPrint("Error putting ${url.toString()} into cache: $e");
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error fetching ${url.toString()}: $e");
-      }
+      debugPrint("Error fetching ${url.toString()}: $e");
 
       if (kIsWeb) {
         rethrow;

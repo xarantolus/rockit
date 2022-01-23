@@ -37,9 +37,7 @@ class _ArticleListingPageState extends State<ArticleListingPage> with AutomaticK
 
       return res.data;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error loading articles: $e");
-      }
+      debugPrint("Error loading articles: $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -27,9 +27,7 @@ class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClient
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Could not initialize cache manager: $e");
-      }
+      debugPrint("Could not initialize cache manager: $e");
     }
     return null;
   }();
@@ -49,9 +47,7 @@ class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClient
           errorWidget: (context, url, error) => _defaultImage(),
         );
       } catch (e) {
-        if (kDebugMode) {
-          debugPrint("Creating cached network image for $_imageURL");
-        }
+        debugPrint("Error creating cached network image for $_imageURL");
       }
     }
 

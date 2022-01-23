@@ -18,11 +18,6 @@ import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 import 'package:workmanager/workmanager.dart';
 
 void main() async {
-  // Disable debug print messages when not in debug mode
-  if (!kDebugMode) {
-    debugPrint = (String? message, {int? wrapWidth}) {};
-  }
-
   Paint.enableDithering = true;
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -157,9 +152,7 @@ class _MyHomePageState extends State<MyHomePage> with UrlLauncher {
           break;
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error while pushing initial page: $e");
-      }
+      debugPrint("Error while pushing initial page: $e");
     }
   }
 
