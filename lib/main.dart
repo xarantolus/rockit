@@ -20,6 +20,11 @@ import 'package:workmanager/workmanager.dart';
 void main() async {
   Paint.enableDithering = true;
 
+  final oldDebugPrint = debugPrint;
+  debugPrint = (String? message, {int? wrapWidth}) {
+    oldDebugPrint("xarantolus.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+  };
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Allow a bit more render image cache, this makes images reload less
