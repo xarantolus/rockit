@@ -15,6 +15,10 @@ class NotificationHandler {
           ? null
           : (payload) {
               if (payload != null) {
+                // If it's the same value as before, we still want to notify.
+                // So we just set it to empty (listeners won't do anything),
+                // then we set the value again. This is kind of ugly, but works fine
+                payloadNotification.value = "";
                 payloadNotification.value = payload;
               }
             },

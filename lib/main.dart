@@ -118,7 +118,6 @@ class _MyHomePageState extends State<MyHomePage> with UrlLauncher {
     super.initState();
 
     unawaited(pushPayloadPage());
-
     widget.appPayload.addListener(pushPayloadPage);
   }
 
