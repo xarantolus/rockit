@@ -167,19 +167,26 @@ class _LaunchesListState extends State<LaunchesList> {
   Future<bool> _loadMore() async {
     try {
       return await _updateLaunches(false);
-    } catch (_) {
+    } catch (e) {
+      debugPrint("Loading more launches: $e");
       return false;
     }
   }
 
   void _openLaunchDetails(BuildContext context, int index) async {
-    void scrollToIndex(int idx, [bool animated = false]) {
+    void scrollToIndex(int idx, {bool animated = false}) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
       final wheight = LaunchWidget.calculateHeight(context);
       final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-      final targetOffset =
-          max(wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2, 0.0);
+      final targetOffset = min(
+        max(
+          wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0,
+        ),
+        // Do not scroll further than the list height
+        _launchListController.position.maxScrollExtent,
+      );
 
       if (animated) {
         _launchListController.animateTo(
@@ -192,7 +199,7 @@ class _LaunchesListState extends State<LaunchesList> {
       }
     }
 
-    scrollToIndex(index, true);
+    scrollToIndex(index, animated: true);
 
     await Navigator.of(context).push(
       MaterialPageRoute(

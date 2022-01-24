@@ -167,20 +167,27 @@ class _EventsListState extends State<EventsList> {
   Future<bool> _loadMore() async {
     try {
       return await _updateEvents(false);
-    } catch (_) {
+    } catch (e) {
+      debugPrint("Loading more events: $e");
       return false;
     }
   }
 
   void _openEventDetails(BuildContext context, int index) async {
-    void scrollToIndex(int idx, [bool animated = false]) {
+    void scrollToIndex(int idx, {bool animated = false}) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
 
       final wheight = EventWidget.calculateHeight(context);
       final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-      final targetOffset =
-          max(wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2, 0.0);
+      final targetOffset = min(
+        max(
+          wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+          0.0,
+        ),
+        // Do not scroll further than the list height
+        _eventListController.position.maxScrollExtent,
+      );
 
       if (animated) {
         _eventListController.animateTo(
@@ -193,7 +200,7 @@ class _EventsListState extends State<EventsList> {
       }
     }
 
-    scrollToIndex(index, true);
+    scrollToIndex(index, animated: true);
 
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -248,8 +255,8 @@ class _EventsListState extends State<EventsList> {
         ),
         hasNext: nextURL != null,
         nextData: _loadMore,
-        physics: const BouncingScrollPhysics(),
         loadingWidget: const PlanetLoadingAnimation(),
+        physics: const BouncingScrollPhysics(),
         controller: _eventListController,
         itemCount: events.length,
         // We pre-load up to 5 screens of info, that way images load already
