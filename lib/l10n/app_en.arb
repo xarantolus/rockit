@@ -6,6 +6,9 @@
   "dateFormat": "EEE, d. MMM yyyy",
   "currentYearDateFormat": "EEEE, d. MMM",
 
+  "currentWeekDateFormat": "EEEE, hh:mm a",
+  "currentWeekDateFormat24h": "EEEE, HH:mm",
+
   "unknownLaunchTime": "Unknown launch time",
 
   "launchIsIn": "The launch is in",
