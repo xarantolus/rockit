@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
@@ -52,8 +51,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
 
         var newList = next.results ?? [];
 
-        newList.removeWhere(
-            (newLaunch) => current.any((launch) => newLaunch.id == launch.id));
+        newList.removeWhere((newLaunch) => current.any((launch) => newLaunch.id == launch.id));
 
         current.addAll(newList);
 

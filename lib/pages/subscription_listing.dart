@@ -4,10 +4,8 @@ import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/background/handler.dart';
+import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
-import 'package:rockit/widgets/addons/planet_loading_animation.dart';
-import 'package:rockit/widgets/event.dart';
-import 'package:rockit/widgets/launch.dart';
 
 class SubscriptionListingPage extends StatefulWidget {
   const SubscriptionListingPage({Key? key}) : super(key: key);
@@ -18,9 +16,7 @@ class SubscriptionListingPage extends StatefulWidget {
 
 class LaunchEventList {
   List<dynamic> list;
-  bool hadErrors;
-
-  LaunchEventList(this.list, this.hadErrors);
+  LaunchEventList(this.list);
 }
 
 class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
@@ -90,10 +86,8 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
       );
     }
 
-    return LaunchEventList(list, hadErrors);
+    return LaunchEventList(list);
   }
-
-  late Future<LaunchEventList> ftr = loadLaunchesAndEvents();
 
   @override
   Widget build(BuildContext context) {
@@ -102,52 +96,14 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
         context,
         title: AppLocalizations.of(context)!.subscriptions,
       ),
-      body: Center(
-        child: FutureBuilder<LaunchEventList>(
-          future: ftr,
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.none:
-              case ConnectionState.waiting:
-                return const PlanetLoadingAnimation();
-              default:
-                if (snapshot.hasError) {
-                  return GestureDetector(
-                    child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-                    onTap: () => setState(() {
-                      ftr = loadLaunchesAndEvents();
-                    }),
-                  );
-                } else {
-                  final results = snapshot.data!;
-                  if (results.list.isEmpty) {
-                    return Center(
-                      child: Text(AppLocalizations.of(context)!.noSubscriptions),
-                    );
-                  } else {
-                    // TODO: Abstract the pageview to work with both events and launches
-                    // and then add it here too
-                    return ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: snapshot.data!.list.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final item = snapshot.data!.list[index];
+      body: LaunchEventListing<dynamic, String>(
+        refreshOnLeave: true,
+        emptyText: AppLocalizations.of(context)!.noSubscriptions,
+        nextFunc: (context, nextItemArg, current) async {
+          var items = await loadLaunchesAndEvents();
 
-                        if (item is Launch) {
-                          return LaunchWidget(item);
-                        }
-                        if (item is Event) {
-                          return EventWidget(item);
-                        }
-
-                        throw Exception("Invalid data type ${item.runtimeType} in launch/event listing");
-                      },
-                    );
-                  }
-                }
-            }
-          },
-        ),
+          return NextFuncResult(items.list, null);
+        },
       ),
     );
   }

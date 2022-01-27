@@ -51,11 +51,10 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
 
         var newList = next.results ?? [];
 
-        newList.removeWhere(
-            (newEvent) => current.any((event) => newEvent.id == event.id));
+        newList.removeWhere((newEvent) => current.any((event) => newEvent.id == event.id));
 
         current.addAll(newList);
-        
+
         return NextFuncResult(current, next.next);
       },
       emptyText: AppLocalizations.of(context)!.noEvents,
