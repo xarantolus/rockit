@@ -36,7 +36,11 @@
   "noLaunches": "There are no launches we could show here",
   "noEvents": "There are no events we could show here",
   "noNews": "There are no articles we could show here",
+  "noSubscriptions": "There are no subscriptions we could show here",
+  "errorLoadSubscriptions":"There was at least one error while loading your subscriptions.\nCome back later to see all subscriptions.",
+  "ok": "OK",
 
+  "subscriptions": "Subscriptions",
   "launches": "Launches",
   "launch": "Launch",
   "news": "News",

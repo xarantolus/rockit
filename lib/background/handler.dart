@@ -268,6 +268,10 @@ class BackgroundHandler {
     return markedIDs.contains(launchId);
   }
 
+  Future<List<String>> loadSubscribedLaunchIDs() {
+    return _loadIDs(launchesKey);
+  }
+
   Future<void> unsubscribeFromLaunch(String launchId) async {
     // Remove from saved launches
     var markedLaunches = await _loadIDs(launchesKey);
@@ -351,6 +355,10 @@ class BackgroundHandler {
   Future<bool> isSubscribedToEvent(String eventId) async {
     var markedIDs = await _loadIDs(eventsKey);
     return markedIDs.contains(eventId);
+  }
+
+  Future<List<String>> loadSubscribedEventIDs() {
+    return _loadIDs(eventsKey);
   }
 
   Future<void> unsubscribeFromEvent(String eventId) async {

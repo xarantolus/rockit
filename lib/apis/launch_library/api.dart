@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/error_details.dart';
@@ -58,11 +56,9 @@ class LaunchLibraryAPI extends APIClient {
   ]) async {
     var uri = _endpoint("/launch/" + id, {});
 
-    var res = await fetch(uri, preferCache);
+    var res = await fetchJSON(uri, preferCache);
 
-    var decoded = jsonDecode(res.data);
-
-    return res.bubble(Launch.fromJson(decoded));
+    return res.bubble(Launch.fromJson(res.data));
   }
 
   // the id given should be either a String or int

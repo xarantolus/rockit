@@ -10,6 +10,7 @@ import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/pages/subscription_listing.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
@@ -125,6 +126,17 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const CreditPage(),
+              ),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.subscriptions),
+          tooltip: AppLocalizations.of(context)!.subscriptions,
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const SubscriptionListingPage(),
               ),
             );
           },

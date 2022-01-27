@@ -43,12 +43,13 @@ class APIClient {
       try {
         var file = await _cacheManager?.getFileFromCache(url.toString());
         if (file != null) {
+          debugPrint("Serving $url from cache because the cache is prefered");
           return ErrorDetails(
             utf8.decode(await File(file.file.path).readAsBytes()),
           );
         }
       } catch (err) {
-        debugPrint("Did not load URL $url from cache, even though it was prefered: $err");
+        debugPrint("Error loading ${url.toString()} from cache: $err");
       }
     }
 
@@ -111,6 +112,7 @@ class APIClient {
           throw Exception("This URL hasn't been cached before");
         }
 
+        debugPrint("Serving $url from cache because the request didn't work");
         responseBytes = await File(file.file.path).readAsBytes();
 
         etype = error_type.cachedFallback;
