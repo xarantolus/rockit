@@ -250,6 +250,7 @@ class BackgroundHandler {
         androidAllowWhileIdle: true,
         payload: "$actionLaunchDetails::$launchId",
       );
+      debugPrint("Scheduled notification for event '$launchTitle' at $notifTime");
     }
 
     return true;
@@ -511,6 +512,7 @@ class BackgroundHandler {
         androidAllowWhileIdle: true,
         payload: "$actionEventDetails::$eventId",
       );
+      debugPrint("Scheduled notification for event '$eventTitle' at $notifTime");
     }
 
     return true;
