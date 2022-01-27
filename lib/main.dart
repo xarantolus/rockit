@@ -11,7 +11,7 @@ void main() async {
 
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    oldDebugPrint("xarantolus.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
   };
 
   WidgetsFlutterBinding.ensureInitialized();
