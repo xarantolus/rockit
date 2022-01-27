@@ -119,6 +119,18 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
               await _openAppDownloadLink();
             },
           ),
+        if (!kIsWeb)
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            tooltip: AppLocalizations.of(context)!.subscriptions,
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SubscriptionListingPage(),
+                ),
+              );
+            },
+          ),
         IconButton(
           icon: const Icon(Icons.info_outline),
           tooltip: AppLocalizations.of(context)!.sources,
@@ -126,17 +138,6 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const CreditPage(),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.subscriptions),
-          tooltip: AppLocalizations.of(context)!.subscriptions,
-          onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const SubscriptionListingPage(),
               ),
             );
           },
