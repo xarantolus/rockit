@@ -58,6 +58,10 @@ class BackgroundHandler {
   static const periodicLaunchUpdateTaskName = "update:launch:periodic";
   static const periodicEventUpdateTaskName = "update:event:periodic";
 
+  final _taskConstraints = Constraints(
+    networkType: NetworkType.connected,
+  );
+
   NotificationDetails _getLaunchNotifDetails(String tag) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -313,6 +317,7 @@ class BackgroundHandler {
         "launchId": launchId,
       },
       existingWorkPolicy: ExistingWorkPolicy.replace,
+      constraints: _taskConstraints,
     );
   }
 
@@ -402,6 +407,7 @@ class BackgroundHandler {
         "eventId": eventId,
       },
       existingWorkPolicy: ExistingWorkPolicy.replace,
+      constraints: _taskConstraints,
     );
   }
 
