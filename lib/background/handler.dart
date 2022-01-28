@@ -209,7 +209,8 @@ class BackgroundHandler {
       debugPrint("Error while processing launch updates: $err");
     }
 
-    if (launchTime.isBefore(DateTime.now())) {
+    final timeSinceLaunch = DateTime.now().difference(launchTime);
+    if (timeSinceLaunch > const Duration(hours: 12)) {
       // Cancel this periodic task
       await unsubscribeFromLaunch(launchId);
 
@@ -472,7 +473,8 @@ class BackgroundHandler {
       debugPrint("Error while processing event updates: $err");
     }
 
-    if (startTime.isBefore(DateTime.now())) {
+    final timeSinceStart = DateTime.now().difference(startTime);
+    if (timeSinceStart > const Duration(hours: 12)) {
       // Cancel this periodic task
       await unsubscribeFromEvent(eventId);
 
