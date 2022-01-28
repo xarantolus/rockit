@@ -58,7 +58,7 @@ class BackgroundHandler {
   static const periodicLaunchUpdateTaskName = "update:launch:periodic";
   static const periodicEventUpdateTaskName = "update:event:periodic";
 
-  final _taskConstraints = Constraints(
+  final _periodicTaskConstraints = Constraints(
     networkType: NetworkType.connected,
   );
 
@@ -255,7 +255,7 @@ class BackgroundHandler {
         androidAllowWhileIdle: true,
         payload: "$actionLaunchDetails::$launchId",
       );
-      debugPrint("Scheduled notification for event '$launchTitle' at $notifTime");
+      debugPrint("Scheduled notification for event '$launchTitle' for $notifTime");
     }
 
     return true;
@@ -318,7 +318,7 @@ class BackgroundHandler {
         "launchId": launchId,
       },
       existingWorkPolicy: ExistingWorkPolicy.replace,
-      constraints: _taskConstraints,
+      constraints: _periodicTaskConstraints,
     );
   }
 
@@ -408,7 +408,7 @@ class BackgroundHandler {
         "eventId": eventId,
       },
       existingWorkPolicy: ExistingWorkPolicy.replace,
-      constraints: _taskConstraints,
+      constraints: _periodicTaskConstraints,
     );
   }
 
@@ -520,7 +520,7 @@ class BackgroundHandler {
         androidAllowWhileIdle: true,
         payload: "$actionEventDetails::$eventId",
       );
-      debugPrint("Scheduled notification for event '$eventTitle' at $notifTime");
+      debugPrint("Scheduled notification for event '$eventTitle' for $notifTime");
     }
 
     return true;
