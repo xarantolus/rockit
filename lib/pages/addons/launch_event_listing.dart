@@ -252,6 +252,13 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
   @override
   Widget build(BuildContext context) {
+    // This list is only empty if we unsubscribed from the last launch/event
+    if (items.isEmpty) {
+      return Center(
+        child: Text(widget.emptyText),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         await _updateItems(true);
