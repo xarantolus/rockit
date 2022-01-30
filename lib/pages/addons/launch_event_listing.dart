@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:infinite_widgets/infinite_widgets.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';

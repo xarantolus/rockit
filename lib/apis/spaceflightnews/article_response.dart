@@ -22,8 +22,8 @@ class Article {
   final DateTime? publishedAt;
   final DateTime? updatedAt;
   final bool? featured;
-  final List<LaunchInfo>? launches;
-  final List<Event>? events;
+  final List<BasicLaunchInfo>? launches;
+  final List<BasicEventInfo>? events;
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
@@ -36,15 +36,18 @@ class Article {
       publishedAt: json["publishedAt"] == null ? null : DateTime.parse(json["publishedAt"]),
       updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
       featured: json["featured"],
-      launches:
-          json["launches"] == null ? null : List<LaunchInfo>.from(json["launches"].map((x) => LaunchInfo.fromJson(x))),
-      events: json["events"] == null ? null : List<Event>.from(json["events"].map((x) => Event.fromJson(x))),
+      launches: json["launches"] == null
+          ? null
+          : List<BasicLaunchInfo>.from(json["launches"].map((x) => BasicLaunchInfo.fromJson(x))),
+      events: json["events"] == null
+          ? null
+          : List<BasicEventInfo>.from(json["events"].map((x) => BasicEventInfo.fromJson(x))),
     );
   }
 }
 
-class Event {
-  Event({
+class BasicEventInfo {
+  BasicEventInfo({
     required this.id,
     required this.provider,
   });
@@ -52,16 +55,16 @@ class Event {
   final int id;
   final String? provider;
 
-  factory Event.fromJson(Map<String, dynamic> json) {
-    return Event(
+  factory BasicEventInfo.fromJson(Map<String, dynamic> json) {
+    return BasicEventInfo(
       id: json["id"],
       provider: json["provider"],
     );
   }
 }
 
-class LaunchInfo {
-  LaunchInfo({
+class BasicLaunchInfo {
+  BasicLaunchInfo({
     required this.id,
     required this.provider,
   });
@@ -69,8 +72,8 @@ class LaunchInfo {
   final String id;
   final String? provider;
 
-  factory LaunchInfo.fromJson(Map<String, dynamic> json) {
-    return LaunchInfo(
+  factory BasicLaunchInfo.fromJson(Map<String, dynamic> json) {
+    return BasicLaunchInfo(
       id: json["id"],
       provider: json["provider"],
     );

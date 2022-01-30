@@ -1,14 +1,14 @@
 import 'package:rockit/apis/launch_library/events_response.dart';
 
-class UpcomingResponse {
+class UpcomingLaunchesResponse {
   int? count;
   String? next;
   String? previous;
   List<Launch>? results;
 
-  UpcomingResponse({count, next, previous, results});
+  UpcomingLaunchesResponse({count, next, previous, results});
 
-  UpcomingResponse.fromJson(Map<String, dynamic> json) {
+  UpcomingLaunchesResponse.fromJson(Map<String, dynamic> json) {
     count = json["count"];
     next = json["next"];
     previous = json["previous"];

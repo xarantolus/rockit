@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingLaunchesPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class UpcomingLaunchesPage extends StatefulWidget {
 }
 
 class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
-  static Future<UpcomingResponse> load(
+  static Future<UpcomingLaunchesResponse> load(
     BuildContext context,
     LaunchLibraryAPI api, [
     String? next,
@@ -34,7 +34,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
         ),
       );
 
-      return UpcomingResponse(
+      return UpcomingLaunchesResponse(
         count: 0,
         next: next,
         previous: null,

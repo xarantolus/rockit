@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 
 class LaunchWidget extends StatefulWidget {

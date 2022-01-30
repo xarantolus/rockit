@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';

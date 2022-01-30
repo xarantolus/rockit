@@ -1,4 +1,4 @@
-import 'upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 
 class UpcomingEventsResponse {
   UpcomingEventsResponse({

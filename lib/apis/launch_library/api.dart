@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
-import 'package:rockit/apis/launch_library/upcoming_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 
 class LaunchLibraryAPI extends APIClient {
   // Singleton: the LaunchLibraryAPI "constructor" always returns the same object
@@ -23,7 +23,7 @@ class LaunchLibraryAPI extends APIClient {
     return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
 
-  Future<ErrorDetails<UpcomingResponse>> upcomingLaunches([String? next]) async {
+  Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches([String? next]) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/launch/upcoming/", {
@@ -36,7 +36,7 @@ class LaunchLibraryAPI extends APIClient {
 
     var res = await fetchJSON(uri);
 
-    return res.bubble(UpcomingResponse.fromJson(res.data));
+    return res.bubble(UpcomingLaunchesResponse.fromJson(res.data));
   }
 
   Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents([String? next]) async {
