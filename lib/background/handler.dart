@@ -11,6 +11,12 @@ import 'package:workmanager/workmanager.dart';
 
 // This function will be called by Android when a task should be run
 void backgroundTaskCallback() {
+  // Overwrite debug print logic
+  final oldDebugPrint = debugPrint;
+  debugPrint = (String? message, {int? wrapWidth}) {
+    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+  };
+
   Workmanager().executeTask((task, inputData) async {
     var handler = BackgroundHandler.withNotifications(await NotificationHandler.create());
 
