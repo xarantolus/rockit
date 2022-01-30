@@ -8,6 +8,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/upcoming_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/event.dart';
 import 'package:rockit/widgets/launch.dart';
@@ -176,10 +177,10 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     void scrollToIndex(int idx, {bool animated = false}) {
       // Scroll the list view to the currently viewed launch. If the user now leaves this view
       // the list will have scrolled to the last viewed item, which is nice
-
-      // This is also the wrong calculation
-      final wheight = LaunchWidget.calculateHeight(context);
+      final wheight = LaunchEventWidget.calculateHeight(context);
       final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+      // Basically get the offset of the item that's at the given idx.
       final targetOffset = min(
         max(
           wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
@@ -266,8 +267,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       child: InfiniteGridView(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
-          // TODO: Use the correct widget to calculate height?
-          mainAxisExtent: LaunchWidget.calculateHeight(context),
+          mainAxisExtent: LaunchEventWidget.calculateHeight(context),
         ),
         hasNext: nextItemArg != null,
         nextData: _loadMore,
