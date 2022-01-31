@@ -166,40 +166,40 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       child: InkWell(
         onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
         onLongPress: (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(16),
-              child: Text(
-                title ?? AppLocalizations.of(context)!.unknown,
-                style: titleStyle,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            if (imageURL != null)
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                constraints: shrinkImage
-                    ? BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height / 5,
-                      )
-                    : null,
-                child: zoomableImage
-                    ? PinchZoomImage(
-                        image: Center(
-                          child: imageWidget,
-                        ),
-                      )
-                    : imageWidget,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  title ?? AppLocalizations.of(context)!.unknown,
+                  style: titleStyle,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Text(
+              if (imageURL != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  constraints: shrinkImage
+                      ? BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height / 5,
+                        )
+                      : null,
+                  child: zoomableImage
+                      ? PinchZoomImage(
+                          image: Center(
+                            child: imageWidget,
+                          ),
+                        )
+                      : imageWidget,
+                ),
+              Text(
                 description ?? AppLocalizations.of(context)!.unknown,
                 style: textStyle,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
