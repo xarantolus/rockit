@@ -385,15 +385,17 @@ class Orbit {
 class Rocket {
   int? id;
   Configuration? configuration;
-  List<dynamic>? launcherStage;
+  List<LauncherStage>? launcherStage;
   dynamic? spacecraftStage;
 
-  Rocket({id, configuration, launcherStage, spacecraftStage});
+  Rocket({id, configuration, required this.launcherStage, spacecraftStage});
 
   Rocket.fromJson(Map<String, dynamic> json) {
+    launcherStage = json["launcher_stage"] == null
+        ? []
+        : (json["launcher_stage"] as List).map((e) => LauncherStage.fromJson(e)).toList();
     id = json["id"];
     configuration = json["configuration"] == null ? null : Configuration.fromJson(json["configuration"]);
-    launcherStage = json["launcher_stage"] ?? [];
     spacecraftStage = json["spacecraft_stage"];
   }
 
@@ -401,7 +403,7 @@ class Rocket {
     final Map<String, dynamic> data = <String, dynamic>{};
     data["id"] = id;
     if (configuration != null) data["configuration"] = configuration?.toJson();
-    if (launcherStage != null) data["launcher_stage"] = launcherStage;
+    data["launcher_stage"] = launcherStage;
     data["spacecraft_stage"] = spacecraftStage;
     return data;
   }
@@ -860,6 +862,355 @@ class URLInfo {
       description: json["description"],
       featureImage: json["feature_image"],
       url: json["url"],
+    );
+  }
+}
+
+class LauncherStage {
+  LauncherStage({
+    required this.id,
+    required this.type,
+    required this.reused,
+    required this.launcherFlightNumber,
+    required this.launcher,
+    required this.landing,
+    required this.previousFlightDate,
+    required this.turnAroundTimeDays,
+    required this.previousFlight,
+  });
+
+  final int id;
+  final String? type;
+  final bool? reused;
+  final int? launcherFlightNumber;
+  final Launcher? launcher;
+  final Landing? landing;
+  final DateTime? previousFlightDate;
+  final int? turnAroundTimeDays;
+  final PreviousFlight? previousFlight;
+
+  LauncherStage copyWith({
+    int? id,
+    String? type,
+    bool? reused,
+    int? launcherFlightNumber,
+    Launcher? launcher,
+    Landing? landing,
+    DateTime? previousFlightDate,
+    int? turnAroundTimeDays,
+    PreviousFlight? previousFlight,
+  }) {
+    return LauncherStage(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      reused: reused ?? this.reused,
+      launcherFlightNumber: launcherFlightNumber ?? this.launcherFlightNumber,
+      launcher: launcher ?? this.launcher,
+      landing: landing ?? this.landing,
+      previousFlightDate: previousFlightDate ?? this.previousFlightDate,
+      turnAroundTimeDays: turnAroundTimeDays ?? this.turnAroundTimeDays,
+      previousFlight: previousFlight ?? this.previousFlight,
+    );
+  }
+
+  factory LauncherStage.fromJson(Map<String, dynamic> json) {
+    return LauncherStage(
+      id: json["id"],
+      type: json["type"],
+      reused: json["reused"],
+      launcherFlightNumber: json["launcher_flight_number"],
+      launcher: json["launcher"] == null ? null : Launcher.fromJson(json["launcher"]),
+      landing: json["landing"] == null ? null : Landing.fromJson(json["landing"]),
+      previousFlightDate: json["previous_flight_date"] == null ? null : DateTime.parse(json["previous_flight_date"]),
+      turnAroundTimeDays: json["turn_around_time_days"],
+      previousFlight: json["previous_flight"] == null ? null : PreviousFlight.fromJson(json["previous_flight"]),
+    );
+  }
+}
+
+class Landing {
+  Landing({
+    required this.id,
+    required this.attempt,
+    required this.success,
+    required this.description,
+    required this.location,
+    required this.type,
+  });
+
+  final int id;
+  final bool? attempt;
+  final dynamic success;
+  final String? description;
+  final LandingLocation? location;
+  final LandingType? type;
+
+  Landing copyWith({
+    int? id,
+    bool? attempt,
+    bool? success,
+    String? description,
+    LandingLocation? location,
+    LandingType? type,
+  }) {
+    return Landing(
+      id: id ?? this.id,
+      attempt: attempt ?? this.attempt,
+      success: success ?? this.success,
+      description: description ?? this.description,
+      location: location ?? this.location,
+      type: type ?? this.type,
+    );
+  }
+
+  factory Landing.fromJson(Map<String, dynamic> json) {
+    return Landing(
+      id: json["id"],
+      attempt: json["attempt"],
+      success: json["success"],
+      description: json["description"],
+      location: json["location"] == null ? null : LandingLocation.fromJson(json["location"]),
+      type: json["type"] == null ? null : LandingType.fromJson(json["type"]),
+    );
+  }
+}
+
+class LandingLocation {
+  LandingLocation({
+    required this.id,
+    required this.name,
+    required this.abbrev,
+    required this.description,
+    required this.location,
+    required this.successfulLandings,
+  });
+
+  final int id;
+  final String? name;
+  final String? abbrev;
+  final String? description;
+  final LocationLocation? location;
+  final int? successfulLandings;
+
+  LandingLocation copyWith({
+    int? id,
+    String? name,
+    String? abbrev,
+    String? description,
+    LocationLocation? location,
+    int? successfulLandings,
+  }) {
+    return LandingLocation(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      abbrev: abbrev ?? this.abbrev,
+      description: description ?? this.description,
+      location: location ?? this.location,
+      successfulLandings: successfulLandings ?? this.successfulLandings,
+    );
+  }
+
+  factory LandingLocation.fromJson(Map<String, dynamic> json) {
+    return LandingLocation(
+      id: json["id"],
+      name: json["name"],
+      abbrev: json["abbrev"],
+      description: json["description"],
+      location: json["location"] == null ? null : LocationLocation.fromJson(json["location"]),
+      successfulLandings: json["successful_landings"],
+    );
+  }
+}
+
+class LocationLocation {
+  LocationLocation({
+    required this.id,
+    required this.url,
+    required this.name,
+    required this.countryCode,
+    required this.mapImage,
+    required this.totalLaunchCount,
+    required this.totalLandingCount,
+  });
+
+  final int id;
+  final String? url;
+  final String? name;
+  final String? countryCode;
+  final String? mapImage;
+  final int? totalLaunchCount;
+  final int? totalLandingCount;
+
+  LocationLocation copyWith({
+    int? id,
+    String? url,
+    String? name,
+    String? countryCode,
+    String? mapImage,
+    int? totalLaunchCount,
+    int? totalLandingCount,
+  }) {
+    return LocationLocation(
+      id: id ?? this.id,
+      url: url ?? this.url,
+      name: name ?? this.name,
+      countryCode: countryCode ?? this.countryCode,
+      mapImage: mapImage ?? this.mapImage,
+      totalLaunchCount: totalLaunchCount ?? this.totalLaunchCount,
+      totalLandingCount: totalLandingCount ?? this.totalLandingCount,
+    );
+  }
+
+  factory LocationLocation.fromJson(Map<String, dynamic> json) {
+    return LocationLocation(
+      id: json["id"],
+      url: json["url"],
+      name: json["name"],
+      countryCode: json["country_code"],
+      mapImage: json["map_image"],
+      totalLaunchCount: json["total_launch_count"],
+      totalLandingCount: json["total_landing_count"],
+    );
+  }
+}
+
+class LandingType {
+  LandingType({
+    required this.id,
+    required this.name,
+    required this.abbrev,
+    required this.description,
+  });
+
+  final int id;
+  final String? name;
+  final String? abbrev;
+  final String? description;
+
+  LandingType copyWith({
+    int? id,
+    String? name,
+    String? abbrev,
+    String? description,
+  }) {
+    return LandingType(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      abbrev: abbrev ?? this.abbrev,
+      description: description ?? this.description,
+    );
+  }
+
+  factory LandingType.fromJson(Map<String, dynamic> json) {
+    return LandingType(
+      id: json["id"],
+      name: json["name"],
+      abbrev: json["abbrev"],
+      description: json["description"],
+    );
+  }
+}
+
+class Launcher {
+  Launcher({
+    required this.id,
+    required this.url,
+    required this.details,
+    required this.flightProven,
+    required this.serialNumber,
+    required this.status,
+    required this.imageUrl,
+    required this.successfulLandings,
+    required this.attemptedLandings,
+    required this.flights,
+    required this.lastLaunchDate,
+    required this.firstLaunchDate,
+  });
+
+  final int id;
+  final String? url;
+  final String? details;
+  final bool? flightProven;
+  final String? serialNumber;
+  final String? status;
+  final String? imageUrl;
+  final int? successfulLandings;
+  final int? attemptedLandings;
+  final int? flights;
+  final DateTime? lastLaunchDate;
+  final DateTime? firstLaunchDate;
+
+  Launcher copyWith({
+    int? id,
+    String? url,
+    String? details,
+    bool? flightProven,
+    String? serialNumber,
+    String? status,
+    String? imageUrl,
+    int? successfulLandings,
+    int? attemptedLandings,
+    int? flights,
+    DateTime? lastLaunchDate,
+    DateTime? firstLaunchDate,
+  }) {
+    return Launcher(
+      id: id ?? this.id,
+      url: url ?? this.url,
+      details: details ?? this.details,
+      flightProven: flightProven ?? this.flightProven,
+      serialNumber: serialNumber ?? this.serialNumber,
+      status: status ?? this.status,
+      imageUrl: imageUrl ?? this.imageUrl,
+      successfulLandings: successfulLandings ?? this.successfulLandings,
+      attemptedLandings: attemptedLandings ?? this.attemptedLandings,
+      flights: flights ?? this.flights,
+      lastLaunchDate: lastLaunchDate ?? this.lastLaunchDate,
+      firstLaunchDate: firstLaunchDate ?? this.firstLaunchDate,
+    );
+  }
+
+  factory Launcher.fromJson(Map<String, dynamic> json) {
+    return Launcher(
+      id: json["id"],
+      url: json["url"],
+      details: json["details"],
+      flightProven: json["flight_proven"],
+      serialNumber: json["serial_number"],
+      status: json["status"],
+      imageUrl: json["image_url"],
+      successfulLandings: json["successful_landings"],
+      attemptedLandings: json["attempted_landings"],
+      flights: json["flights"],
+      lastLaunchDate: json["last_launch_date"] == null ? null : DateTime.parse(json["last_launch_date"]),
+      firstLaunchDate: json["first_launch_date"] == null ? null : DateTime.parse(json["first_launch_date"]),
+    );
+  }
+}
+
+class PreviousFlight {
+  PreviousFlight({
+    required this.id,
+    required this.name,
+  });
+
+  final String id;
+  final String? name;
+
+  PreviousFlight copyWith({
+    String? id,
+    String? name,
+  }) {
+    return PreviousFlight(
+      id: id ?? this.id,
+      name: name ?? this.name,
+    );
+  }
+
+  factory PreviousFlight.fromJson(Map<String, dynamic> json) {
+    return PreviousFlight(
+      id: json["id"],
+      name: json["name"],
     );
   }
 }

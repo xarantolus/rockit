@@ -118,6 +118,23 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  List<Widget> _launcherStages(BuildContext context, List<LauncherStage> stages) {
+    return stages
+        .map((stage) {
+          if (stage.launcher == null) {
+            return null;
+          }
+          return _titleImageDescription(
+            context,
+            title: stage.launcher?.serialNumber,
+            description: stage.launcher?.details,
+            imageURL: stage.launcher?.imageUrl,
+          );
+        })
+        .whereType<Widget>()
+        .toList();
+  }
+
   Widget _rocketConfiguration(BuildContext context, Configuration cfg) {
     return _titleImageDescription(
       context,
@@ -275,29 +292,32 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _generalInfo(BuildContext context, Launch l) {
-    TableRow descriptionRow(String description, String? value) {
-      return TableRow(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(3),
-            child: Text(description, style: tableDescriptionStyle),
+  TableRow _descriptionRow(String description, String? value) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(3),
+          child: Text(description, style: tableDescriptionStyle),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(3),
+          child: Text(
+            value ?? AppLocalizations.of(context)!.unknown,
+            style: tableTextStyle,
           ),
-          Padding(
-            padding: const EdgeInsets.all(3),
-            child: Text(
-              value ?? AppLocalizations.of(context)!.unknown,
-              style: tableTextStyle,
-            ),
-          ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
+  }
 
+  Widget _generalInfo(BuildContext context, Launch l) {
     final lastUpdated = DateTime.tryParse(l.lastUpdated ?? "");
 
     final windowStart = DateTime.tryParse(l.windowStart ?? "");
     final windowEnd = DateTime.tryParse(l.windowEnd ?? "");
+
+    final landings = (widget.launch.rocket?.launcherStage ?? []);
+    final landing = landings.isNotEmpty ? landings[0].landing : null;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -319,31 +339,51 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               1: FlexColumnWidth(),
             },
             children: [
-              descriptionRow(
+              _descriptionRow(
                   AppLocalizations.of(context)!.status, l.status?.name ?? AppLocalizations.of(context)!.unknown),
-              descriptionRow(AppLocalizations.of(context)!.statusDescription,
+              _descriptionRow(AppLocalizations.of(context)!.statusDescription,
                   l.status?.description ?? AppLocalizations.of(context)!.unknown),
               if ((l.probability ?? -1) > 0)
-                descriptionRow(AppLocalizations.of(context)!.startProbability, "${l.probability!}%"),
+                _descriptionRow(AppLocalizations.of(context)!.startProbability, "${l.probability!}%"),
               if ((l.holdreason ?? "").isNotEmpty)
-                descriptionRow(AppLocalizations.of(context)!.holdReason, l.holdreason!),
+                _descriptionRow(AppLocalizations.of(context)!.holdReason, l.holdreason!),
               if ((l.failreason ?? "").isNotEmpty)
-                descriptionRow(AppLocalizations.of(context)!.failReason, l.failreason!),
+                _descriptionRow(AppLocalizations.of(context)!.failReason, l.failreason!),
               if (l.mission?.orbit != null)
-                descriptionRow(
+                _descriptionRow(
                   AppLocalizations.of(context)!.targetOrbit,
                   l.mission!.orbit!.name ?? AppLocalizations.of(context)!.unknown,
                 ),
               if (windowStart != null)
-                descriptionRow(
+                _descriptionRow(
                     AppLocalizations.of(context)!.windowStart, formatDateTimeFriendlyText(context, windowStart)),
               if (windowEnd != null)
-                descriptionRow(
+                _descriptionRow(
                     AppLocalizations.of(context)!.windowEnd,
                     formatDateTimeFriendlyText(context, windowEnd) +
                         (windowStart == windowEnd ? " (${AppLocalizations.of(context)!.likeStartTime})" : "")),
+              if (landing != null) ...[
+                if (landing.type != null) ...[
+                  if (landing.type!.name != null && landing.type!.abbrev != null)
+                    _descriptionRow(
+                      AppLocalizations.of(context)!.landingType,
+                      (landing.type!.name! + " (" + landing.type!.abbrev! + ")"),
+                    )
+                  else
+                    _descriptionRow(
+                      AppLocalizations.of(context)!.landingType,
+                      landing.type!.name ?? landing.type!.abbrev ?? AppLocalizations.of(context)!.unknown,
+                    ),
+                ],
+                if (landing.location?.name != null)
+                  _descriptionRow(AppLocalizations.of(context)!.landingLocation, landing.location?.name),
+                if (landing.success == true)
+                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess, AppLocalizations.of(context)!.yes)
+                else if (landing.success == false)
+                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess, AppLocalizations.of(context)!.no),
+              ],
               if (lastUpdated != null)
-                descriptionRow(
+                _descriptionRow(
                     AppLocalizations.of(context)!.lastUpdate, formatDateTimeFriendlyText(context, lastUpdated)),
             ],
           ),
@@ -462,6 +502,12 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
               _rocketConfiguration(context, widget.launch.rocket!.configuration!),
+            ],
+
+            // In case the rocket has a first stage that lands
+            if ((widget.launch.rocket?.launcherStage ?? []).isNotEmpty) ...[
+              const Divider(),
+              ..._launcherStages(context, widget.launch.rocket?.launcherStage ?? []),
             ],
 
             // And a bunch of info about the launch provider

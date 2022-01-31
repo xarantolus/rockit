@@ -72,6 +72,11 @@
   "failReason": "Fail reason",
   "targetOrbit": "Target orbit",
   "startProbability": "Launch probability",
+  "landingType": "Landing type",
+  "landingLocation": "Landing location",
+  "landingSuccess": "Landing success",
+  "yes": "Yes",
+  "no": "No",
 
   "likeStartTime" : "like start time",
 
@@ -80,7 +85,6 @@
   "notificationDescription": "Three notifications will be shown one hour, 15 minutes and five minutes before launch. You will also receive notifications for updates.",
 
   "netUnknown": "NET Unknown",
-
   "loadingLaunchFail": "Failed to load. Tap to try again.",
   "loadingLaunchIdle": "Waiting...",
   "loadingLaunchLoading": "Loading more launches...",
