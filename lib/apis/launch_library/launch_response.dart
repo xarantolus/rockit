@@ -386,7 +386,7 @@ class Rocket {
   int? id;
   Configuration? configuration;
   List<LauncherStage>? launcherStage;
-  dynamic? spacecraftStage;
+  SpaceCraft? spacecraftStage;
 
   Rocket({id, configuration, required this.launcherStage, spacecraftStage});
 
@@ -396,7 +396,9 @@ class Rocket {
         : (json["launcher_stage"] as List).map((e) => LauncherStage.fromJson(e)).toList();
     id = json["id"];
     configuration = json["configuration"] == null ? null : Configuration.fromJson(json["configuration"]);
-    spacecraftStage = json["spacecraft_stage"];
+    spacecraftStage = json["spacecraft_stage"]?["spacecraft"] == null
+        ? null
+        : SpaceCraft.fromJson(json["spacecraft_stage"]?["spacecraft"]);
   }
 
   Map<String, dynamic> toJson() {
@@ -404,7 +406,6 @@ class Rocket {
     data["id"] = id;
     if (configuration != null) data["configuration"] = configuration?.toJson();
     data["launcher_stage"] = launcherStage;
-    data["spacecraft_stage"] = spacecraftStage;
     return data;
   }
 }
@@ -1212,5 +1213,214 @@ class PreviousFlight {
       id: json["id"],
       name: json["name"],
     );
+  }
+}
+
+class SpaceCraft {
+  int? id;
+  String? url;
+  String? name;
+  String? serialNumber;
+  Status? status;
+  String? description;
+  SpacecraftConfig? spacecraftConfig;
+
+  SpaceCraft({this.id, this.url, this.name, this.serialNumber, this.status, this.description, this.spacecraftConfig});
+
+  SpaceCraft.fromJson(Map<String, dynamic> json) {
+    if (json["id"] is int) {
+      id = json["id"];
+    }
+    if (json["url"] is String) {
+      url = json["url"];
+    }
+    if (json["name"] is String) {
+      name = json["name"];
+    }
+    if (json["serial_number"] is String) {
+      serialNumber = json["serial_number"];
+    }
+    if (json["status"] is Map) {
+      status = json["status"] == null ? null : Status.fromJson(json["status"]);
+    }
+    if (json["description"] is String) {
+      description = json["description"];
+    }
+    if (json["spacecraft_config"] is Map) {
+      spacecraftConfig =
+          json["spacecraft_config"] == null ? null : SpacecraftConfig.fromJson(json["spacecraft_config"]);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data["id"] = id;
+    data["url"] = url;
+    data["name"] = name;
+    data["serial_number"] = serialNumber;
+    if (status != null) {
+      data["status"] = status?.toJson();
+    }
+    data["description"] = description;
+    if (spacecraftConfig != null) {
+      data["spacecraft_config"] = spacecraftConfig?.toJson();
+    }
+    return data;
+  }
+}
+
+class SpacecraftConfig {
+  int? id;
+  String? url;
+  String? name;
+  SpacecraftType? type;
+  Agency? agency;
+  bool? inUse;
+  String? capability;
+  String? history;
+  String? details;
+  dynamic? maidenFlight;
+  int? height;
+  int? diameter;
+  bool? humanRated;
+  int? crewCapacity;
+  int? payloadCapacity;
+  String? flightLife;
+  String? imageUrl;
+  dynamic? nationUrl;
+  String? wikiLink;
+  String? infoLink;
+
+  SpacecraftConfig(
+      {this.id,
+      this.url,
+      this.name,
+      this.type,
+      this.agency,
+      this.inUse,
+      this.capability,
+      this.history,
+      this.details,
+      this.maidenFlight,
+      this.height,
+      this.diameter,
+      this.humanRated,
+      this.crewCapacity,
+      this.payloadCapacity,
+      this.flightLife,
+      this.imageUrl,
+      this.nationUrl,
+      this.wikiLink,
+      this.infoLink});
+
+  SpacecraftConfig.fromJson(Map<String, dynamic> json) {
+    if (json["id"] is int) {
+      id = json["id"];
+    }
+    if (json["url"] is String) {
+      url = json["url"];
+    }
+    if (json["name"] is String) {
+      name = json["name"];
+    }
+    if (json["type"] is Map) {
+      type = json["type"] == null ? null : SpacecraftType.fromJson(json["type"]);
+    }
+    if (json["agency"] is Map) {
+      agency = json["agency"] == null ? null : Agency.fromJson(json["agency"]);
+    }
+    if (json["in_use"] is bool) {
+      inUse = json["in_use"];
+    }
+    if (json["capability"] is String) {
+      capability = json["capability"];
+    }
+    if (json["history"] is String) {
+      history = json["history"];
+    }
+    if (json["details"] is String) {
+      details = json["details"];
+    }
+    maidenFlight = json["maiden_flight"];
+    if (json["height"] is int) {
+      height = json["height"];
+    }
+    if (json["diameter"] is int) {
+      diameter = json["diameter"];
+    }
+    if (json["human_rated"] is bool) {
+      humanRated = json["human_rated"];
+    }
+    if (json["crew_capacity"] is int) {
+      crewCapacity = json["crew_capacity"];
+    }
+    if (json["payload_capacity"] is int) {
+      payloadCapacity = json["payload_capacity"];
+    }
+    if (json["flight_life"] is String) {
+      flightLife = json["flight_life"];
+    }
+    if (json["image_url"] is String) {
+      imageUrl = json["image_url"];
+    }
+    nationUrl = json["nation_url"];
+    if (json["wiki_link"] is String) {
+      wikiLink = json["wiki_link"];
+    }
+    if (json["info_link"] is String) {
+      infoLink = json["info_link"];
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data["id"] = id;
+    data["url"] = url;
+    data["name"] = name;
+    if (type != null) {
+      data["type"] = type?.toJson();
+    }
+    if (agency != null) {
+      data["agency"] = agency?.toJson();
+    }
+    data["in_use"] = inUse;
+    data["capability"] = capability;
+    data["history"] = history;
+    data["details"] = details;
+    data["maiden_flight"] = maidenFlight;
+    data["height"] = height;
+    data["diameter"] = diameter;
+    data["human_rated"] = humanRated;
+    data["crew_capacity"] = crewCapacity;
+    data["payload_capacity"] = payloadCapacity;
+    data["flight_life"] = flightLife;
+    data["image_url"] = imageUrl;
+    data["nation_url"] = nationUrl;
+    data["wiki_link"] = wikiLink;
+    data["info_link"] = infoLink;
+    return data;
+  }
+}
+
+class SpacecraftType {
+  int? id;
+  String? name;
+
+  SpacecraftType({this.id, this.name});
+
+  SpacecraftType.fromJson(Map<String, dynamic> json) {
+    if (json["id"] is int) {
+      id = json["id"];
+    }
+    if (json["name"] is String) {
+      name = json["name"];
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data["id"] = id;
+    data["name"] = name;
+    return data;
   }
 }

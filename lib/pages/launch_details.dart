@@ -118,21 +118,29 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  Widget? _stage(BuildContext context, LauncherStage stage) {
+    if (stage.launcher == null) {
+      return null;
+    }
+    return _titleImageDescription(
+      context,
+      title: stage.launcher?.serialNumber,
+      description: stage.launcher?.details,
+      imageURL: stage.launcher?.imageUrl,
+    );
+  }
+
+  Widget _spacecraftStage(BuildContext context, SpaceCraft spaceCraft) {
+    return _titleImageDescription(
+      context,
+      title: spaceCraft.serialNumber,
+      description: spaceCraft.description,
+      imageURL: spaceCraft.spacecraftConfig?.imageUrl,
+    );
+  }
+
   List<Widget> _launcherStages(BuildContext context, List<LauncherStage> stages) {
-    return stages
-        .map((stage) {
-          if (stage.launcher == null) {
-            return null;
-          }
-          return _titleImageDescription(
-            context,
-            title: stage.launcher?.serialNumber,
-            description: stage.launcher?.details,
-            imageURL: stage.launcher?.imageUrl,
-          );
-        })
-        .whereType<Widget>()
-        .toList();
+    return stages.map((s) => _stage(context, s)).whereType<Widget>().toList();
   }
 
   Widget _rocketConfiguration(BuildContext context, Configuration cfg) {
@@ -504,7 +512,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               _rocketConfiguration(context, widget.launch.rocket!.configuration!),
             ],
 
-            // In case the rocket has a first stage that lands
+            // Info for the upper stage (e.g. Starship number)
+            if ((widget.launch.rocket?.spacecraftStage) != null) ...[
+              const Divider(),
+              _spacecraftStage(context, widget.launch.rocket!.spacecraftStage!),
+            ],
+
+            // Info for the first stage (e.g. Starship/Falcon booster)
             if ((widget.launch.rocket?.launcherStage ?? []).isNotEmpty) ...[
               const Divider(),
               ..._launcherStages(context, widget.launch.rocket?.launcherStage ?? []),
