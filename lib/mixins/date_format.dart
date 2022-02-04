@@ -103,8 +103,8 @@ mixin DateFormatter {
     }
 
     // If something is within the next week, we only display the day name and time
-    var diff = d.difference(now);
-    if (!diff.isNegative && diff.inDays < 7) {
+    var diffInDays = _daysBetween(now, d);
+    if (diffInDays > 0 && diffInDays < 7) {
       final format24h = MediaQuery.of(context).alwaysUse24HourFormat;
 
       return FriendlyDateResult.yes(
@@ -119,5 +119,12 @@ mixin DateFormatter {
     }
 
     return FriendlyDateResult.no(f(context, d));
+  }
+
+  // https://stackoverflow.com/a/67679455
+  int _daysBetween(DateTime from, DateTime to) {
+    from = DateTime(from.year, from.month, from.day);
+    to = DateTime(to.year, to.month, to.day);
+    return (to.difference(from).inHours / 24).round();
   }
 }
