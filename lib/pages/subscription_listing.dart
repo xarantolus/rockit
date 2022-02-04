@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
-import 'package:rockit/apis/launch_library/events_response.dart';
-import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/sort.dart';
 
 class SubscriptionListingPage extends StatefulWidget {
   const SubscriptionListingPage({Key? key}) : super(key: key);
@@ -49,23 +48,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
     }
 
     // Now sort the list by the expected date
-
-    DateTime? getDate(dynamic d) {
-      if (d is Launch) {
-        return DateTime.tryParse(d.net ?? d.windowStart ?? "")?.toLocal();
-      }
-
-      return (d as Event).date;
-    }
-
-    list.sort((a, b) {
-      final ad = getDate(a);
-      final bd = getDate(b);
-      if (ad == null || bd == null) {
-        return 0;
-      }
-      return ad.compareTo(bd);
-    });
+    list = sortLaunchesAndEvents(list);
 
     if (hadErrors) {
       await showDialog(

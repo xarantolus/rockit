@@ -141,5 +141,12 @@
 
   "downloadApp": "Download app",
   "downloadAppDescription": "The Android App helps you stay informed even better.",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+
+  "showResults": "Show results",
+  "search": "Search launches and events",
+  "clearSearch": "Clear",
+  "close":"Close",
+  "emptyResults": "No results for this query",
+  "unknownError": "Unknown error"
 }

@@ -23,7 +23,10 @@ class LaunchLibraryAPI extends APIClient {
     return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
   }
 
-  Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches([String? next]) async {
+  Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches({
+    String? next,
+    bool preferCache = false,
+  }) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/launch/upcoming/", {
@@ -34,18 +37,21 @@ class LaunchLibraryAPI extends APIClient {
             "related": "false",
           });
 
-    var res = await fetchJSON(uri);
+    var res = await fetchJSON(uri, preferCache);
 
     return res.bubble(UpcomingLaunchesResponse.fromJson(res.data));
   }
 
-  Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents([String? next]) async {
+  Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents({
+    String? next,
+    bool preferCache = false,
+  }) async {
     var uri = next != null
         ? Uri.parse(next)
         : _endpoint("/event/upcoming/", {
             "limit": "50",
           });
-    var res = await fetchJSON(uri);
+    var res = await fetchJSON(uri, preferCache);
 
     return res.bubble(UpcomingEventsResponse.fromJson(res.data));
   }

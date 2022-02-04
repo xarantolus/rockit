@@ -20,7 +20,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
     String? next,
   ]) async {
     try {
-      var res = await api.upcomingLaunches(next);
+      var res = await api.upcomingLaunches(next: next);
 
       res.maybeShowSnack(context);
 

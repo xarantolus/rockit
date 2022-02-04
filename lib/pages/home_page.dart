@@ -15,6 +15,7 @@ import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
+import 'package:rockit/widgets/addons/search_delegate.dart';
 
 class RockItHomePage extends StatefulWidget {
   const RockItHomePage(this.appPayload, {Key? key, required this.title}) : super(key: key);
@@ -104,6 +105,51 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     launchURL(context, "https://github.com/xarantolus/rockit/releases/latest");
   }
 
+  Future<void> _showSearch() async {
+    // TODO: Show a loading animation while loading and also improve the fetching logic
+    List<dynamic> items = [];
+
+    final api = LaunchLibraryAPI();
+
+    int numRequests = 0;
+
+    String? launchNext;
+    do {
+      try {
+        final resp = await api.upcomingLaunches(next: launchNext, preferCache: true);
+        items.addAll(resp.data.results ?? []);
+        launchNext = resp.data.next;
+      } catch (e) {
+        debugPrint("Error while loading launches for search: $e");
+      }
+      if (++numRequests > 10) {
+        debugPrint("Used too many requests while loading launches");
+        break;
+      }
+    } while (launchNext != null);
+
+    String? eventNext;
+    do {
+      try {
+        final resp = await api.upcomingEvents(next: eventNext, preferCache: true);
+        items.addAll(resp.data.results ?? []);
+        eventNext = resp.data.next;
+      } catch (e) {
+        debugPrint("Error while loading events for search: $e");
+      }
+      if (++numRequests > 10) {
+        debugPrint("Used too many requests while loading events");
+        break;
+      }
+    } while (eventNext != null);
+
+    await showSearch(
+      context: context,
+      delegate: CustomSearchDelegate(context, items),
+      query: '',
+    );
+  }
+
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
     return CustomAppBar.create(
       context,
@@ -119,6 +165,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
               await _openAppDownloadLink();
             },
           ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: AppLocalizations.of(context)!.search,
+          onPressed: _showSearch,
+        ),
         if (!kIsWeb)
           IconButton(
             icon: const Icon(Icons.notifications),

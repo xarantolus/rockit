@@ -28,6 +28,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.initialNextItemArg,
     required this.emptyText,
     this.refreshOnLeave = false,
+    this.controller,
     Key? key,
   })  : assert(initialItems == null || nextFunc == null),
         assert(initialItems != null || nextFunc != null),
@@ -42,6 +43,8 @@ class LaunchEventListing<I, N> extends StatefulWidget {
   final String emptyText;
 
   final bool refreshOnLeave;
+
+  final ScrollController? controller;
 
   Future<NextFuncResult<I, N>> loadItems(BuildContext context, N? nextItemArg, List<I> current) async {
     if (initialItems != null) {
@@ -92,6 +95,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
                     widget.nextFunc,
                     widget.refreshOnLeave,
                     widget.emptyText,
+                    controller: widget.controller,
                   );
                 }
               }
@@ -103,12 +107,15 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
 }
 
 class ItemList<I, N> extends StatefulWidget {
-  ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, {Key? key}) : super(key: key);
+  ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, {this.controller, Key? key})
+      : super(key: key);
 
   NextFuncResult<I, N> initial;
 
   final bool refreshOnLeave;
   final String emptyText;
+
+  final ScrollController? controller;
 
   final Future<NextFuncResult<I, N>> Function(BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
 
@@ -122,7 +129,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
   bool _currentlyLoading = false;
 
-  final ScrollController listController = ScrollController();
+  late ScrollController listController = widget.controller ?? ScrollController();
 
   Future<bool> _updateItems([bool? refresh]) async {
     if (_currentlyLoading) {
@@ -175,30 +182,33 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
   void _openItemDetails(BuildContext context, int index) async {
     void scrollToIndex(int idx, {bool animated = false}) {
-      // Scroll the list view to the currently viewed launch. If the user now leaves this view
-      // the list will have scrolled to the last viewed item, which is nice
-      final wheight = LaunchEventWidget.calculateHeight(context);
-      final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+      // The try is there because MediaQuery is not always available
+      try {
+        // Scroll the list view to the currently viewed launch. If the user now leaves this view
+        // the list will have scrolled to the last viewed item, which is nice
+        final wheight = LaunchEventWidget.calculateHeight(context);
+        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
-      // Basically get the offset of the item that's at the given idx.
-      final targetOffset = min(
-        max(
-          wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
-          0.0,
-        ),
-        // Do not scroll further than the list height
-        listController.position.maxScrollExtent,
-      );
-
-      if (animated) {
-        listController.animateTo(
-          targetOffset,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeIn,
+        // Basically get the offset of the item that's at the given idx.
+        final targetOffset = min(
+          max(
+            wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+            0.0,
+          ),
+          // Do not scroll further than the list height
+          listController.position.maxScrollExtent,
         );
-      } else {
-        listController.jumpTo(targetOffset);
-      }
+
+        if (animated) {
+          listController.animateTo(
+            targetOffset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
+          );
+        } else {
+          listController.jumpTo(targetOffset);
+        }
+      } catch (_) {}
     }
 
     scrollToIndex(index, animated: true);
@@ -232,6 +242,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
             controller: pc,
             onPageChanged: (idx) async {
               // Always adjust the current scroll position of the list
+
               scrollToIndex(idx);
 
               // If we are close to the end of currently loaded events, we load the next ones
@@ -260,43 +271,49 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       );
     }
 
+    final grid = InfiniteGridView(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
+        mainAxisExtent: LaunchEventWidget.calculateHeight(context),
+      ),
+      hasNext: nextItemArg != null,
+      nextData: _loadMore,
+      loadingWidget: const PlanetLoadingAnimation(),
+      physics: const BouncingScrollPhysics(),
+      controller: listController,
+      itemCount: items.isEmpty ? 1 : items.length,
+      // We pre-load up to 5 screens of info, that way images load already
+      cacheExtent: MediaQuery.of(context).size.height * 5,
+      itemBuilder: (context, index) {
+        if (items.isEmpty) {
+          return Center(
+            child: Text(widget.emptyText),
+          );
+        }
+        final Widget childWidget;
+        if (items[index] is Launch) {
+          childWidget = LaunchWidget(items[index] as Launch);
+        } else if (items[index] is Event) {
+          childWidget = EventWidget(items[index] as Event);
+        } else {
+          throw Exception("Invalid data type ${items[index].runtimeType} in launch/event listing");
+        }
+        return GestureDetector(
+          child: childWidget,
+          onTap: () => _openItemDetails(context, index),
+        );
+      },
+    );
+
+    if (widget.nextFunc == null) {
+      return grid;
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         await _updateItems(true);
       },
-      child: InfiniteGridView(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
-          mainAxisExtent: LaunchEventWidget.calculateHeight(context),
-        ),
-        hasNext: nextItemArg != null,
-        nextData: _loadMore,
-        loadingWidget: const PlanetLoadingAnimation(),
-        physics: const BouncingScrollPhysics(),
-        controller: listController,
-        itemCount: items.isEmpty ? 1 : items.length,
-        // We pre-load up to 5 screens of info, that way images load already
-        cacheExtent: MediaQuery.of(context).size.height * 5,
-        itemBuilder: (context, index) {
-          if (items.isEmpty) {
-            return Center(
-              child: Text(widget.emptyText),
-            );
-          }
-          final Widget childWidget;
-          if (items[index] is Launch) {
-            childWidget = LaunchWidget(items[index] as Launch);
-          } else if (items[index] is Event) {
-            childWidget = EventWidget(items[index] as Event);
-          } else {
-            throw Exception("Invalid data type ${items[index].runtimeType} in launch/event listing");
-          }
-          return GestureDetector(
-            child: childWidget,
-            onTap: () => _openItemDetails(context, index),
-          );
-        },
-      ),
+      child: grid,
     );
   }
 }

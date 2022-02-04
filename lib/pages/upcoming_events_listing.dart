@@ -20,7 +20,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
     String? next,
   ]) async {
     try {
-      var res = await api.upcomingEvents(next);
+      var res = await api.upcomingEvents(next: next);
 
       res.maybeShowSnack(context);
 
