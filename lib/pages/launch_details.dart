@@ -131,9 +131,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _spacecraftStage(BuildContext context, SpaceCraft spaceCraft) {
+    final name = spaceCraft.spacecraftConfig?.name;
     return _titleImageDescription(
       context,
-      title: spaceCraft.serialNumber,
+      title: name == null
+          ? spaceCraft.serialNumber
+          : spaceCraft.serialNumber == null
+              ? name
+              : name + " (" + spaceCraft.serialNumber! + ")",
       description: spaceCraft.description,
       imageURL: spaceCraft.spacecraftConfig?.imageUrl,
     );
