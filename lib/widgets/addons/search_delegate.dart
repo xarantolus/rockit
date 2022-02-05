@@ -58,17 +58,20 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    var barColor = Theme.of(context).colorScheme.primary;
+    var colorScheme = Theme.of(context).colorScheme;
 
     return Theme.of(context).copyWith(
-      textSelectionTheme: const TextSelectionThemeData(
+      textSelectionTheme: TextSelectionThemeData(
         cursorColor: Colors.white,
+        selectionColor: Colors.white.withOpacity(.5),
+        selectionHandleColor: colorScheme.secondary,
       ),
+      hintColor: Colors.white,
       appBarTheme: AppBarTheme(
-        backgroundColor: barColor,
+        backgroundColor: colorScheme.primary,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: barColor,
-          systemNavigationBarColor: barColor,
+          statusBarColor: colorScheme.primary,
+          systemNavigationBarColor: colorScheme.primary,
         ),
       ),
     );
@@ -223,7 +226,10 @@ class CustomSearchDelegate extends SearchDelegate {
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         return ListTile(
-          title: Text(suggestions[index]),
+          title: Text(
+            suggestions[index],
+            style: Theme.of(context).textTheme.subtitle1,
+          ),
           onTap: () {
             query = suggestions[index];
             showResults(context);

@@ -44,10 +44,10 @@ class RockItApp extends StatelessWidget {
   final ValueNotifier<String> appPayload;
 
   static const _themeColor = Color.fromRGBO(0x3A, 0x88, 0xFF, 1.0);
-  static const _secondaryColor = Color.fromRGBO(0x70, 0xA2, 0xFF, 1.0);
+  static const _secondaryColor = Color.fromARGB(255, 70, 135, 255);
 
   static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
-  static const _secondaryColorDark = Color.fromRGBO(0x54, 0x79, 0xBF, 1.0);
+  static const _secondaryColorDark = Color.fromARGB(255, 58, 111, 207);
 
   static const appName = 'Rock It!';
 
@@ -63,6 +63,7 @@ class RockItApp extends StatelessWidget {
           primary: _themeColor,
           secondary: _secondaryColor,
           surface: Colors.grey[200],
+          onSecondary: Colors.white,
         ),
         textTheme: Typography.blackHelsinki.copyWith(
           bodyText2: TextStyle(
@@ -77,6 +78,7 @@ class RockItApp extends StatelessWidget {
           primary: _themeColorDark,
           secondary: _secondaryColorDark,
           surface: Colors.grey[900],
+          onSecondary: Colors.white,
         ),
         textTheme: Typography.whiteHelsinki.copyWith(
           bodyText2: TextStyle(

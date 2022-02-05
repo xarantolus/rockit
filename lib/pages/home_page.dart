@@ -213,7 +213,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           builder: (context, state) {
             return FloatingActionButton(
               onPressed: () => _showSearch(state),
-              child: isLoadingSearch ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.search),
+              child: isLoadingSearch
+                  ? CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    )
+                  : const Icon(Icons.search),
               tooltip: AppLocalizations.of(context)!.search,
             );
           },
