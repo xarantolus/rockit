@@ -117,6 +117,7 @@ class CustomSearchDelegate extends SearchDelegate {
       });
   }
 
+  final _splitBySpaceRegex = RegExp('\\s+');
   List<dynamic> _searchEntries() {
     final searchTerm = query.toLowerCase().trim();
     if (searchTerm.isEmpty) {
@@ -129,11 +130,15 @@ class CustomSearchDelegate extends SearchDelegate {
       lastTerm = searchTerm;
     }
 
-    return launchesAndEvents.where((item) {
-      final list = _keyTexts(item);
+    final searchSplit = searchTerm.split(_splitBySpaceRegex);
 
-      // TODO: Improve this (e.g. split searchterms and make sure each individual term is somewhere)
-      return list.any((txt) => txt.toLowerCase().contains(searchTerm));
+    return launchesAndEvents.where((item) {
+      final list = _keyTexts(item).map((e) => e.toLowerCase());
+
+      // Every search term should be mentioned in any of these texts
+      return searchSplit.every((term) {
+        return list.any((tl) => tl.contains(term));
+      });
     }).toList();
   }
 
