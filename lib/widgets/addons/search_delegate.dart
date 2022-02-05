@@ -78,8 +78,8 @@ class CustomSearchDelegate extends SearchDelegate {
         item.name,
         item.launchServiceProvider?.name,
         item.launchServiceProvider?.abbrev,
-        item.launchServiceProvider?.description,
         item.rocket?.configuration?.name,
+        item.rocket?.configuration?.description,
         item.rocket?.configuration?.fullName,
         item.rocket?.configuration?.variant,
         ...(item.rocket?.launcherStage
@@ -88,7 +88,14 @@ class CustomSearchDelegate extends SearchDelegate {
             []),
         item.rocket?.spacecraftStage?.name,
         item.rocket?.spacecraftStage?.serialNumber,
+        item.rocket?.spacecraftStage?.description,
         item.mission?.description,
+        item.pad?.name,
+        item.pad?.location?.name,
+        ...(item.vidUrls
+                ?.map((e) => [e.title, e.description])
+                .fold(List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
+            []),
       ]);
     } else if (item is Event) {
       texts.addAll([
