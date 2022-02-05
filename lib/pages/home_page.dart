@@ -105,9 +105,18 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     launchURL(context, "https://github.com/xarantolus/rockit/releases/latest");
   }
 
-  Future<void> _showSearch() async {
-    // TODO: Show a loading animation while loading and also improve the fetching logic
+  bool isLoadingSearch = false;
+
+  Future<void> _showSearch(void Function(void Function()) setState) async {
     List<dynamic> items = [];
+
+    if (isLoadingSearch) {
+      return;
+    }
+
+    setState(() {
+      isLoadingSearch = true;
+    });
 
     final api = LaunchLibraryAPI();
 
@@ -148,6 +157,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       delegate: CustomSearchDelegate(context, items),
       query: '',
     );
+
+    setState(() {
+      isLoadingSearch = false;
+    });
   }
 
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
@@ -165,11 +178,6 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
               await _openAppDownloadLink();
             },
           ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: AppLocalizations.of(context)!.search,
-          onPressed: _showSearch,
-        ),
         if (!kIsWeb)
           IconButton(
             icon: const Icon(Icons.notifications),
@@ -236,6 +244,15 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+        floatingActionButton: StatefulBuilder(
+          builder: (context, state) {
+            return FloatingActionButton(
+              onPressed: () => _showSearch(state),
+              child: isLoadingSearch ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.search),
+              tooltip: AppLocalizations.of(context)!.search,
+            );
+          },
+        ),
         appBar: _buildAppBar(context, appIcon),
         bottomNavigationBar: _buildNavigationBar(context, appIcon),
         body: TabBarView(
