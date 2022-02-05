@@ -108,53 +108,18 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   bool isLoadingSearch = false;
 
   Future<void> _showSearch(void Function(void Function()) setState) async {
-    List<dynamic> items = [];
-
     if (isLoadingSearch) {
       return;
     }
-
     setState(() {
       isLoadingSearch = true;
     });
 
-    final api = LaunchLibraryAPI();
-
-    int numRequests = 0;
-
-    String? launchNext;
-    do {
-      try {
-        final resp = await api.upcomingLaunches(next: launchNext, preferCache: true);
-        items.addAll(resp.data.results ?? []);
-        launchNext = resp.data.next;
-      } catch (e) {
-        debugPrint("Error while loading launches for search: $e");
-      }
-      if (++numRequests > 10) {
-        debugPrint("Used too many requests while loading launches");
-        break;
-      }
-    } while (launchNext != null);
-
-    String? eventNext;
-    do {
-      try {
-        final resp = await api.upcomingEvents(next: eventNext, preferCache: true);
-        items.addAll(resp.data.results ?? []);
-        eventNext = resp.data.next;
-      } catch (e) {
-        debugPrint("Error while loading events for search: $e");
-      }
-      if (++numRequests > 10) {
-        debugPrint("Used too many requests while loading events");
-        break;
-      }
-    } while (eventNext != null);
+    final delegate = await CustomSearchDelegate.searchLaunchesAndEvents(context);
 
     await showSearch(
       context: context,
-      delegate: CustomSearchDelegate(context, items),
+      delegate: delegate,
       query: '',
     );
 

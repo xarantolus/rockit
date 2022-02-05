@@ -1,17 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class CustomSearchDelegate extends SearchDelegate {
-  CustomSearchDelegate(BuildContext context, launchesAndEvents)
+  CustomSearchDelegate(BuildContext context, List<dynamic> launchesAndEvents)
       : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
         super(
           searchFieldLabel: AppLocalizations.of(context)!.search,
         );
+
+  static Future<CustomSearchDelegate> searchLaunchesAndEvents(BuildContext context) async {
+    List<dynamic> items = [];
+
+    final api = LaunchLibraryAPI();
+
+    int numRequests = 0;
+
+    String? launchNext;
+    do {
+      try {
+        final resp = await api.upcomingLaunches(next: launchNext, preferCache: true);
+        items.addAll(resp.data.results ?? []);
+        launchNext = resp.data.next;
+      } catch (e) {
+        debugPrint("Error while loading launches for search: $e");
+      }
+      if (++numRequests > 10) {
+        debugPrint("Used too many requests while loading launches");
+        break;
+      }
+    } while (launchNext != null);
+
+    String? eventNext;
+    do {
+      try {
+        final resp = await api.upcomingEvents(next: eventNext, preferCache: true);
+        items.addAll(resp.data.results ?? []);
+        eventNext = resp.data.next;
+      } catch (e) {
+        debugPrint("Error while loading events for search: $e");
+      }
+      if (++numRequests > 10) {
+        debugPrint("Used too many requests while loading events");
+        break;
+      }
+    } while (eventNext != null);
+
+    return CustomSearchDelegate(context, items);
+  }
 
   List<dynamic> launchesAndEvents;
 
