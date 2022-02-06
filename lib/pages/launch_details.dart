@@ -17,9 +17,11 @@ import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch_countdown.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
-  const LaunchDetailsPage(this.launch, {Key? key}) : super(key: key);
+  const LaunchDetailsPage(this.launch, {this.heroPrefix = "", Key? key}) : super(key: key);
 
   final Launch launch;
+
+  final String heroPrefix;
 
   @override
   _LaunchDetailsPageState createState() => _LaunchDetailsPageState();
@@ -53,7 +55,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ),
           child: ImageWidget(
             widget.launch.image,
-            heroTag: "launch-image",
+            heroTag: "${widget.heroPrefix}launch-image",
             id: widget.launch.id,
           ),
         ),

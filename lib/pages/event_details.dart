@@ -21,9 +21,11 @@ import 'package:rockit/widgets/launch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsPage extends StatefulWidget {
-  const EventDetailsPage(this.event, {Key? key}) : super(key: key);
+  const EventDetailsPage(this.event, {this.heroPrefix = "", Key? key}) : super(key: key);
 
   final Event event;
+
+  final String heroPrefix;
 
   @override
   _EventDetailsPageState createState() => _EventDetailsPageState();
@@ -84,8 +86,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           ),
           child: ImageWidget(
             widget.event.featureImage,
+            heroTag: "${widget.heroPrefix}event-image",
             id: "${widget.event.id}",
-            heroTag: "event",
           ),
         ),
       ),

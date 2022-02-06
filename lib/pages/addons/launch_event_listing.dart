@@ -29,6 +29,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     required this.emptyText,
     this.refreshOnLeave = false,
     this.controller,
+    this.heroPrefix = "",
     Key? key,
   })  : assert(initialItems == null || nextFunc == null),
         assert(initialItems != null || nextFunc != null),
@@ -39,6 +40,8 @@ class LaunchEventListing<I, N> extends StatefulWidget {
   final Future<NextFuncResult<I, N>> Function(BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
 
   final N? initialNextItemArg;
+
+  final String heroPrefix;
 
   final String emptyText;
 
@@ -95,6 +98,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
                     widget.nextFunc,
                     widget.refreshOnLeave,
                     widget.emptyText,
+                    widget.heroPrefix,
                     controller: widget.controller,
                   );
                 }
@@ -107,13 +111,16 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
 }
 
 class ItemList<I, N> extends StatefulWidget {
-  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, {this.controller, Key? key})
+  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, this.heroPrefix,
+      {this.controller, Key? key})
       : super(key: key);
 
   final NextFuncResult<I, N> initial;
 
   final bool refreshOnLeave;
   final String emptyText;
+
+  final String heroPrefix;
 
   final ScrollController? controller;
 
@@ -231,9 +238,9 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
                   return null;
                 }
                 if (items[idx] is Launch) {
-                  return LaunchDetailsPage(items[idx] as Launch);
+                  return LaunchDetailsPage(items[idx] as Launch, heroPrefix: widget.heroPrefix);
                 } else if (items[idx] is Event) {
-                  return EventDetailsPage(items[idx] as Event);
+                  return EventDetailsPage(items[idx] as Event, heroPrefix: widget.heroPrefix);
                 } else {
                   throw Exception("Invalid data type ${items[idx].runtimeType} in launch/event pageview");
                 }
@@ -292,9 +299,9 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
         }
         final Widget childWidget;
         if (items[index] is Launch) {
-          childWidget = LaunchWidget(items[index] as Launch);
+          childWidget = LaunchWidget(items[index] as Launch, heroPrefix: widget.heroPrefix);
         } else if (items[index] is Event) {
-          childWidget = EventWidget(items[index] as Event);
+          childWidget = EventWidget(items[index] as Event, heroPrefix: widget.heroPrefix);
         } else {
           throw Exception("Invalid data type ${items[index].runtimeType} in launch/event listing");
         }

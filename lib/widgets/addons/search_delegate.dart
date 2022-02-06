@@ -206,6 +206,7 @@ class CustomSearchDelegate extends SearchDelegate {
       emptyText: AppLocalizations.of(context)!.emptyResults,
       initialItems: items,
       controller: scroll,
+      heroPrefix: "search-",
     );
   }
 

@@ -4,9 +4,11 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 
 class LaunchWidget extends StatefulWidget {
-  const LaunchWidget(this.launch, {Key? key}) : super(key: key);
+  const LaunchWidget(this.launch, {Key? key, this.heroPrefix = ""}) : super(key: key);
 
   final Launch launch;
+  final String heroPrefix;
+
   @override
   _LaunchWidgetState createState() => _LaunchWidgetState();
 }
@@ -18,7 +20,7 @@ class _LaunchWidgetState extends State<LaunchWidget> {
       title: widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch,
       subtitle: widget.launch.launchServiceProvider?.name ?? AppLocalizations.of(context)!.unknown,
       heroId: "${widget.launch.id}",
-      heroTag: "launch-image",
+      heroTag: "${widget.heroPrefix}launch-image",
       imageURL: widget.launch.image,
       netDate: DateTime.tryParse(widget.launch.net ?? widget.launch.windowStart ?? ""),
     );
