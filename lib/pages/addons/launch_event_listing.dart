@@ -70,6 +70,17 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
   Widget build(BuildContext context) {
     super.build(context);
 
+    if (widget.initialItems != null) {
+      return ItemList(
+        NextFuncResult<I, N>(widget.initialItems!, null),
+        widget.nextFunc,
+        widget.refreshOnLeave,
+        widget.emptyText,
+        widget.heroPrefix,
+        controller: widget.controller,
+      );
+    }
+
     return Center(
       child: FutureBuilder<NextFuncResult<I, N>>(
         future: ftr,

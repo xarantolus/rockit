@@ -81,6 +81,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
       ),
       body: LaunchEventListing<dynamic, String>(
         refreshOnLeave: true,
+        heroPrefix: "subscription-",
         emptyText: AppLocalizations.of(context)!.noSubscriptions,
         nextFunc: (context, nextItemArg, current) async {
           var items = await loadLaunchesAndEvents();

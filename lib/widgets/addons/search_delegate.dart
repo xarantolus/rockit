@@ -202,7 +202,6 @@ class CustomSearchDelegate extends SearchDelegate {
     setScroll();
 
     return LaunchEventListing<dynamic, String>(
-      key: UniqueKey(),
       emptyText: AppLocalizations.of(context)!.emptyResults,
       initialItems: items,
       controller: scroll,
