@@ -36,14 +36,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     fontWeight: FontWeight.bold,
   );
 
-  static const tableDescriptionStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-  );
-  static const tableTextStyle = TextStyle(
-    fontSize: 16,
-  );
-
   static const textStyle = TextStyle(
     fontSize: 16,
   );

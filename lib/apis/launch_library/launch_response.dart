@@ -32,7 +32,7 @@ class Launch {
   String? url;
   String? slug;
   String? flightclubUrl;
-  dynamic? rSpacexApiId;
+  dynamic rSpacexApiId;
   String? name;
   Status? status;
   String? lastUpdated;
@@ -43,7 +43,7 @@ class Launch {
   int? probability;
   String? holdreason;
   String? failreason;
-  dynamic? hashtag;
+  dynamic hashtag;
   LaunchServiceProvider? launchServiceProvider;
   Rocket? rocket;
   Mission? mission;
@@ -52,7 +52,7 @@ class Launch {
   List<URLInfo>? vidUrls;
   bool? webcastLive;
   String? image;
-  dynamic? infographic;
+  dynamic infographic;
   List<Program>? program;
   int? orbitalLaunchAttemptCount;
   int? locationLaunchAttemptCount;
@@ -251,7 +251,7 @@ class Pad {
   String? url;
   int? agencyId;
   String? name;
-  dynamic? infoUrl;
+  dynamic infoUrl;
   String? wikiUrl;
   String? mapUrl;
   String? latitude;
@@ -333,7 +333,7 @@ class Mission {
   int? id;
   String? name;
   String? description;
-  dynamic? launchDesignator;
+  dynamic launchDesignator;
   String? type;
   Orbit? orbit;
 
@@ -429,10 +429,10 @@ class Configuration {
   String? launchCost;
   int? launchMass;
   int? leoCapacity;
-  dynamic? gtoCapacity;
+  dynamic gtoCapacity;
   int? toThrust;
-  dynamic? apogee;
-  dynamic? vehicleRange;
+  dynamic apogee;
+  dynamic vehicleRange;
   String? imageUrl;
   String? infoUrl;
   String? wikiUrl;
@@ -1279,7 +1279,7 @@ class SpacecraftConfig {
   String? capability;
   String? history;
   String? details;
-  dynamic? maidenFlight;
+  dynamic maidenFlight;
   int? height;
   int? diameter;
   bool? humanRated;
@@ -1287,7 +1287,7 @@ class SpacecraftConfig {
   int? payloadCapacity;
   String? flightLife;
   String? imageUrl;
-  dynamic? nationUrl;
+  dynamic nationUrl;
   String? wikiLink;
   String? infoLink;
 

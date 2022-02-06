@@ -107,10 +107,10 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
 }
 
 class ItemList<I, N> extends StatefulWidget {
-  ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, {this.controller, Key? key})
+  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, {this.controller, Key? key})
       : super(key: key);
 
-  NextFuncResult<I, N> initial;
+  final NextFuncResult<I, N> initial;
 
   final bool refreshOnLeave;
   final String emptyText;
