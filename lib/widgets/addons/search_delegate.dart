@@ -120,6 +120,8 @@ class CustomSearchDelegate extends SearchDelegate {
       texts.addAll([
         item.slug,
         item.name,
+        item.mission?.orbit?.name,
+        item.mission?.orbit?.abbrev,
         item.launchServiceProvider?.name,
         item.launchServiceProvider?.abbrev,
         item.rocket?.configuration?.name,
@@ -148,7 +150,7 @@ class CustomSearchDelegate extends SearchDelegate {
         item.description,
         item.location,
         ...(item.spacestations
-                ?.map((e) => [e.name, e.description])
+                ?.map((e) => [e.name, e.description, e.orbit])
                 .fold(List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
             []),
       ]);
