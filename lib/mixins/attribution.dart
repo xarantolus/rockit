@@ -31,6 +31,7 @@ mixin SourceAttribution {
 
     // Sites from https://en.wikipedia.org/wiki/List_of_government_space_agencies#Budgets
     "nasa.gov": (_, __) => "NASA",
+    "blogs.nasa.gov": (_, __) => "NASA",
     "cnsa.gov.cn": (_, __) => "CNSA",
     "esa.int": (_, __) => "ESA",
     "dlr.de": (_, __) => "DLR",
@@ -44,6 +45,7 @@ mixin SourceAttribution {
 
     // Private space companies, from https://en.wikipedia.org/wiki/List_of_private_spaceflight_companies
     "spacex.com": (_, __) => "SpaceX",
+    "rocketlabusa.com": (_, __) => "Rocket Lab",
     "blueorigin.com": (_, __) => "Blue Origin",
     "boeing.com": (_, __) => "Boeing",
     "astra.com": (_, __) => "Astra",
@@ -73,9 +75,9 @@ mixin SourceAttribution {
         }
       }
 
-      bottomLeftText = infoHost == null
-          ? AppLocalizations.of(context)!.clickSource
-          : "${AppLocalizations.of(context)!.source}: $infoText";
+      if (infoText != null) {
+        bottomLeftText = infoText;
+      }
     }
 
     return bottomLeftText;
