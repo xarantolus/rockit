@@ -17,6 +17,10 @@ mixin SourceAttribution {
     },
     "facebook.com": (_, __) => "Facebook",
 
+    "youtube.com": (_, __) => "YouTube",
+    "youtu.be": (_, __) => "YouTube",
+    "m.youtube.com": (_, __) => "YouTube",
+
     // News sites
     "spacenews.com": (_, __) => "SpaceNews",
     "spaceflightnow.com": (_, __) => "Spaceflight Now",
