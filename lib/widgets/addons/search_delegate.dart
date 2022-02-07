@@ -158,29 +158,11 @@ class CustomSearchDelegate extends SearchDelegate {
     return texts.whereType<String>().toList();
   }
 
-  String lastTerm = "";
-  double? lastOffset;
-  ScrollController? scroll;
-
-  void setScroll() {
-    scroll = ScrollController(
-      initialScrollOffset: lastOffset ?? 0,
-    )..addListener(() {
-        lastOffset = scroll?.offset ?? 0;
-      });
-  }
-
   final _splitBySpaceRegex = RegExp('\\s+');
   List<dynamic> _searchEntries() {
     final searchTerm = query.toLowerCase().trim();
     if (searchTerm.isEmpty) {
       return launchesAndEvents;
-    }
-
-    if (searchTerm != lastTerm) {
-      scroll = ScrollController();
-      lastOffset = 0;
-      lastTerm = searchTerm;
     }
 
     final searchSplit = searchTerm.split(_splitBySpaceRegex);
@@ -195,16 +177,23 @@ class CustomSearchDelegate extends SearchDelegate {
     }).toList();
   }
 
+  String lastTerm = "";
+
+  late ValueNotifier<double> scrollOffset = ValueNotifier(0);
+
   @override
   Widget buildResults(BuildContext context) {
-    final items = _searchEntries();
+    if (lastTerm != query) {
+      scrollOffset.value = 0;
+    }
 
-    setScroll();
+    final items = _searchEntries();
+    lastTerm = query;
 
     return LaunchEventListing<dynamic, String>(
       emptyText: AppLocalizations.of(context)!.emptyResults,
       initialItems: items,
-      controller: scroll,
+      scrollOffset: scrollOffset,
       heroPrefix: "search-",
     );
   }

@@ -26,8 +26,17 @@ class LaunchEventWidget extends StatefulWidget {
 
   final DateTime? netDate;
 
+  static double _getHeight(BuildContext context) {
+    try {
+      return MediaQuery.of(context).size.height;
+    } catch (_) {}
+
+    final w = WidgetsBinding.instance!.window;
+    return w.physicalSize.height / w.devicePixelRatio;
+  }
+
   static double calculateHeight(BuildContext context) {
-    return max(MediaQuery.of(context).size.height / 3, 250);
+    return max(_getHeight(context) / 3, 250);
   }
 
   @override

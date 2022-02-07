@@ -28,7 +28,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.initialNextItemArg,
     required this.emptyText,
     this.refreshOnLeave = false,
-    this.controller,
+    this.scrollOffset,
     this.heroPrefix = "",
     Key? key,
   })  : assert(initialItems == null || nextFunc == null),
@@ -47,7 +47,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
 
   final bool refreshOnLeave;
 
-  final ScrollController? controller;
+  final ValueNotifier<double>? scrollOffset;
 
   Future<NextFuncResult<I, N>> loadItems(BuildContext context, N? nextItemArg, List<I> current) async {
     if (initialItems != null) {
@@ -77,7 +77,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
         widget.refreshOnLeave,
         widget.emptyText,
         widget.heroPrefix,
-        controller: widget.controller,
+        scrollOffset: widget.scrollOffset,
       );
     }
 
@@ -110,7 +110,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
                     widget.refreshOnLeave,
                     widget.emptyText,
                     widget.heroPrefix,
-                    controller: widget.controller,
+                    scrollOffset: widget.scrollOffset,
                   );
                 }
               }
@@ -123,7 +123,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
 
 class ItemList<I, N> extends StatefulWidget {
   const ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, this.heroPrefix,
-      {this.controller, Key? key})
+      {this.scrollOffset, Key? key})
       : super(key: key);
 
   final NextFuncResult<I, N> initial;
@@ -133,7 +133,7 @@ class ItemList<I, N> extends StatefulWidget {
 
   final String heroPrefix;
 
-  final ScrollController? controller;
+  final ValueNotifier<double>? scrollOffset;
 
   final Future<NextFuncResult<I, N>> Function(BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
 
@@ -147,7 +147,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
   bool _currentlyLoading = false;
 
-  late ScrollController listController = widget.controller ?? ScrollController();
+  late ScrollController listController = ScrollController(initialScrollOffset: widget.scrollOffset?.value ?? 0);
 
   Future<bool> _updateItems([bool? refresh]) async {
     if (_currentlyLoading) {
@@ -205,7 +205,10 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
         // Scroll the list view to the currently viewed launch. If the user now leaves this view
         // the list will have scrolled to the last viewed item, which is nice
         final wheight = LaunchEventWidget.calculateHeight(context);
-        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+        bool isLandscape = false;
+        try {
+          isLandscape = MediaQuery.maybeOf(context)?.orientation == Orientation.landscape;
+        } catch (_) {}
 
         // Basically get the offset of the item that's at the given idx.
         final targetOffset = min(
@@ -213,20 +216,28 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
             wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
             0.0,
           ),
-          // Do not scroll further than the list height
-          listController.position.maxScrollExtent,
+          // Do not scroll further than the list height.
+          // The wheight * items.length is not a very accurate way of
+          // calculating it, but the scroll position is not alwaays available so we do it like that.
+          listController.hasClients ? listController.position.maxScrollExtent : (wheight * items.length),
         );
 
-        if (animated) {
-          listController.animateTo(
-            targetOffset,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeIn,
-          );
+        if (widget.scrollOffset != null) {
+          widget.scrollOffset!.value = targetOffset;
         } else {
-          listController.jumpTo(targetOffset);
+          if (animated) {
+            listController.animateTo(
+              targetOffset,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeIn,
+            );
+          } else {
+            listController.jumpTo(targetOffset);
+          }
         }
-      } catch (_) {}
+      } catch (e, trace) {
+        debugPrint("Error while scrolling to the current item: $e\n$trace");
+      }
     }
 
     scrollToIndex(index, animated: true);
