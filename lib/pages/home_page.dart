@@ -211,19 +211,21 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        floatingActionButton: StatefulBuilder(
-          builder: (context, state) {
-            return FloatingActionButton(
-              onPressed: () => _showSearch(state),
-              child: isLoadingSearch
-                  ? CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.onSecondary,
-                    )
-                  : const Icon(Icons.search),
-              tooltip: AppLocalizations.of(context)!.search,
-            );
-          },
-        ),
+        floatingActionButton: kIsWeb
+            ? null
+            : StatefulBuilder(
+                builder: (context, state) {
+                  return FloatingActionButton(
+                    onPressed: () => _showSearch(state),
+                    child: isLoadingSearch
+                        ? CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          )
+                        : const Icon(Icons.search),
+                    tooltip: AppLocalizations.of(context)!.search,
+                  );
+                },
+              ),
         appBar: _buildAppBar(context, appIcon),
         bottomNavigationBar: _buildNavigationBar(context, appIcon),
         body: TabBarView(
