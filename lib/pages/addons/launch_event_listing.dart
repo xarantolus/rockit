@@ -199,6 +199,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
   }
 
   void _openItemDetails(BuildContext context, int index) async {
+    double? initialListHeight = listController.hasClients ? listController.position.maxScrollExtent : null;
     void scrollToIndex(int idx, {bool animated = false}) {
       // The try is there because MediaQuery is not always available
       try {
@@ -218,8 +219,10 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
           ),
           // Do not scroll further than the list height.
           // The wheight * items.length is not a very accurate way of
-          // calculating it, but the scroll position is not alwaays available so we do it like that.
-          listController.hasClients ? listController.position.maxScrollExtent : (wheight * items.length),
+          // calculating it, but the scroll position is not always available so we do it like that.
+          listController.hasClients
+              ? listController.position.maxScrollExtent
+              : initialListHeight ?? (wheight * items.length),
         );
 
         if (widget.scrollOffset != null) {
