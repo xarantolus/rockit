@@ -128,6 +128,7 @@
 
   "copiedToClipboard": "Copied link to clipboard",
   "showingCachedFallback": "Could not get latest data, showing previous response.",
+  "showingIncompleteData": "Could not fetch all required data, showing the parts we could get.",
 
   "sourceSpaceDevs": "Data from The Space Devs",
   "sourceSpaceDevsDescription": "The Space Devs is a group of space enthusiast developers working on a range of services, united in a common goal to improve public knowledge and accessibility of spaceflight information. They aim to bring space app developers together into a thriving community by providing helpful data and tools, accessible to everyone for free.",

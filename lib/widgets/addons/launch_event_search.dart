@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
-class CustomSearchDelegate extends SearchDelegate {
-  CustomSearchDelegate(BuildContext context, List<dynamic> launchesAndEvents)
+class LaunchEventSearchDelegate extends SearchDelegate {
+  LaunchEventSearchDelegate(BuildContext context, List<dynamic> launchesAndEvents)
       : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
         super(
           searchFieldLabel: AppLocalizations.of(context)!.search,
         );
 
-  static Future<CustomSearchDelegate> searchLaunchesAndEvents(BuildContext context) async {
+  static Future<ErrorDetails<LaunchEventSearchDelegate>> searchLaunchesAndEvents(BuildContext context) async {
     List<dynamic> items = [];
 
     final api = LaunchLibraryAPI();
 
+    bool hadError = false;
     int numRequests = 0;
 
     String? launchNext;
@@ -29,9 +31,11 @@ class CustomSearchDelegate extends SearchDelegate {
         launchNext = resp.data.next;
       } catch (e) {
         debugPrint("Error while loading launches for search: $e");
+        hadError = true;
       }
       if (++numRequests > 10) {
         debugPrint("Used too many requests while loading launches");
+        hadError = true;
         break;
       }
     } while (launchNext != null);
@@ -44,14 +48,19 @@ class CustomSearchDelegate extends SearchDelegate {
         eventNext = resp.data.next;
       } catch (e) {
         debugPrint("Error while loading events for search: $e");
+        hadError = true;
       }
       if (++numRequests > 10) {
         debugPrint("Used too many requests while loading events");
+        hadError = true;
         break;
       }
     } while (eventNext != null);
 
-    return CustomSearchDelegate(context, items);
+    return ErrorDetails(
+      LaunchEventSearchDelegate(context, items),
+      hadError ? error_type.incompleteData : null,
+    );
   }
 
   List<dynamic> launchesAndEvents;

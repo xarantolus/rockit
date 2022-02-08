@@ -3,7 +3,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 enum error_type {
   // cachedFallback means that the returned value was found by falling back to a cached response
-  cachedFallback
+  cachedFallback,
+
+  // incompleteData means that not all data could be loaded
+  incompleteData,
 }
 
 extension ErrorType on error_type {
@@ -11,6 +14,8 @@ extension ErrorType on error_type {
     switch (this) {
       case error_type.cachedFallback:
         return AppLocalizations.of(context)!.showingCachedFallback;
+      case error_type.incompleteData:
+        return AppLocalizations.of(context)!.showingIncompleteData;
     }
   }
 

@@ -14,8 +14,8 @@ import 'package:rockit/pages/subscription_listing.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/launch_event_search.dart';
 import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
-import 'package:rockit/widgets/addons/search_delegate.dart';
 
 class RockItHomePage extends StatefulWidget {
   const RockItHomePage(this.appPayload, {Key? key, required this.title}) : super(key: key);
@@ -115,11 +115,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       isLoadingSearch = true;
     });
 
-    final delegate = await CustomSearchDelegate.searchLaunchesAndEvents(context);
+    final delegate = await LaunchEventSearchDelegate.searchLaunchesAndEvents(context);
+
+    delegate.maybeShowSnack(context);
 
     await showSearch(
       context: context,
-      delegate: delegate,
+      delegate: delegate.data,
       query: '',
     );
 
