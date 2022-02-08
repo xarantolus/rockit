@@ -9,6 +9,7 @@ If you just want to try it out quickly, you can open [the web version](https://r
 - Show launch/event details and a countdown (including the date and time in your local timezone)
 - List latest space news articles
 - Subscribe to launches or events to receive notifications before the start or when times are updated
+- Search future events and launches
 - No internet? No problem! The app caches offline content for a few days and updates it when connected to the internet
 
 ### Anti-Features
@@ -18,21 +19,21 @@ There's also one [Anti-Feature](https://f-droid.org/docs/Anti-Features/) as defi
 All data this app uses is curated by [The Space Devs](https://thespacedevs.com/). This app uses the [Launch Library 2](https://thespacedevs.com/llapi) and [Spaceflight News](https://thespacedevs.com/snapi) APIs.
 
 ### Screenshots (dark/light mode)
-|                        Launches listing                        |                   Events listing                    |                        Space news                        |
-| :------------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------: |
-| ![Launch listing](.github/screenshots/d-launches.png) | ![Events listing](.github/screenshots/d-events.png) | ![News listing](.github/screenshots/d-news.png) |
+|                   Launches listing                    |                   Events listing                    |                   Space news                    |
+| :---------------------------------------------------: | :-------------------------------------------------: | :---------------------------------------------: |
+| ![Launch listing](.github/screenshots/d-launches.jpg) | ![Events listing](.github/screenshots/d-events.jpg) | ![News listing](.github/screenshots/d-news.jpg) |
 
-|                   Launch details                    |                   Event details                   |
-| :-------------------------------------------------: | :-----------------------------------------------: |
-| ![Launch details](.github/screenshots/d-launch.png) | ![Event details](.github/screenshots/d-event.png) |
+|                   Launch details                    |                   Event details                   |                   Search launches and events                    |
+| :-------------------------------------------------: | :-----------------------------------------------: | :-------------------------------------------------------------: |
+| ![Launch details](.github/screenshots/d-launch.jpg) | ![Event details](.github/screenshots/d-event.jpg) | ![Search launches and events](.github/screenshots/d-search.jpg) |
 
-|                        Launches listing                        |                   Events listing                    |                        Space news                        |
-| :------------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------: |
-| ![Launch listing](.github/screenshots/l-launches.png) | ![Events listing](.github/screenshots/l-events.png) | ![News listing](.github/screenshots/l-news.png) |
+|                   Launches listing                    |                   Events listing                    |                   Space news                    |
+| :---------------------------------------------------: | :-------------------------------------------------: | :---------------------------------------------: |
+| ![Launch listing](.github/screenshots/l-launches.jpg) | ![Events listing](.github/screenshots/l-events.jpg) | ![News listing](.github/screenshots/l-news.jpg) |
 
-|                   Launch details                    |                   Event details                   |
-| :-------------------------------------------------: | :-----------------------------------------------: |
-| ![Launch details](.github/screenshots/l-launch.png) | ![Event details](.github/screenshots/l-event.png) |
+|                   Launch details                    |                   Event details                   |                   Search launches and events                    |
+| :-------------------------------------------------: | :-----------------------------------------------: | :-------------------------------------------------------------: |
+| ![Launch details](.github/screenshots/l-launch.jpg) | ![Event details](.github/screenshots/l-event.jpg) | ![Search launches and events](.github/screenshots/l-search.jpg) |
 
 
 
