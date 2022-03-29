@@ -129,6 +129,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
       texts.addAll([
         item.slug,
         item.name,
+        item.mission?.name,
+        item.mission?.description,
         item.mission?.orbit?.name,
         item.mission?.orbit?.abbrev,
         item.launchServiceProvider?.name,
@@ -144,7 +146,6 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.rocket?.spacecraftStage?.name,
         item.rocket?.spacecraftStage?.serialNumber,
         item.rocket?.spacecraftStage?.description,
-        item.mission?.description,
         item.pad?.name,
         item.pad?.location?.name,
         ...(item.vidUrls
