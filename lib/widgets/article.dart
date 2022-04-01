@@ -137,17 +137,18 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      widget.title ?? AppLocalizations.of(context)!.unknown,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  if (widget.title?.isNotEmpty ?? false)
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        widget.title ?? AppLocalizations.of(context)!.unknown,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
                   if (hasImage) _renderImage(),
                   if ((widget.summary ?? "").isNotEmpty)
                     Padding(
