@@ -103,7 +103,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   bool _finished = false;
 
   Future<bool> _updateArticles([bool? refresh]) async {
-    var _newArticles = await _ArticleListingPageState.load(
+    var newArticles = await _ArticleListingPageState.load(
       context,
       widget.service,
       refresh == true ? null : articles.length,
@@ -111,16 +111,16 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
 
     setState(() {
       if (refresh == true) {
-        articles = _newArticles;
+        articles = newArticles;
       } else {
         // See upcoming_launches_listing.dart for more info, but in short:
         // This makes sure that cached responses do not lead to duplicate display of content
-        _newArticles.removeWhere((newArticle) => articles.any((article) => article.id == newArticle.id));
+        newArticles.removeWhere((newArticle) => articles.any((article) => article.id == newArticle.id));
 
-        articles.addAll(_newArticles);
+        articles.addAll(newArticles);
       }
 
-      _finished = _newArticles.isEmpty;
+      _finished = newArticles.isEmpty;
     });
 
     return articles.isNotEmpty;
@@ -154,6 +154,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
       child: LoadMore(
         isFinish: _finished,
         onLoadMore: _loadMore,
+        textBuilder: _buildLoadingText,
         child: ListView.builder(
           physics: const BouncingScrollPhysics(),
           itemCount: articles.length,
@@ -171,7 +172,6 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
             );
           },
         ),
-        textBuilder: _buildLoadingText,
       ),
     );
   }

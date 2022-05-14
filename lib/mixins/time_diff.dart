@@ -16,7 +16,7 @@ mixin TimeDiff {
     var prefix = "";
 
     if (d.inDays == 1) {
-      prefix = AppLocalizations.of(context)!.oneDay + ", ";
+      prefix = "${AppLocalizations.of(context)!.oneDay}, ";
     } else if (d.inDays > 1) {
       prefix = "${d.inDays} ${AppLocalizations.of(context)!.days}, ";
     }

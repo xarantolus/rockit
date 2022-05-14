@@ -22,13 +22,13 @@ mixin UrlLauncher {
     );
   }
 
-  Future<void> launchURL(BuildContext context, String _url) async {
+  Future<void> launchURL(BuildContext context, String url) async {
     try {
-      await launch(_url);
+      await launch(url);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("${AppLocalizations.of(context)!.failedURLLaunch} ($_url)"),
+          content: Text("${AppLocalizations.of(context)!.failedURLLaunch} ($url)"),
         ),
       );
     }

@@ -32,11 +32,11 @@ class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClient
     return null;
   }();
 
-  Widget _image(BuildContext context, String? _imageURL) {
-    if (_imageURL != null) {
+  Widget _image(BuildContext context, String? imageURL) {
+    if (imageURL != null) {
       try {
         return CachedNetworkImage(
-          imageUrl: kIsWeb ? "https://fuckcors.app/$_imageURL" : _imageURL,
+          imageUrl: kIsWeb ? "https://fuckcors.app/$imageURL" : imageURL,
           cacheManager: _cacheManager,
           fadeInDuration: const Duration(milliseconds: 125),
           fadeOutDuration: const Duration(milliseconds: 250),
@@ -47,7 +47,7 @@ class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClient
           errorWidget: (context, url, error) => _defaultImage(),
         );
       } catch (e) {
-        debugPrint("Error creating cached network image for $_imageURL");
+        debugPrint("Error creating cached network image for $imageURL");
       }
     }
 
@@ -73,7 +73,7 @@ class _ImageWidgetState extends State<ImageWidget> with AutomaticKeepAliveClient
     }
 
     return Hero(
-      tag: (widget.heroTag ?? "unknown") + "-" + (widget.id ?? "unknown"),
+      tag: "${widget.heroTag ?? "unknown"}-${widget.id ?? "unknown"}",
       child: launchImage,
     );
   }

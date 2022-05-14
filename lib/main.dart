@@ -11,7 +11,7 @@ void main() async {
 
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}", wrapWidth: wrapWidth);
   };
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +19,7 @@ void main() async {
   // Allow significantly more render image cache. This makes images reload less
   // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.
   // See https://github.com/flutter/flutter/issues/68700 for more details
-  PaintingBinding.instance!.imageCache!.maximumSizeBytes = 1000 << 20; // 1GiB
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 1000 << 20; // 1GiB
 
   ValueNotifier<String> appPayloadNotifier = ValueNotifier("");
 

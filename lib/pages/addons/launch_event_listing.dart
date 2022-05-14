@@ -158,18 +158,18 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     Object? error;
 
     try {
-      var _nextURL = refresh == true ? null : nextItemArg;
+      var nextURL = refresh == true ? null : nextItemArg;
 
-      var _newItems = await widget.nextFunc!(
+      var newItems = await widget.nextFunc!(
         context,
-        _nextURL,
+        nextURL,
         refresh == true ? [] : items,
       );
 
       setState(() {
         // Refresh? => replace
-        items = _newItems.items;
-        nextItemArg = _newItems.nextArg;
+        items = newItems.items;
+        nextItemArg = newItems.nextArg;
       });
     } catch (e) {
       error = e;

@@ -31,7 +31,7 @@ class LaunchEventWidget extends StatefulWidget {
       return MediaQuery.of(context).size.height;
     } catch (_) {}
 
-    final w = WidgetsBinding.instance!.window;
+    final w = WidgetsBinding.instance.window;
     return w.physicalSize.height / w.devicePixelRatio;
   }
 
@@ -91,12 +91,12 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> with DateFormatte
         elevation: 5,
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: GridTile(
+          footer: _infoBar(),
           child: ImageWidget(
             widget.imageURL,
             heroTag: widget.heroTag,
             id: widget.heroId,
           ),
-          footer: _infoBar(),
         ),
       ),
     );

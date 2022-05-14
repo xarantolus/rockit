@@ -46,7 +46,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
   String dottedText(String text) {
     var lastLetter = text[text.length - 1];
     if (_isLetter(lastLetter)) {
-      return text + "...";
+      return "$text...";
     }
     return text;
   }

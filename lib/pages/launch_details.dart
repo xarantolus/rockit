@@ -140,7 +140,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ? spaceCraft.serialNumber
           : spaceCraft.serialNumber == null
               ? name
-              : name + " (" + spaceCraft.serialNumber! + ")",
+              : "$name (${spaceCraft.serialNumber!})",
       description: spaceCraft.description,
       imageURL: spaceCraft.spacecraftConfig?.imageUrl,
     );
@@ -382,7 +382,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   if (landing.type!.name != null && landing.type!.abbrev != null)
                     _descriptionRow(
                       AppLocalizations.of(context)!.landingType,
-                      (landing.type!.name! + " (" + landing.type!.abbrev! + ")"),
+                      ("${landing.type!.name!} (${landing.type!.abbrev!})"),
                     )
                   else
                     _descriptionRow(
