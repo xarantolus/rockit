@@ -13,10 +13,15 @@ mixin UrlLauncher {
         showPageTitle: true,
         animation: CustomTabsSystemAnimation.slideIn(),
         extraCustomTabs: const <String>[
-          // Browsers that support custom tabs. Could/Should add more
-          "org.bromite.bromite",
-          'org.mozilla.firefox',
-          'com.microsoft.emmx',
+          "com.android.chrome",
+          "org.mozilla.firefox",
+          "com.microsoft.emmx",
+          "com.opera.browser",
+          "com.brave.browser",
+          "com.vivaldi.browser",
+          "com.yandex.browser",
+          "com.duckduckgo.mobile.android",
+          "org.cromite.cromite",
         ],
       ),
     );

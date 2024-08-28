@@ -117,7 +117,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
         ),
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: Material(
-          color: Theme.of(context).cardColor,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: radius,
           child: InkWell(
             borderRadius: radius,

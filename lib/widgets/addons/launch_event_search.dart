@@ -9,13 +9,18 @@ import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class LaunchEventSearchDelegate extends SearchDelegate {
-  LaunchEventSearchDelegate(BuildContext context, List<dynamic> launchesAndEvents)
+  LaunchEventSearchDelegate(
+      BuildContext context, List<dynamic> launchesAndEvents)
       : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
         super(
           searchFieldLabel: AppLocalizations.of(context)!.search,
+          searchFieldStyle: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
         );
 
-  static Future<ErrorDetails<LaunchEventSearchDelegate>> searchLaunchesAndEvents(BuildContext context) async {
+  static Future<ErrorDetails<LaunchEventSearchDelegate>>
+      searchLaunchesAndEvents(BuildContext context) async {
     List<dynamic> items = [];
 
     final api = LaunchLibraryAPI();
@@ -26,7 +31,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     String? launchNext;
     do {
       try {
-        final resp = await api.upcomingLaunches(next: launchNext, preferCache: true);
+        final resp =
+            await api.upcomingLaunches(next: launchNext, preferCache: true);
         items.addAll(resp.data.results ?? []);
         launchNext = resp.data.next;
       } catch (e) {
@@ -43,7 +49,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     String? eventNext;
     do {
       try {
-        final resp = await api.upcomingEvents(next: eventNext, preferCache: true);
+        final resp =
+            await api.upcomingEvents(next: eventNext, preferCache: true);
         items.addAll(resp.data.results ?? []);
         eventNext = resp.data.next;
       } catch (e) {
@@ -90,14 +97,14 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: const Icon(Icons.search),
+        icon: const Icon(Icons.search, color: Colors.white),
         onPressed: () {
           showResults(context);
         },
         tooltip: AppLocalizations.of(context)!.showResults,
       ),
       IconButton(
-        icon: const Icon(Icons.clear),
+        icon: const Icon(Icons.clear, color: Colors.white),
         onPressed: () {
           query = '';
           showSuggestions(context);
@@ -110,7 +117,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back, color: Colors.white),
       onPressed: () {
         close(context, null);
       },
@@ -139,7 +146,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.rocket?.configuration?.variant,
         ...(item.rocket?.launcherStage
                 ?.map((e) => [e.launcher?.details, e.launcher?.serialNumber])
-                .fold(List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
+                .fold(List<String?>.empty(),
+                    (l, txts) => txts..addAll(l ?? [])) ??
             []),
         item.rocket?.spacecraftStage?.name,
         item.rocket?.spacecraftStage?.serialNumber,
@@ -147,9 +155,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.mission?.description,
         item.pad?.name,
         item.pad?.location?.name,
-        ...(item.vidUrls
-                ?.map((e) => [e.title, e.description])
-                .fold(List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
+        ...(item.vidUrls?.map((e) => [e.title, e.description]).fold(
+                List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
             []),
       ]);
     } else if (item is Event) {
@@ -160,7 +167,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.location,
         ...(item.spacestations
                 ?.map((e) => [e.name, e.description, e.orbit])
-                .fold(List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
+                .fold(List<String?>.empty(),
+                    (l, txts) => txts..addAll(l ?? [])) ??
             []),
       ]);
     }
@@ -208,7 +216,41 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   }
 
   List<String> _searchSuggestions() {
-    return _searchEntries().map(_itemText).toList();
+    List<String?> launchFunction(Launch item) {
+      return [
+        if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
+          item.launchServiceProvider?.name,
+        if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
+          item.rocket?.configuration?.fullName,
+      ];
+    }
+
+    return _searchEntries()
+        .map((item) {
+          // Check if it's a launch or an event
+          if (item is Launch) {
+            return [
+              if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
+                item.launchServiceProvider?.name,
+              if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
+                item.rocket?.configuration?.fullName,
+            ];
+          } else if (item is Event) {
+            return [
+              ...?item.program?.map((p) => p.name),
+              ...?item.launches?.map((l) => launchFunction(l))
+            ];
+          } else {
+            return [];
+          }
+        })
+        .whereType<List<String?>>()
+        .expand((e) => e)
+        .whereType<String>()
+        .where((e) => !e.toLowerCase().contains("unknown"))
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   @override

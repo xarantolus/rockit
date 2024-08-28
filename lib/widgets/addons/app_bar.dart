@@ -13,6 +13,7 @@ class CustomAppBar {
 
     return AppBar(
       backgroundColor: barColor,
+      iconTheme: IconTheme.of(context).copyWith(color: Colors.white),
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: barColor,
@@ -22,7 +23,7 @@ class CustomAppBar {
           ? null
           : Text(
               title,
-              style: titleStyle?.copyWith(color: Colors.white),
+              style: titleStyle?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white),
             ),
       leading: icon == null
           ? null

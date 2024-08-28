@@ -431,7 +431,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   Widget build(BuildContext context) {
     final launchName = widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
+
     return Scaffold(
+
       appBar: CustomAppBar.create(
         context,
         title: launchName,

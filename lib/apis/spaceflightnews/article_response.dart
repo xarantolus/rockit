@@ -30,11 +30,11 @@ class Article {
       id: json["id"],
       title: json["title"],
       url: json["url"],
-      imageUrl: json["imageUrl"],
-      newsSite: json["newsSite"],
+      imageUrl: json["image_url"],
+      newsSite: json["news_site"],
       summary: json["summary"],
-      publishedAt: json["publishedAt"] == null ? null : DateTime.parse(json["publishedAt"]),
-      updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
+      publishedAt: json["published_at"] == null ? null : DateTime.parse(json["published_at"]),
+      updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
       featured: json["featured"],
       launches: json["launches"] == null
           ? null
@@ -74,7 +74,7 @@ class BasicLaunchInfo {
 
   factory BasicLaunchInfo.fromJson(Map<String, dynamic> json) {
     return BasicLaunchInfo(
-      id: json["id"],
+      id: json["launch_id"],
       provider: json["provider"],
     );
   }

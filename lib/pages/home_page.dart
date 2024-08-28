@@ -15,7 +15,6 @@ import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/launch_event_search.dart';
-import 'package:rockit/widgets/addons/overline_tab_indicator.dart';
 
 class RockItHomePage extends StatefulWidget {
   const RockItHomePage(this.appPayload, {Key? key, required this.title}) : super(key: key);
@@ -175,11 +174,16 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   TabBar _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
     return TabBar(
       labelColor: Theme.of(context).textTheme.bodyMedium!.color,
+      unselectedLabelColor: Colors.grey[500],
+      dividerColor: Colors.transparent,
+      indicatorColor: Colors.white,
       automaticIndicatorColorAdjustment: true,
-      indicator: OverlineTabIndicator(
-        borderSide: BorderSide(
-          color: Theme.of(context).textTheme.bodyMedium!.color!,
-          width: 3,
+      indicator: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 3.0,
+          ),
         ),
       ),
       tabs: [
@@ -213,6 +217,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+
         floatingActionButton: kIsWeb
             ? null
             : StatefulBuilder(
@@ -220,10 +225,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
                   return FloatingActionButton(
                     onPressed: () => _showSearch(state),
                     child: isLoadingSearch
-                        ? CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
                           )
-                        : const Icon(Icons.search),
+                        : const Icon(Icons.search, color: Colors.white),
                     tooltip: AppLocalizations.of(context)!.search,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   );

@@ -167,7 +167,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+ return Scaffold(
+
       appBar: CustomAppBar.create(
         context,
         title: widget.event.name ?? AppLocalizations.of(context)!.unknownEvent,

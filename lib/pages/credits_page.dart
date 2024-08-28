@@ -22,7 +22,9 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
     const projectLink = "https://github.com/xarantolus/rockit";
     const twitterBotLink = "https://twitter.com/wenhopbot";
 
-    return Scaffold(
+
+ return Scaffold(
+
       appBar: CustomAppBar.create(
         context,
         title: AppLocalizations.of(context)!.sources,

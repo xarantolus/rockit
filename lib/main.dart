@@ -63,6 +63,8 @@ class RockItApp extends StatelessWidget {
           primary: _themeColor,
           secondary: _secondaryColor,
           surface: Colors.grey[200],
+          surfaceContainerHighest: Colors.transparent,
+          surfaceContainerLowest: Colors.transparent,
           onSecondary: Colors.white,
         ),
         textTheme: Typography.blackHelsinki.copyWith(
@@ -70,11 +72,19 @@ class RockItApp extends StatelessWidget {
             // color: Colors.grey[800],
             fontSize: 14,
           ),
-        )
+        ),
       ).copyWith(
         appBarTheme: const AppBarTheme(
           backgroundColor: _themeColor,
           centerTitle: true,
+          actionsIconTheme: IconThemeData(color: Colors.white),
+        ),
+        cardTheme: CardTheme(
+          color: Colors.grey[100], // Slightly brighter background
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(color: Colors.grey[300]!), // Border color
+          ),
         ),
       ),
       darkTheme: ThemeData.from(
@@ -83,12 +93,22 @@ class RockItApp extends StatelessWidget {
           primary: _themeColorDark,
           secondary: _secondaryColorDark,
           surface: Colors.grey[900],
-          onSecondary: Colors.white,
+          surfaceContainerHighest: Colors.transparent,
+          surfaceContainerLowest: Colors.transparent,
+           onSecondary: Colors.white,
         ),
         textTheme: Typography.whiteHelsinki.copyWith(
           bodyMedium: TextStyle(
             color: Colors.grey[200],
             fontSize: 14,
+          ),
+        ),
+      ).copyWith(
+        cardTheme: CardTheme(
+          color: Colors.grey[850],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(color: Colors.grey[700]!), // Border color
           ),
         ),
       ),
