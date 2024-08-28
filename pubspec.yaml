@@ -47,7 +47,7 @@ dependencies:
   timezone: ^0.9.0
   infinite_widgets: ^2.0.0
   rive: ^0.8.1
-
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +83,7 @@ flutter:
     - assets/rocket-white.png
     - assets/rocket-black.png
     - assets/rocket-white-small.png
+    - assets/rocket-black-small.png
     - assets/animations/One_Planet.riv
 
   # An image asset can refer to one or more resolution-specific "variants", see

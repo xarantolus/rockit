@@ -139,7 +139,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       actions: [
         if (kIsWeb)
           IconButton(
-            icon: const Icon(Icons.download),
+            icon: const Icon(Icons.download, color: Colors.white),
             tooltip: AppLocalizations.of(context)!.downloadApp,
             onPressed: () async {
               await _openAppDownloadLink();
@@ -147,7 +147,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           ),
         if (!kIsWeb)
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications, color: Colors.white),
             tooltip: AppLocalizations.of(context)!.subscriptions,
             onPressed: () async {
               await Navigator.of(context).push(
@@ -158,7 +158,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             },
           ),
         IconButton(
-          icon: const Icon(Icons.info_outline),
+          icon: const Icon(Icons.info_outline, color: Colors.white),
           tooltip: AppLocalizations.of(context)!.sources,
           onPressed: () async {
             await Navigator.of(context).push(
@@ -201,7 +201,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"),
+    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"), color: Colors.white);
+
+    final lightTheme = Theme.of(context).brightness == Brightness.light;
+    final menuRocketIcon = ImageIcon(
+      lightTheme
+          ? const AssetImage("assets/rocket-black-small.png")
+          : const AssetImage("assets/rocket-white-small.png"),
     );
 
     return DefaultTabController(
@@ -215,15 +221,16 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
                     onPressed: () => _showSearch(state),
                     child: isLoadingSearch
                         ? CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.onSecondary,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           )
                         : const Icon(Icons.search),
                     tooltip: AppLocalizations.of(context)!.search,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   );
                 },
               ),
         appBar: _buildAppBar(context, appIcon),
-        bottomNavigationBar: _buildNavigationBar(context, appIcon),
+        bottomNavigationBar: _buildNavigationBar(context, menuRocketIcon),
         body: TabBarView(
           children: [
             UpcomingLaunchesPage(),

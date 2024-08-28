@@ -15,6 +15,15 @@ mixin SourceAttribution {
       }
       return null;
     },
+    "x.com": (context, uri) {
+      if (uri.pathSegments.length >= 3 &&
+          uri.pathSegments[0] != "i" &&
+          uri.pathSegments[1] == "status" &&
+          int.tryParse(uri.pathSegments[2]) != null) {
+        return AppLocalizations.of(context)!.onTwitter(uri.pathSegments.first);
+      }
+      return null;
+    },
     "facebook.com": (_, __) => "Facebook",
 
     "youtube.com": (_, __) => "YouTube",

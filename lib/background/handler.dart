@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/notifications/create.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -305,6 +306,10 @@ class BackgroundHandler {
   }
 
   Future<void> subscribeToLaunch(String launchId) async {
+    if (await Permission.scheduleExactAlarm.isDenied) {
+      await Permission.scheduleExactAlarm.request();
+    }
+
     var markedLaunches = await _loadIDs(launchesKey);
     if (markedLaunches.contains(launchId)) {
       return;
