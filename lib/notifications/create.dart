@@ -11,15 +11,15 @@ class NotificationHandler {
 
     var success = await localNotifs.initialize(
       initSettings,
-      onSelectNotification: payloadNotification == null
+      onDidReceiveNotificationResponse: payloadNotification == null
           ? null
           : (payload) {
-              if (payload != null) {
+              if (payload.payload != null) {
                 // If it's the same value as before, we still want to notify.
                 // So we just set it to empty (listeners won't do anything),
                 // then we set the value again. This is kind of ugly, but works fine
                 payloadNotification.value = "";
-                payloadNotification.value = payload;
+                payloadNotification.value = payload.payload!;
               }
             },
     );
@@ -29,8 +29,8 @@ class NotificationHandler {
 
     if (payloadNotification != null) {
       var initialPayload = await localNotifs.getNotificationAppLaunchDetails();
-      if (initialPayload?.payload != null) {
-        payloadNotification.value = initialPayload!.payload!;
+      if (initialPayload?.notificationResponse?.payload != null) {
+        payloadNotification.value = initialPayload!.notificationResponse!.payload!;
       }
     }
 

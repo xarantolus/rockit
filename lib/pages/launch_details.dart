@@ -79,7 +79,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         m.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
         style: textStyle.copyWith(
-          color: Theme.of(context).textTheme.bodyText2!.color,
+          color: Theme.of(context).textTheme.bodyMedium!.color,
         ),
       ),
     );
@@ -347,7 +347,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ),
           Table(
             border: TableBorder(
-              horizontalInside: BorderSide(color: Theme.of(context).textTheme.bodyText2!.color!.withOpacity(.5)),
+              horizontalInside: BorderSide(color: Theme.of(context).textTheme.bodyMedium!.color!.withOpacity(.5)),
             ),
             columnWidths: const {
               0: IntrinsicColumnWidth(),

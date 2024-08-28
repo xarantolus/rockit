@@ -174,11 +174,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   TabBar _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
     return TabBar(
-      labelColor: Theme.of(context).textTheme.bodyText2!.color,
+      labelColor: Theme.of(context).textTheme.bodyMedium!.color,
       automaticIndicatorColorAdjustment: true,
       indicator: OverlineTabIndicator(
         borderSide: BorderSide(
-          color: Theme.of(context).textTheme.bodyText2!.color!,
+          color: Theme.of(context).textTheme.bodyMedium!.color!,
           width: 3,
         ),
       ),
@@ -201,11 +201,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    final lightTheme = Theme.of(context).brightness == Brightness.light;
-    final appIcon = ImageIcon(
-      lightTheme
-          ? const AssetImage("assets/rocket-black-small.png")
-          : const AssetImage("assets/rocket-white-small.png"),
+    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"),
     );
 
     return DefaultTabController(

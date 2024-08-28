@@ -228,7 +228,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         return ListTile(
           title: Text(
             suggestions[index],
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleSmall,
           ),
           onTap: () {
             query = suggestions[index];

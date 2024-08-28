@@ -31,7 +31,7 @@ class LaunchEventWidget extends StatefulWidget {
       return MediaQuery.of(context).size.height;
     } catch (_) {}
 
-    final w = WidgetsBinding.instance!.window;
+    final w = WidgetsBinding.instance.window;
     return w.physicalSize.height / w.devicePixelRatio;
   }
 

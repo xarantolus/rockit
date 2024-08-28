@@ -58,7 +58,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         e.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
         style: textStyle.copyWith(
-          color: Theme.of(context).textTheme.bodyText2!.color,
+          color: Theme.of(context).textTheme.bodyMedium!.color,
         ),
       ),
     );

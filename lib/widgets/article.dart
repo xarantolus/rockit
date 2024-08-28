@@ -57,7 +57,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: Container(
-          color: background == true ? Theme.of(context).backgroundColor.withOpacity(.75) : null,
+          color: background == true ? Theme.of(context).scaffoldBackgroundColor.withOpacity(.75) : null,
           padding: const EdgeInsets.all(4),
           child: Text(
             widget.newsSite!,

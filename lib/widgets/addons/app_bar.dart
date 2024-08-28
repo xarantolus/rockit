@@ -22,7 +22,7 @@ class CustomAppBar {
           ? null
           : Text(
               title,
-              style: titleStyle,
+              style: titleStyle?.copyWith(color: Colors.white),
             ),
       leading: icon == null
           ? null
