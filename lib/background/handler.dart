@@ -11,6 +11,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:workmanager/workmanager.dart';
 
 // This function will be called by Android when a task should be run
+@pragma('vm:entry-point')
 void backgroundTaskCallback() {
   // Overwrite debug print logic
   final oldDebugPrint = debugPrint;
