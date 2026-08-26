@@ -2,6 +2,8 @@ name: Build for Android
 
 on:
   push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,19 +12,24 @@ jobs:
 
     steps:
       - name: Check out repo
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v4
+
       - name: Set up Java
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
-          java-version: '17.x'
-      
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install flutter
-        uses: subosito/flutter-action@v1
-          
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
+
       - name: Install app dependencies (flutter pub get)
         run: flutter pub get
-      
+
       - name: Run tests
         run: flutter test
 
@@ -36,22 +43,45 @@ jobs:
             echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
 
       - name: Set up signing config
+        id: signing
+        env:
+          SIGNING_KEYSTORE_CONTENT: ${{ secrets.SIGNING_KEYSTORE_CONTENT }}
+          SIGNING_PROPERTIES_CONTENT: ${{ secrets.SIGNING_PROPERTIES_CONTENT }}
         run: |
-          echo "${{ secrets.SIGNING_KEYSTORE_CONTENT }}" | base64 -d - > upload-keystore.jks
-          export X_KEYSTORE_PATH="$(pwd)/upload-keystore.jks"
-          echo "X_KEYSTORE_PATH=$X_KEYSTORE_PATH" >> $GITHUB_ENV
-
-          echo "${{ secrets.SIGNING_PROPERTIES_CONTENT }}" > android/key.properties
+          # Forks/PRs have no signing secrets; build a debug APK there instead.
+          if [ -n "$SIGNING_KEYSTORE_CONTENT" ]; then
+            echo "$SIGNING_KEYSTORE_CONTENT" | base64 -d - > upload-keystore.jks
+            echo "X_KEYSTORE_PATH=$(pwd)/upload-keystore.jks" >> $GITHUB_ENV
+            echo "$SIGNING_PROPERTIES_CONTENT" > android/key.properties
+            echo "signed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No signing secrets available - building a debug APK instead"
+            echo "signed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build signed APK
+        if: steps.signing.outputs.signed == 'true'
         run: flutter build apk --release
         env:
           X_KEYSTORE_PATH: ${{ env.X_KEYSTORE_PATH }}
 
+      - name: Build debug APK (unsigned builds)
+        if: steps.signing.outputs.signed != 'true'
+        run: flutter build apk --debug
+
       - name: Show APK hashes
         run: find build/app/outputs -type f -name "*.apk" | xargs -L1 sha256sum
 
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockit-apk-${{ env.APP_VERSION }}-${{ github.ref_name }}-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Generate diff from commit messages
+        if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release')) }}
         run: |
           # Download tags which the following git command needs
           git fetch --prune --unshallow
@@ -61,14 +91,14 @@ jobs:
           git log $(git describe --tags --abbrev=0)..HEAD --oneline --decorate=no | sed "s/^[^ ]* /* /" >> out.md
 
       - name: Upload release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             build/app/outputs/flutter-apk/*-release.apk
           tag_name: v${{ env.APP_VERSION }}
           name: ${{ env.COMMIT_MESSAGE }}
           fail_on_unmatched_files: true
-          draft: true 
+          draft: true
           body_path: out.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
