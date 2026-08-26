@@ -17,7 +17,6 @@ import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/event_countdown.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsPage extends StatefulWidget {
   const EventDetailsPage(this.event, {this.heroPrefix = "", super.key});
@@ -166,7 +165,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         if (customTab) {
           await openCustomTab(context, url);
         } else {
-          await launch(url);
+          await launchURL(context, url);
         }
       },
       onLongPress: () => copyLink(context, url),

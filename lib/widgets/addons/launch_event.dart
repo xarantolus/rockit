@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
@@ -31,8 +32,11 @@ class LaunchEventWidget extends StatefulWidget {
       return MediaQuery.of(context).size.height;
     } catch (_) {}
 
-    final w = WidgetsBinding.instance.window;
-    return w.physicalSize.height / w.devicePixelRatio;
+    final view = PlatformDispatcher.instance.implicitView;
+    if (view == null) {
+      return 0;
+    }
+    return view.physicalSize.height / view.devicePixelRatio;
   }
 
   static double calculateHeight(BuildContext context) {

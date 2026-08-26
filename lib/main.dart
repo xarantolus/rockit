@@ -31,10 +31,7 @@ void main() async {
 
   if (!kIsWeb) {
     // Initialize background tasks
-    Workmanager().initialize(
-      backgroundTaskCallback,
-      isInDebugMode: kDebugMode,
-    );
+    Workmanager().initialize(backgroundTaskCallback);
   }
 
   runApp(RockItApp(appPayloadNotifier));

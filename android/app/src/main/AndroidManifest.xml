@@ -2,6 +2,11 @@
 
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+  <!-- Notifications are runtime-granted from Android 13 (API 33). -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  <!-- Required for ScheduledNotificationBootReceiver below to restore
+       scheduled notifications after a reboot. -->
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
   <queries>
     <intent>

@@ -315,10 +315,19 @@ class BackgroundHandler {
     return "update:launch:$launchId";
   }
 
-  Future<void> subscribeToLaunch(String launchId) async {
+  /// Requests what scheduled notifications need. Both are no-ops on Android
+  /// versions that grant them at install time.
+  Future<void> _ensureNotificationPermissions() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
     if (await Permission.scheduleExactAlarm.isDenied) {
       await Permission.scheduleExactAlarm.request();
     }
+  }
+
+  Future<void> subscribeToLaunch(String launchId) async {
+    await _ensureNotificationPermissions();
 
     var markedLaunches = await _loadIDs(launchesKey);
     if (markedLaunches.contains(launchId)) {
@@ -412,6 +421,8 @@ class BackgroundHandler {
   }
 
   Future<void> subscribeToEvent(String eventId) async {
+    await _ensureNotificationPermissions();
+
     var markedEvents = await _loadIDs(eventsKey);
     if (markedEvents.contains(eventId)) {
       return;

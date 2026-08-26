@@ -6,7 +6,6 @@ import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/image.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ArticleCardWidget extends StatefulWidget {
   const ArticleCardWidget({
@@ -133,7 +132,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                 if (widget.customTab) {
                   await openCustomTab(context, widget.link!);
                 } else {
-                  await launch(widget.link!);
+                  await launchURL(context, widget.link!);
                 }
               }
             },
