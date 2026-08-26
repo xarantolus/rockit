@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 
 mixin TimeDiff {
   Duration timeDiff(DateTime date) {
@@ -16,7 +16,7 @@ mixin TimeDiff {
     var prefix = "";
 
     if (d.inDays == 1) {
-      prefix = AppLocalizations.of(context)!.oneDay + ", ";
+      prefix = "${AppLocalizations.of(context)!.oneDay}, ";
     } else if (d.inDays > 1) {
       prefix = "${d.inDays} ${AppLocalizations.of(context)!.days}, ";
     }

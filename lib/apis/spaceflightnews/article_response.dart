@@ -29,8 +29,12 @@ class Article {
       imageUrl: json["image_url"],
       newsSite: json["news_site"],
       summary: json["summary"],
-      publishedAt: json["published_at"] == null ? null : DateTime.parse(json["published_at"]),
-      updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+      publishedAt: json["published_at"] == null
+          ? null
+          : DateTime.parse(json["published_at"]),
+      updatedAt: json["updated_at"] == null
+          ? null
+          : DateTime.parse(json["updated_at"]),
       featured: json["featured"],
     );
   }

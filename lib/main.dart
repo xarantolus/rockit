@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/notifications/create.dart';
 import 'package:rockit/pages/home_page.dart';
@@ -11,7 +11,9 @@ void main() async {
 
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+    oldDebugPrint(
+        "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
+        wrapWidth: wrapWidth);
   };
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,7 @@ void main() async {
 }
 
 class RockItApp extends StatelessWidget {
-  const RockItApp(this.appPayload, {Key? key}) : super(key: key);
+  const RockItApp(this.appPayload, {super.key});
 
   final ValueNotifier<String> appPayload;
 
@@ -79,7 +81,7 @@ class RockItApp extends StatelessWidget {
           centerTitle: true,
           actionsIconTheme: IconThemeData(color: Colors.white),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: Colors.grey[100], // Slightly brighter background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
@@ -95,7 +97,7 @@ class RockItApp extends StatelessWidget {
           surface: Colors.grey[900],
           surfaceContainerHighest: Colors.transparent,
           surfaceContainerLowest: Colors.transparent,
-           onSecondary: Colors.white,
+          onSecondary: Colors.white,
         ),
         textTheme: Typography.whiteHelsinki.copyWith(
           bodyMedium: TextStyle(
@@ -104,7 +106,7 @@ class RockItApp extends StatelessWidget {
           ),
         ),
       ).copyWith(
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: Colors.grey[850],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),

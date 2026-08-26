@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
@@ -7,10 +7,11 @@ import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class SubscriptionListingPage extends StatefulWidget {
-  const SubscriptionListingPage({Key? key}) : super(key: key);
+  const SubscriptionListingPage({super.key});
 
   @override
-  State<SubscriptionListingPage> createState() => _SubscriptionListingPageState();
+  State<SubscriptionListingPage> createState() =>
+      _SubscriptionListingPageState();
 }
 
 class LaunchEventList {

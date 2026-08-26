@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
 class PlanetLoadingAnimation extends StatelessWidget {
-  const PlanetLoadingAnimation({Key? key}) : super(key: key);
+  const PlanetLoadingAnimation({super.key});
 
   @override
   Widget build(BuildContext context) {

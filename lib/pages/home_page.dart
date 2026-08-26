@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -17,7 +17,7 @@ import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/launch_event_search.dart';
 
 class RockItHomePage extends StatefulWidget {
-  const RockItHomePage(this.appPayload, {Key? key, required this.title}) : super(key: key);
+  const RockItHomePage(this.appPayload, {super.key, required this.title});
 
   final ValueNotifier<String> appPayload;
 
@@ -114,7 +114,8 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       isLoadingSearch = true;
     });
 
-    final delegate = await LaunchEventSearchDelegate.searchLaunchesAndEvents(context);
+    final delegate =
+        await LaunchEventSearchDelegate.searchLaunchesAndEvents(context);
 
     delegate.maybeShowSnack(context);
 
@@ -205,7 +206,8 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"), color: Colors.white);
+    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"),
+        color: Colors.white);
 
     final lightTheme = Theme.of(context).brightness == Brightness.light;
     final menuRocketIcon = ImageIcon(
@@ -217,20 +219,19 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-
         floatingActionButton: kIsWeb
             ? null
             : StatefulBuilder(
                 builder: (context, state) {
                   return FloatingActionButton(
                     onPressed: () => _showSearch(state),
+                    tooltip: AppLocalizations.of(context)!.search,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     child: isLoadingSearch
                         ? const CircularProgressIndicator(
                             color: Colors.white,
                           )
                         : const Icon(Icons.search, color: Colors.white),
-                    tooltip: AppLocalizations.of(context)!.search,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
                   );
                 },
               ),

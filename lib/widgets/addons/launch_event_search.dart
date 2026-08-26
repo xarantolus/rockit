@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
@@ -79,7 +79,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     return Theme.of(context).copyWith(
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: Colors.white,
-        selectionColor: Colors.white.withOpacity(.5),
+        selectionColor: Colors.white.withValues(alpha: .5),
         selectionHandleColor: colorScheme.secondary,
       ),
       hintColor: Colors.white,

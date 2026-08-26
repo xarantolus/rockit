@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 
 class EventWidget extends StatefulWidget {
-  const EventWidget(this.event, {Key? key, this.heroPrefix = ""}) : super(key: key);
+  const EventWidget(this.event, {super.key, this.heroPrefix = ""});
 
   final Event event;
   final String heroPrefix;

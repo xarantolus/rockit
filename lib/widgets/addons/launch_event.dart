@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -13,8 +13,8 @@ class LaunchEventWidget extends StatefulWidget {
     this.heroTag,
     this.heroId,
     this.netDate,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final String? imageURL;
 
@@ -43,7 +43,8 @@ class LaunchEventWidget extends StatefulWidget {
   _LaunchEventWidgetState createState() => _LaunchEventWidgetState();
 }
 
-class _LaunchEventWidgetState extends State<LaunchEventWidget> with DateFormatter {
+class _LaunchEventWidgetState extends State<LaunchEventWidget>
+    with DateFormatter {
   String _netText() {
     if (widget.netDate == null) {
       return AppLocalizations.of(context)!.netUnknown;
@@ -53,7 +54,7 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> with DateFormatte
 
   GridTileBar _infoBar() {
     return GridTileBar(
-      backgroundColor: Colors.grey[800]!.withOpacity(0.75),
+      backgroundColor: Colors.grey[800]!.withValues(alpha: 0.75),
       title: Text(
         widget.title,
         style: const TextStyle(
@@ -91,12 +92,12 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> with DateFormatte
         elevation: 5,
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: GridTile(
+          footer: _infoBar(),
           child: ImageWidget(
             widget.imageURL,
             heroTag: widget.heroTag,
             id: widget.heroId,
           ),
-          footer: _infoBar(),
         ),
       ),
     );

@@ -23,7 +23,8 @@ class CustomAppBar {
           ? null
           : Text(
               title,
-              style: titleStyle?.copyWith(color: Colors.white) ?? const TextStyle(color: Colors.white),
+              style: titleStyle?.copyWith(color: Colors.white) ??
+                  const TextStyle(color: Colors.white),
             ),
       leading: icon == null
           ? null

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
@@ -17,7 +16,7 @@ import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch_countdown.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
-  const LaunchDetailsPage(this.launch, {this.heroPrefix = "", Key? key}) : super(key: key);
+  const LaunchDetailsPage(this.launch, {this.heroPrefix = "", super.key});
 
   final Launch launch;
 
@@ -28,7 +27,13 @@ class LaunchDetailsPage extends StatefulWidget {
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
-    with DateFormatter, UrlLauncher, SourceAttribution, UpdateRenderer, LinkCopier, ProgramRenderer {
+    with
+        DateFormatter,
+        UrlLauncher,
+        SourceAttribution,
+        UpdateRenderer,
+        LinkCopier,
+        ProgramRenderer {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -47,8 +52,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   );
 
   Widget _zoomableImage() {
-    return PinchZoomImage(
-      image: Center(
+    return InteractiveViewer(
+      child: Center(
         child: Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height / 2,
@@ -110,7 +115,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _launchServiceProvider(BuildContext context, LaunchServiceProvider provider) {
+  Widget _launchServiceProvider(
+      BuildContext context, LaunchServiceProvider provider) {
     return _titleImageDescription(
       context,
       clickURL: provider.infoUrl,
@@ -140,13 +146,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ? spaceCraft.serialNumber
           : spaceCraft.serialNumber == null
               ? name
-              : name + " (" + spaceCraft.serialNumber! + ")",
+              : "$name (${spaceCraft.serialNumber!})",
       description: spaceCraft.description,
       imageURL: spaceCraft.spacecraftConfig?.imageUrl,
     );
   }
 
-  List<Widget> _launcherStages(BuildContext context, List<LauncherStage> stages) {
+  List<Widget> _launcherStages(
+      BuildContext context, List<LauncherStage> stages) {
     return stages.map((s) => _stage(context, s)).whereType<Widget>().toList();
   }
 
@@ -180,7 +187,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return Material(
       child: InkWell(
         onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
-        onLongPress: (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
+        onLongPress:
+            (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
@@ -202,8 +210,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                         )
                       : null,
                   child: zoomableImage
-                      ? PinchZoomImage(
-                          image: Center(
+                      ? InteractiveViewer(
+                          child: Center(
                             child: imageWidget,
                           ),
                         )
@@ -221,7 +229,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
-    final importantPatches = l.where((element) => (element.imageUrl ?? "").isNotEmpty);
+    final importantPatches =
+        l.where((element) => (element.imageUrl ?? "").isNotEmpty);
     if (importantPatches.isEmpty) {
       return List.empty();
     }
@@ -230,7 +239,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
         child: Text(
-          l.length == 1 ? AppLocalizations.of(context)!.missionPatch : AppLocalizations.of(context)!.missionPatches,
+          l.length == 1
+              ? AppLocalizations.of(context)!.missionPatch
+              : AppLocalizations.of(context)!.missionPatches,
           style: titleStyle,
         ),
       ),
@@ -238,7 +249,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
-  Widget _missionPatch(BuildContext context, MissionPatch patch, bool isSingle) {
+  Widget _missionPatch(
+      BuildContext context, MissionPatch patch, bool isSingle) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -252,8 +264,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 style: titleStyle,
               ),
             ),
-          PinchZoomImage(
-            image: Center(
+          InteractiveViewer(
+            child: Center(
               child: ImageWidget(patch.imageUrl),
             ),
           ),
@@ -270,7 +282,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   ) {
     final widgets = l
         .map((info) {
-          if (info.title == null && (info.description == null || info.featureImage == null)) {
+          if (info.title == null &&
+              (info.description == null || info.featureImage == null)) {
             return null;
           }
           return mapFunction(context, info);
@@ -295,7 +308,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     ];
   }
 
-  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info, [bool customTab = true, Icon? icon]) {
+  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
+      [bool customTab = true, Icon? icon]) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
@@ -347,59 +361,78 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           ),
           Table(
             border: TableBorder(
-              horizontalInside: BorderSide(color: Theme.of(context).textTheme.bodyMedium!.color!.withOpacity(.5)),
+              horizontalInside: BorderSide(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .color!
+                      .withValues(alpha: .5)),
             ),
             columnWidths: const {
               0: IntrinsicColumnWidth(),
               1: FlexColumnWidth(),
             },
             children: [
+              _descriptionRow(AppLocalizations.of(context)!.status,
+                  l.status?.name ?? AppLocalizations.of(context)!.unknown),
               _descriptionRow(
-                  AppLocalizations.of(context)!.status, l.status?.name ?? AppLocalizations.of(context)!.unknown),
-              _descriptionRow(AppLocalizations.of(context)!.statusDescription,
-                  l.status?.description ?? AppLocalizations.of(context)!.unknown),
+                  AppLocalizations.of(context)!.statusDescription,
+                  l.status?.description ??
+                      AppLocalizations.of(context)!.unknown),
               if ((l.probability ?? -1) > 0)
-                _descriptionRow(AppLocalizations.of(context)!.startProbability, "${l.probability!}%"),
+                _descriptionRow(AppLocalizations.of(context)!.startProbability,
+                    "${l.probability!}%"),
               if ((l.holdreason ?? "").isNotEmpty)
-                _descriptionRow(AppLocalizations.of(context)!.holdReason, l.holdreason!),
+                _descriptionRow(
+                    AppLocalizations.of(context)!.holdReason, l.holdreason!),
               if ((l.failreason ?? "").isNotEmpty)
-                _descriptionRow(AppLocalizations.of(context)!.failReason, l.failreason!),
+                _descriptionRow(
+                    AppLocalizations.of(context)!.failReason, l.failreason!),
               if (l.mission?.orbit != null)
                 _descriptionRow(
                   AppLocalizations.of(context)!.targetOrbit,
-                  l.mission!.orbit!.name ?? AppLocalizations.of(context)!.unknown,
+                  l.mission!.orbit!.name ??
+                      AppLocalizations.of(context)!.unknown,
                 ),
               if (windowStart != null)
-                _descriptionRow(
-                    AppLocalizations.of(context)!.windowStart, formatDateTimeFriendlyText(context, windowStart)),
+                _descriptionRow(AppLocalizations.of(context)!.windowStart,
+                    formatDateTimeFriendlyText(context, windowStart)),
               if (windowEnd != null)
                 _descriptionRow(
                     AppLocalizations.of(context)!.windowEnd,
                     formatDateTimeFriendlyText(context, windowEnd) +
-                        (windowStart == windowEnd ? " (${AppLocalizations.of(context)!.likeStartTime})" : "")),
+                        (windowStart == windowEnd
+                            ? " (${AppLocalizations.of(context)!.likeStartTime})"
+                            : "")),
               if (landing != null) ...[
                 if (landing.type != null) ...[
-                  if (landing.type!.name != null && landing.type!.abbrev != null)
+                  if (landing.type!.name != null &&
+                      landing.type!.abbrev != null)
                     _descriptionRow(
                       AppLocalizations.of(context)!.landingType,
-                      (landing.type!.name! + " (" + landing.type!.abbrev! + ")"),
+                      ("${landing.type!.name!} (${landing.type!.abbrev!})"),
                     )
                   else
                     _descriptionRow(
                       AppLocalizations.of(context)!.landingType,
-                      landing.type!.name ?? landing.type!.abbrev ?? AppLocalizations.of(context)!.unknown,
+                      landing.type!.name ??
+                          landing.type!.abbrev ??
+                          AppLocalizations.of(context)!.unknown,
                     ),
                 ],
                 if (landing.location?.name != null)
-                  _descriptionRow(AppLocalizations.of(context)!.landingLocation, landing.location?.name),
+                  _descriptionRow(AppLocalizations.of(context)!.landingLocation,
+                      landing.location?.name),
                 if (landing.success == true)
-                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess, AppLocalizations.of(context)!.yes)
+                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess,
+                      AppLocalizations.of(context)!.yes)
                 else if (landing.success == false)
-                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess, AppLocalizations.of(context)!.no),
+                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess,
+                      AppLocalizations.of(context)!.no),
               ],
               if (lastUpdated != null)
-                _descriptionRow(
-                    AppLocalizations.of(context)!.lastUpdate, formatDateTimeFriendlyText(context, lastUpdated)),
+                _descriptionRow(AppLocalizations.of(context)!.lastUpdate,
+                    formatDateTimeFriendlyText(context, lastUpdated)),
             ],
           ),
         ],
@@ -429,11 +462,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-    final launchName = widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
-
+    final launchName =
+        widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
     return Scaffold(
-
       appBar: CustomAppBar.create(
         context,
         title: launchName,
@@ -518,7 +550,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // An informative description of the rocket
             if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
-              _rocketConfiguration(context, widget.launch.rocket!.configuration!),
+              _rocketConfiguration(
+                  context, widget.launch.rocket!.configuration!),
             ],
 
             // Info for the upper stage (e.g. Starship number)
@@ -530,7 +563,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // Info for the first stage (e.g. Starship/Falcon booster)
             if ((widget.launch.rocket?.launcherStage ?? []).isNotEmpty) ...[
               const Divider(),
-              ..._launcherStages(context, widget.launch.rocket?.launcherStage ?? []),
+              ..._launcherStages(
+                  context, widget.launch.rocket?.launcherStage ?? []),
             ],
 
             // And a bunch of info about the launch provider
@@ -543,7 +577,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // There are some incomplete pads that we shouldn't render6
-            if (widget.launch.pad != null && widget.launch.pad?.location?.countryCode != "UNK") ...[
+            if (widget.launch.pad != null &&
+                widget.launch.pad?.location?.countryCode != "UNK") ...[
               const Divider(),
               _launchPad(context, widget.launch.pad!),
             ],
@@ -560,15 +595,17 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 }
 
 class LaunchSubscriptionWidget extends StatefulWidget {
-  const LaunchSubscriptionWidget(this.initialValue, this.launchId, this.subscriptionManager, {Key? key})
-      : super(key: key);
+  const LaunchSubscriptionWidget(
+      this.initialValue, this.launchId, this.subscriptionManager,
+      {super.key});
 
   final bool initialValue;
   final String launchId;
   final BackgroundHandler subscriptionManager;
 
   @override
-  _LaunchSubscriptionWidgetState createState() => _LaunchSubscriptionWidgetState();
+  _LaunchSubscriptionWidgetState createState() =>
+      _LaunchSubscriptionWidgetState();
 }
 
 class _LaunchSubscriptionWidgetState extends State<LaunchSubscriptionWidget> {

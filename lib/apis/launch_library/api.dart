@@ -18,9 +18,9 @@ class LaunchLibraryAPI extends APIClient {
     query["format"] = "json";
 
     if (kReleaseMode) {
-      return Uri.https('ll.thespacedevs.com', "/2.2.0" + path, query);
+      return Uri.https('ll.thespacedevs.com', "/2.2.0$path", query);
     }
-    return Uri.https('lldev.thespacedevs.com', "/2.2.0" + path, query);
+    return Uri.https('lldev.thespacedevs.com', "/2.2.0$path", query);
   }
 
   Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches({
@@ -60,7 +60,7 @@ class LaunchLibraryAPI extends APIClient {
     String id, [
     bool preferCache = false,
   ]) async {
-    var uri = _endpoint("/launch/" + id, {});
+    var uri = _endpoint("/launch/$id", {});
 
     var res = await fetchJSON(uri, preferCache);
 

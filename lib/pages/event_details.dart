@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:pinch_zoom_image_last/pinch_zoom_image_last.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
@@ -21,7 +20,7 @@ import 'package:rockit/widgets/launch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsPage extends StatefulWidget {
-  const EventDetailsPage(this.event, {this.heroPrefix = "", Key? key}) : super(key: key);
+  const EventDetailsPage(this.event, {this.heroPrefix = "", super.key});
 
   final Event event;
 
@@ -32,7 +31,13 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage>
-    with UrlLauncher, DateFormatter, SourceAttribution, UpdateRenderer, ProgramRenderer, LinkCopier {
+    with
+        UrlLauncher,
+        DateFormatter,
+        SourceAttribution,
+        UpdateRenderer,
+        ProgramRenderer,
+        LinkCopier {
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
@@ -78,8 +83,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   }
 
   Widget _zoomableImage() {
-    return PinchZoomImage(
-      image: Center(
+    return InteractiveViewer(
+      child: Center(
         child: Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height / 2,
@@ -116,7 +121,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   List<Widget> _renderLaunches(List<Launch> launches) {
     return titledList(
-      launches.length == 1 ? AppLocalizations.of(context)!.launch : AppLocalizations.of(context)!.launches,
+      launches.length == 1
+          ? AppLocalizations.of(context)!.launch
+          : AppLocalizations.of(context)!.launches,
       launches.map((l) {
         return GestureDetector(
           child: LaunchWidget(l),
@@ -134,7 +141,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   List<Widget> _renderSpaceStations(List<Spacestation> stations) {
     return titledList(
-      stations.length == 1 ? AppLocalizations.of(context)!.station : AppLocalizations.of(context)!.stations,
+      stations.length == 1
+          ? AppLocalizations.of(context)!.station
+          : AppLocalizations.of(context)!.stations,
       stations.map(
         (station) {
           // Yes, reusing the article card widget here is a bit weird,
@@ -150,7 +159,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  Widget _openURLButton(IconData icon, String text, bool customTab, String url) {
+  Widget _openURLButton(
+      IconData icon, String text, bool customTab, String url) {
     return OutlinedButton.icon(
       onPressed: () async {
         if (customTab) {
@@ -167,9 +177,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-
- return Scaffold(
-
+    return Scaffold(
       appBar: CustomAppBar.create(
         context,
         title: widget.event.name ?? AppLocalizations.of(context)!.unknownEvent,
@@ -242,15 +250,17 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 }
 
 class EventSubscriptionWidget extends StatefulWidget {
-  const EventSubscriptionWidget(this.initialValue, this.eventId, this.subscriptionManager, {Key? key})
-      : super(key: key);
+  const EventSubscriptionWidget(
+      this.initialValue, this.eventId, this.subscriptionManager,
+      {super.key});
 
   final bool initialValue;
   final String eventId;
   final BackgroundHandler subscriptionManager;
 
   @override
-  _EventSubscriptionWidgetState createState() => _EventSubscriptionWidgetState();
+  _EventSubscriptionWidgetState createState() =>
+      _EventSubscriptionWidgetState();
 }
 
 class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {

@@ -1,5 +1,6 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
@@ -9,7 +10,7 @@ import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 
 class ArticleListingPage extends StatefulWidget {
-  ArticleListingPage({Key? key}) : super(key: key);
+  ArticleListingPage({super.key});
 
   final service = SpaceFlightNewsAPI();
 
@@ -17,7 +18,8 @@ class ArticleListingPage extends StatefulWidget {
   _ArticleListingPageState createState() => _ArticleListingPageState();
 }
 
-class _ArticleListingPageState extends State<ArticleListingPage> with AutomaticKeepAliveClientMixin {
+class _ArticleListingPageState extends State<ArticleListingPage>
+    with AutomaticKeepAliveClientMixin {
   // Make sure this page is cached, else it would reload often when switching between tabs
   @override
   bool get wantKeepAlive => true;
@@ -63,7 +65,8 @@ class _ArticleListingPageState extends State<ArticleListingPage> with AutomaticK
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
-                  child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  child: ErrorWidget(
+                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
                     articlesFuture = load(context, widget.service);
                   }),
@@ -89,7 +92,7 @@ class _ArticleListingPageState extends State<ArticleListingPage> with AutomaticK
 }
 
 class NewsList extends StatefulWidget {
-  const NewsList(this.initialArticles, this.service, {Key? key}) : super(key: key);
+  const NewsList(this.initialArticles, this.service, {super.key});
 
   final List<Article> initialArticles;
   final SpaceFlightNewsAPI service;
@@ -103,7 +106,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   bool _finished = false;
 
   Future<bool> _updateArticles([bool? refresh]) async {
-    var _newArticles = await _ArticleListingPageState.load(
+    var newArticles = await _ArticleListingPageState.load(
       context,
       widget.service,
       refresh == true ? null : articles.length,
@@ -111,16 +114,17 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
 
     setState(() {
       if (refresh == true) {
-        articles = _newArticles;
+        articles = newArticles;
       } else {
         // See upcoming_launches_listing.dart for more info, but in short:
         // This makes sure that cached responses do not lead to duplicate display of content
-        _newArticles.removeWhere((newArticle) => articles.any((article) => article.id == newArticle.id));
+        newArticles.removeWhere((newArticle) =>
+            articles.any((article) => article.id == newArticle.id));
 
-        articles.addAll(_newArticles);
+        articles.addAll(newArticles);
       }
 
-      _finished = _newArticles.isEmpty;
+      _finished = newArticles.isEmpty;
     });
 
     return articles.isNotEmpty;
@@ -154,11 +158,12 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
       child: LoadMore(
         isFinish: _finished,
         onLoadMore: _loadMore,
+        textBuilder: _buildLoadingText,
         child: ListView.builder(
+          scrollCacheExtent:
+              ScrollCacheExtent.pixels(MediaQuery.of(context).size.height * 2),
           physics: const BouncingScrollPhysics(),
           itemCount: articles.length,
-          // We basically pre-compute this much info, that way images are often already there
-          cacheExtent: MediaQuery.of(context).size.height * 2,
           itemBuilder: (BuildContext context, int index) {
             final a = articles[index];
             return ArticleCardWidget(
@@ -171,7 +176,6 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
             );
           },
         ),
-        textBuilder: _buildLoadingText,
       ),
     );
   }

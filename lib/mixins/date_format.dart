@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 class FriendlyDateResult {
@@ -48,7 +48,9 @@ mixin DateFormatter {
     return _formatDate(
       context,
       d,
-      d.year == DateTime.now().year ? localization.currentYearDateFormat : localization.dateFormat,
+      d.year == DateTime.now().year
+          ? localization.currentYearDateFormat
+          : localization.dateFormat,
     );
   }
 
@@ -80,7 +82,8 @@ mixin DateFormatter {
     return formatFriendly(context, d, formatDate).text;
   }
 
-  FriendlyDateResult formatFriendly(BuildContext context, DateTime d, String Function(BuildContext, DateTime) f) {
+  FriendlyDateResult formatFriendly(BuildContext context, DateTime d,
+      String Function(BuildContext, DateTime) f) {
     d = d.toLocal();
     var now = DateTime.now().toLocal();
 

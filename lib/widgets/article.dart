@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -19,8 +19,8 @@ class ArticleCardWidget extends StatefulWidget {
     this.icon,
     this.customTab = true,
     this.fullImage,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final bool customTab;
   final bool? fullImage;
@@ -37,7 +37,8 @@ class ArticleCardWidget extends StatefulWidget {
   _ArticleCardWidgetState createState() => _ArticleCardWidgetState();
 }
 
-class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher, DateFormatter, LinkCopier {
+class _ArticleCardWidgetState extends State<ArticleCardWidget>
+    with UrlLauncher, DateFormatter, LinkCopier {
   bool _isLetter(String letter) {
     final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
     return alpha.hasMatch(letter);
@@ -46,7 +47,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
   String dottedText(String text) {
     var lastLetter = text[text.length - 1];
     if (_isLetter(lastLetter)) {
-      return text + "...";
+      return "$text...";
     }
     return text;
   }
@@ -57,7 +58,9 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: Container(
-          color: background == true ? Theme.of(context).scaffoldBackgroundColor.withOpacity(.75) : null,
+          color: background == true
+              ? Theme.of(context).scaffoldBackgroundColor.withValues(alpha: .75)
+              : null,
           padding: const EdgeInsets.all(4),
           child: Text(
             widget.newsSite!,
@@ -121,7 +124,9 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
           borderRadius: radius,
           child: InkWell(
             borderRadius: radius,
-            onLongPress: widget.link == null ? null : () => copyLink(context, widget.link),
+            onLongPress: widget.link == null
+                ? null
+                : () => copyLink(context, widget.link),
             onTap: () async {
               setState(() {});
               if (widget.link != null) {
@@ -133,7 +138,9 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
               }
             },
             child: Container(
-              margin: (widget.summary ?? "").isEmpty ? const EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
+              margin: (widget.summary ?? "").isEmpty
+                  ? const EdgeInsets.only(bottom: 8)
+                  : EdgeInsets.zero,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -165,7 +172,8 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget> with UrlLauncher,
                   // Show publish date and news site next to each other
                   // If we have an image, the newsSite is rendered on top of it (and thus not needed here).
                   // But if we don't have an image, we still want to display the newsSite
-                  if (widget.publishDate != null || !hasImage && widget.newsSite != null)
+                  if (widget.publishDate != null ||
+                      !hasImage && widget.newsSite != null)
                     Padding(
                       padding: EdgeInsets.only(
                         left: 8,

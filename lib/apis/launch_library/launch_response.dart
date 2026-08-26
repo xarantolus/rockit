@@ -12,7 +12,9 @@ class UpcomingLaunchesResponse {
     count = json["count"];
     next = json["next"];
     previous = json["previous"];
-    results = json["results"] == null ? null : (json["results"] as List).map((e) => Launch.fromJson(e)).toList();
+    results = json["results"] == null
+        ? null
+        : (json["results"] as List).map((e) => Launch.fromJson(e)).toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -110,7 +112,9 @@ class Launch {
     name = json["name"];
     status = json["status"] == null ? null : Status.fromJson(json["status"]);
     lastUpdated = json["last_updated"];
-    updates = json["updates"] == null ? null : (json["updates"] as List).map((e) => Update.fromJson(e)).toList();
+    updates = json["updates"] == null
+        ? null
+        : (json["updates"] as List).map((e) => Update.fromJson(e)).toList();
     net = json["net"];
     windowEnd = json["window_end"];
     windowStart = json["window_start"];
@@ -122,17 +126,23 @@ class Launch {
         ? null
         : LaunchServiceProvider.fromJson(json["launch_service_provider"]);
     rocket = json["rocket"] == null ? null : Rocket.fromJson(json["rocket"]);
-    mission = json["mission"] == null ? null : Mission.fromJson(json["mission"]);
+    mission =
+        json["mission"] == null ? null : Mission.fromJson(json["mission"]);
     pad = json["pad"] == null ? null : Pad.fromJson(json["pad"]);
 
-    infoUrls =
-        (json["infoURLs"] ?? []).isEmpty ? null : (json["infoURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
+    infoUrls = (json["infoURLs"] ?? []).isEmpty
+        ? null
+        : (json["infoURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
 
-    vidUrls = json["vidURLs"] == null ? null : (json["vidURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
+    vidUrls = json["vidURLs"] == null
+        ? null
+        : (json["vidURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
     webcastLive = json["webcast_live"];
     image = json["image"];
     infographic = json["infographic"];
-    program = json["program"] == null ? null : (json["program"] as List).map((e) => Program.fromJson(e)).toList();
+    program = json["program"] == null
+        ? null
+        : (json["program"] as List).map((e) => Program.fromJson(e)).toList();
     orbitalLaunchAttemptCount = json["orbital_launch_attempt_count"];
     locationLaunchAttemptCount = json["location_launch_attempt_count"];
     padLaunchAttemptCount = json["pad_launch_attempt_count"];
@@ -143,7 +153,9 @@ class Launch {
     agencyLaunchAttemptCountYear = json["agency_launch_attempt_count_year"];
     missionPatches = json["mission_patches"] == null
         ? null
-        : (json["mission_patches"] as List).map((e) => MissionPatch.fromJson(e)).toList();
+        : (json["mission_patches"] as List)
+            .map((e) => MissionPatch.fromJson(e))
+            .toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -260,7 +272,19 @@ class Pad {
   String? mapImage;
   int? totalLaunchCount;
 
-  Pad({id, url, agencyId, name, infoUrl, wikiUrl, mapUrl, latitude, longitude, location, mapImage, totalLaunchCount});
+  Pad(
+      {id,
+      url,
+      agencyId,
+      name,
+      infoUrl,
+      wikiUrl,
+      mapUrl,
+      latitude,
+      longitude,
+      location,
+      mapImage,
+      totalLaunchCount});
 
   Pad.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -272,7 +296,8 @@ class Pad {
     mapUrl = json["map_url"];
     latitude = json["latitude"];
     longitude = json["longitude"];
-    location = json["location"] == null ? null : Location.fromJson(json["location"]);
+    location =
+        json["location"] == null ? null : Location.fromJson(json["location"]);
     mapImage = json["map_image"];
     totalLaunchCount = json["total_launch_count"];
   }
@@ -304,7 +329,14 @@ class Location {
   int? totalLaunchCount;
   int? totalLandingCount;
 
-  Location({id, url, name, countryCode, mapImage, totalLaunchCount, totalLandingCount});
+  Location(
+      {id,
+      url,
+      name,
+      countryCode,
+      mapImage,
+      totalLaunchCount,
+      totalLandingCount});
 
   Location.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -393,9 +425,13 @@ class Rocket {
   Rocket.fromJson(Map<String, dynamic> json) {
     launcherStage = json["launcher_stage"] == null
         ? []
-        : (json["launcher_stage"] as List).map((e) => LauncherStage.fromJson(e)).toList();
+        : (json["launcher_stage"] as List)
+            .map((e) => LauncherStage.fromJson(e))
+            .toList();
     id = json["id"];
-    configuration = json["configuration"] == null ? null : Configuration.fromJson(json["configuration"]);
+    configuration = json["configuration"] == null
+        ? null
+        : Configuration.fromJson(json["configuration"]);
     spacecraftStage = json["spacecraft_stage"]?["spacecraft"] == null
         ? null
         : SpaceCraft.fromJson(json["spacecraft_stage"]?["spacecraft"]);
@@ -481,7 +517,9 @@ class Configuration {
     description = json["description"];
     family = json["family"];
     fullName = json["full_name"];
-    manufacturer = json["manufacturer"] == null ? null : Manufacturer.fromJson(json["manufacturer"]);
+    manufacturer = json["manufacturer"] == null
+        ? null
+        : Manufacturer.fromJson(json["manufacturer"]);
     program = json["program"] ?? [];
     variant = json["variant"];
     alias = json["alias"];
@@ -801,7 +839,8 @@ class Update {
     comment = json["comment"];
     infoUrl = json["info_url"];
     createdBy = json["created_by"];
-    createdOn = json["created_on"] == null ? null : DateTime.parse(json["created_on"]);
+    createdOn =
+        json["created_on"] == null ? null : DateTime.parse(json["created_on"]);
   }
 
   Map<String, dynamic> toJson() {
@@ -920,11 +959,17 @@ class LauncherStage {
       type: json["type"],
       reused: json["reused"],
       launcherFlightNumber: json["launcher_flight_number"],
-      launcher: json["launcher"] == null ? null : Launcher.fromJson(json["launcher"]),
-      landing: json["landing"] == null ? null : Landing.fromJson(json["landing"]),
-      previousFlightDate: json["previous_flight_date"] == null ? null : DateTime.parse(json["previous_flight_date"]),
+      launcher:
+          json["launcher"] == null ? null : Launcher.fromJson(json["launcher"]),
+      landing:
+          json["landing"] == null ? null : Landing.fromJson(json["landing"]),
+      previousFlightDate: json["previous_flight_date"] == null
+          ? null
+          : DateTime.parse(json["previous_flight_date"]),
       turnAroundTimeDays: json["turn_around_time_days"],
-      previousFlight: json["previous_flight"] == null ? null : PreviousFlight.fromJson(json["previous_flight"]),
+      previousFlight: json["previous_flight"] == null
+          ? null
+          : PreviousFlight.fromJson(json["previous_flight"]),
     );
   }
 }
@@ -970,7 +1015,9 @@ class Landing {
       attempt: json["attempt"],
       success: json["success"],
       description: json["description"],
-      location: json["location"] == null ? null : LandingLocation.fromJson(json["location"]),
+      location: json["location"] == null
+          ? null
+          : LandingLocation.fromJson(json["location"]),
       type: json["type"] == null ? null : LandingType.fromJson(json["type"]),
     );
   }
@@ -1017,7 +1064,9 @@ class LandingLocation {
       name: json["name"],
       abbrev: json["abbrev"],
       description: json["description"],
-      location: json["location"] == null ? null : LocationLocation.fromJson(json["location"]),
+      location: json["location"] == null
+          ? null
+          : LocationLocation.fromJson(json["location"]),
       successfulLandings: json["successful_landings"],
     );
   }
@@ -1183,8 +1232,12 @@ class Launcher {
       successfulLandings: json["successful_landings"],
       attemptedLandings: json["attempted_landings"],
       flights: json["flights"],
-      lastLaunchDate: json["last_launch_date"] == null ? null : DateTime.parse(json["last_launch_date"]),
-      firstLaunchDate: json["first_launch_date"] == null ? null : DateTime.parse(json["first_launch_date"]),
+      lastLaunchDate: json["last_launch_date"] == null
+          ? null
+          : DateTime.parse(json["last_launch_date"]),
+      firstLaunchDate: json["first_launch_date"] == null
+          ? null
+          : DateTime.parse(json["first_launch_date"]),
     );
   }
 }
@@ -1225,7 +1278,14 @@ class SpaceCraft {
   String? description;
   SpacecraftConfig? spacecraftConfig;
 
-  SpaceCraft({this.id, this.url, this.name, this.serialNumber, this.status, this.description, this.spacecraftConfig});
+  SpaceCraft(
+      {this.id,
+      this.url,
+      this.name,
+      this.serialNumber,
+      this.status,
+      this.description,
+      this.spacecraftConfig});
 
   SpaceCraft.fromJson(Map<String, dynamic> json) {
     if (json["id"] is int) {
@@ -1247,8 +1307,9 @@ class SpaceCraft {
       description = json["description"];
     }
     if (json["spacecraft_config"] is Map) {
-      spacecraftConfig =
-          json["spacecraft_config"] == null ? null : SpacecraftConfig.fromJson(json["spacecraft_config"]);
+      spacecraftConfig = json["spacecraft_config"] == null
+          ? null
+          : SpacecraftConfig.fromJson(json["spacecraft_config"]);
     }
   }
 
@@ -1324,7 +1385,8 @@ class SpacecraftConfig {
       name = json["name"];
     }
     if (json["type"] is Map) {
-      type = json["type"] == null ? null : SpacecraftType.fromJson(json["type"]);
+      type =
+          json["type"] == null ? null : SpacecraftType.fromJson(json["type"]);
     }
     if (json["agency"] is Map) {
       agency = json["agency"] == null ? null : Agency.fromJson(json["agency"]);

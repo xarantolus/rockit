@@ -37,7 +37,8 @@ class APIClient {
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<ErrorDetails<String>> fetch(Uri url, [bool preferCache = false]) async {
+  Future<ErrorDetails<String>> fetch(Uri url,
+      [bool preferCache = false]) async {
     if (preferCache) {
       try {
         var file = await _cacheManager?.getFileFromCache(url.toString());
@@ -75,7 +76,8 @@ class APIClient {
               "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
       });
 
-      debugPrint("Got response for ${url.toString()}: status ${response.statusCode}");
+      debugPrint(
+          "Got response for ${url.toString()}: status ${response.statusCode}");
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw HttpException("Unexpected status code ${response.statusCode}");
@@ -116,7 +118,8 @@ class APIClient {
 
         etype = error_type.cachedFallback;
       } catch (ec) {
-        throw Exception("Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
+        throw Exception(
+            "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
       }
     }
 

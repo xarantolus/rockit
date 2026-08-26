@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 
 // This page is not localized because I wanted to keep the original description from the space devs
 class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
-  const CreditPage({Key? key}) : super(key: key);
+  const CreditPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +22,7 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
     const projectLink = "https://github.com/xarantolus/rockit";
     const twitterBotLink = "https://twitter.com/wenhopbot";
 
-
- return Scaffold(
-
+    return Scaffold(
       appBar: CustomAppBar.create(
         context,
         title: AppLocalizations.of(context)!.sources,

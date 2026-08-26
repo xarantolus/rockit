@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 
 mixin SourceAttribution {
   static final specialHostFuncs = <String, String? Function(BuildContext, Uri)>{
@@ -81,7 +81,8 @@ mixin SourceAttribution {
       if (specialHostFuncs.containsKey(infoHost?.toLowerCase())) {
         final uri = Uri.tryParse(infoURL);
         if (uri != null) {
-          var newText = specialHostFuncs[infoHost!.toLowerCase()]!(context, uri);
+          var newText =
+              specialHostFuncs[infoHost!.toLowerCase()]!(context, uri);
           if (newText != null) {
             infoText = newText;
           }

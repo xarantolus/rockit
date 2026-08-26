@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/widgets/article.dart';
 
@@ -24,7 +24,9 @@ mixin ProgramRenderer {
 
   List<Widget> renderProgramInfo(BuildContext context, List<Program> programs) {
     return titledList(
-      programs.length == 1 ? AppLocalizations.of(context)!.program : AppLocalizations.of(context)!.programs,
+      programs.length == 1
+          ? AppLocalizations.of(context)!.program
+          : AppLocalizations.of(context)!.programs,
       programs.map((program) {
         return ArticleCardWidget(
           title: program.name,

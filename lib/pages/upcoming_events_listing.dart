@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingEventsPage extends StatefulWidget {
-  UpcomingEventsPage({Key? key}) : super(key: key);
+  UpcomingEventsPage({super.key});
 
   final service = LaunchLibraryAPI();
 
@@ -51,7 +51,8 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
 
         var newList = next.results ?? [];
 
-        newList.removeWhere((newEvent) => current.any((event) => newEvent.id == event.id));
+        newList.removeWhere(
+            (newEvent) => current.any((event) => newEvent.id == event.id));
 
         current.addAll(newList);
 

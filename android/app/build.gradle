@@ -30,35 +30,43 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace 'io.github.xarantolus.rockit'
-    compileSdkVersion 34
+    // Follow Flutter, but not below what current plugins require
+    // (permission_handler_android needs 37).
+    compileSdk Math.max(flutter.compileSdkVersion, 37)
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
         coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    def releaseStorePath = keystoreProperties['storeFile'] ?: System.env.X_KEYSTORE_PATH
+
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : file(System.env.X_KEYSTORE_PATH)
-            storePassword keystoreProperties['storePassword']
+            // Only configured when signing material is present, so debug builds
+            // work without a keystore.
+            if (releaseStorePath) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(releaseStorePath)
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
     defaultConfig {
         applicationId "io.github.xarantolus.rockit"
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        minSdk flutter.minSdkVersion
+        targetSdk flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -75,7 +83,7 @@ android {
         release {
             manifestPlaceholders = [ applicationLabel: "Rock It!" ]
 
-            signingConfig signingConfigs.release
+            signingConfig releaseStorePath ? signingConfigs.release : signingConfigs.debug
             shrinkResources true
             minifyEnabled true
         }
@@ -93,5 +101,5 @@ configurations.all {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }

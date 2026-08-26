@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/mixins/attribution.dart';
 import 'package:rockit/mixins/date_format.dart';
@@ -30,7 +30,9 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
     );
 
     return RippleLinkWidget(
-      (u.comment ?? "").isNotEmpty ? u.comment! : AppLocalizations.of(context)!.unknown,
+      (u.comment ?? "").isNotEmpty
+          ? u.comment!
+          : AppLocalizations.of(context)!.unknown,
       bottomRight: date,
       bottomLeft: sourceAttributionText(context, u.infoUrl),
       url: u.infoUrl,

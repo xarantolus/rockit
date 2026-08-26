@@ -2,8 +2,8 @@ import 'dart:core';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:infinite_widgets/infinite_widgets.dart';
+import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/widgets/infinite_grid_view.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/event_details.dart';
@@ -30,14 +30,14 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.refreshOnLeave = false,
     this.scrollOffset,
     this.heroPrefix = "",
-    Key? key,
+    super.key,
   })  : assert(initialItems == null || nextFunc == null),
-        assert(initialItems != null || nextFunc != null),
-        super(key: key);
+        assert(initialItems != null || nextFunc != null);
 
   // Either initialItems OR nextFunc must be given
   final List<I>? initialItems;
-  final Future<NextFuncResult<I, N>> Function(BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
+  final Future<NextFuncResult<I, N>> Function(
+      BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
 
   final N? initialNextItemArg;
 
@@ -49,7 +49,8 @@ class LaunchEventListing<I, N> extends StatefulWidget {
 
   final ValueNotifier<double>? scrollOffset;
 
-  Future<NextFuncResult<I, N>> loadItems(BuildContext context, N? nextItemArg, List<I> current) async {
+  Future<NextFuncResult<I, N>> loadItems(
+      BuildContext context, N? nextItemArg, List<I> current) async {
     if (initialItems != null) {
       return NextFuncResult<I, N>(initialItems!, null);
     }
@@ -57,10 +58,12 @@ class LaunchEventListing<I, N> extends StatefulWidget {
   }
 
   @override
-  State<LaunchEventListing<I, N>> createState() => _LaunchEventListingState<I, N>();
+  State<LaunchEventListing<I, N>> createState() =>
+      _LaunchEventListingState<I, N>();
 }
 
-class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> with AutomaticKeepAliveClientMixin {
+class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -92,7 +95,8 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
             default:
               if (snapshot.hasError) {
                 return GestureDetector(
-                  child: ErrorWidget("${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+                  child: ErrorWidget(
+                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
                   onTap: () => setState(() {
                     ftr = widget.loadItems(context, null, []);
                   }),
@@ -122,9 +126,9 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>> wit
 }
 
 class ItemList<I, N> extends StatefulWidget {
-  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave, this.emptyText, this.heroPrefix,
-      {this.scrollOffset, Key? key})
-      : super(key: key);
+  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave,
+      this.emptyText, this.heroPrefix,
+      {this.scrollOffset, super.key});
 
   final NextFuncResult<I, N> initial;
 
@@ -135,7 +139,8 @@ class ItemList<I, N> extends StatefulWidget {
 
   final ValueNotifier<double>? scrollOffset;
 
-  final Future<NextFuncResult<I, N>> Function(BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
+  final Future<NextFuncResult<I, N>> Function(
+      BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
 
   @override
   State<ItemList<I, N>> createState() => _ItemListState<I, N>();
@@ -147,7 +152,8 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
   bool _currentlyLoading = false;
 
-  late ScrollController listController = ScrollController(initialScrollOffset: widget.scrollOffset?.value ?? 0);
+  late ScrollController listController =
+      ScrollController(initialScrollOffset: widget.scrollOffset?.value ?? 0);
 
   Future<bool> _updateItems([bool? refresh]) async {
     if (_currentlyLoading) {
@@ -158,18 +164,18 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     Object? error;
 
     try {
-      var _nextURL = refresh == true ? null : nextItemArg;
+      var nextURL = refresh == true ? null : nextItemArg;
 
-      var _newItems = await widget.nextFunc!(
+      var newItems = await widget.nextFunc!(
         context,
-        _nextURL,
+        nextURL,
         refresh == true ? [] : items,
       );
 
       setState(() {
         // Refresh? => replace
-        items = _newItems.items;
-        nextItemArg = _newItems.nextArg;
+        items = newItems.items;
+        nextItemArg = newItems.nextArg;
       });
     } catch (e) {
       error = e;
@@ -199,7 +205,9 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
   }
 
   void _openItemDetails(BuildContext context, int index) async {
-    double? initialListHeight = listController.hasClients ? listController.position.maxScrollExtent : null;
+    double? initialListHeight = listController.hasClients
+        ? listController.position.maxScrollExtent
+        : null;
     void scrollToIndex(int idx, {bool animated = false}) {
       // The try is there because MediaQuery is not always available
       try {
@@ -208,13 +216,15 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
         final wheight = LaunchEventWidget.calculateHeight(context);
         bool isLandscape = false;
         try {
-          isLandscape = MediaQuery.maybeOf(context)?.orientation == Orientation.landscape;
+          isLandscape =
+              MediaQuery.maybeOf(context)?.orientation == Orientation.landscape;
         } catch (_) {}
 
         // Basically get the offset of the item that's at the given idx.
         final targetOffset = min(
           max(
-            wheight * (isLandscape ? idx / 2 : idx) - (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
+            wheight * (isLandscape ? idx / 2 : idx) -
+                (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
             0.0,
           ),
           // Do not scroll further than the list height.
@@ -263,11 +273,14 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
                   return null;
                 }
                 if (items[idx] is Launch) {
-                  return LaunchDetailsPage(items[idx] as Launch, heroPrefix: widget.heroPrefix);
+                  return LaunchDetailsPage(items[idx] as Launch,
+                      heroPrefix: widget.heroPrefix);
                 } else if (items[idx] is Event) {
-                  return EventDetailsPage(items[idx] as Event, heroPrefix: widget.heroPrefix);
+                  return EventDetailsPage(items[idx] as Event,
+                      heroPrefix: widget.heroPrefix);
                 } else {
-                  throw Exception("Invalid data type ${items[idx].runtimeType} in launch/event pageview");
+                  throw Exception(
+                      "Invalid data type ${items[idx].runtimeType} in launch/event pageview");
                 }
               },
             ),
@@ -305,7 +318,8 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
     final grid = InfiniteGridView(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
+        crossAxisCount:
+            MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
         mainAxisExtent: LaunchEventWidget.calculateHeight(context),
       ),
       hasNext: nextItemArg != null,
@@ -324,11 +338,14 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
         }
         final Widget childWidget;
         if (items[index] is Launch) {
-          childWidget = LaunchWidget(items[index] as Launch, heroPrefix: widget.heroPrefix);
+          childWidget = LaunchWidget(items[index] as Launch,
+              heroPrefix: widget.heroPrefix);
         } else if (items[index] is Event) {
-          childWidget = EventWidget(items[index] as Event, heroPrefix: widget.heroPrefix);
+          childWidget =
+              EventWidget(items[index] as Event, heroPrefix: widget.heroPrefix);
         } else {
-          throw Exception("Invalid data type ${items[index].runtimeType} in launch/event listing");
+          throw Exception(
+              "Invalid data type ${items[index].runtimeType} in launch/event listing");
         }
         return GestureDetector(
           child: childWidget,

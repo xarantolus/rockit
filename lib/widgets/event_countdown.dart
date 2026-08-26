@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/time_diff.dart';
 
 class EventCountDownWidget extends StatefulWidget {
-  const EventCountDownWidget(this.event, {Key? key}) : super(key: key);
+  const EventCountDownWidget(this.event, {super.key});
 
   final Event event;
 
@@ -15,7 +15,8 @@ class EventCountDownWidget extends StatefulWidget {
   _EventCountDownWidgetState createState() => _EventCountDownWidgetState();
 }
 
-class _EventCountDownWidgetState extends State<EventCountDownWidget> with DateFormatter, TimeDiff {
+class _EventCountDownWidgetState extends State<EventCountDownWidget>
+    with DateFormatter, TimeDiff {
   late Timer _timer;
 
   @override
@@ -51,8 +52,9 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget> with DateFo
         date.toLocal(),
       );
 
-      textAbove =
-          formattedDate.isFriendly ? AppLocalizations.of(context)!.eventWas : AppLocalizations.of(context)!.eventWasOn;
+      textAbove = formattedDate.isFriendly
+          ? AppLocalizations.of(context)!.eventWas
+          : AppLocalizations.of(context)!.eventWasOn;
 
       dateText = formattedDate.text;
 

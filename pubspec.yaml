@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.6.0+23
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.4.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,22 +32,20 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  http: ^0.13.4
-  intl: ^0.19.0
+  http: ^1.6.0
+  intl: ^0.20.3
   cached_network_image: ^3.1.0
   loadmore: ^2.0.1
-  pinch_zoom_image_last: ^0.4.1
-  flutter_custom_tabs: ^1.0.3
+  flutter_custom_tabs: ^2.6.0
   url_launcher: ^6.0.12
-  package_info_plus: ^8.0.2
+  package_info_plus: ^10.2.1
   flutter_cache_manager: ^3.1.2
-  workmanager: ^0.5.2
+  workmanager: ^0.10.9
   shared_preferences: ^2.0.8
-  flutter_local_notifications: ^17.2.2
-  timezone: ^0.9.0
-  infinite_widgets: ^2.0.0
-  rive: ^0.8.1
-  permission_handler: ^11.3.1
+  flutter_local_notifications: ^22.3.0
+  timezone: ^0.11.1
+  rive: ^0.13.20
+  permission_handler: ^13.0.1
 
 dev_dependencies:
   flutter_test:
@@ -58,7 +56,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^1.0.0
+  flutter_lints: ^6.0.0
 
   test: ^1.17.10
 

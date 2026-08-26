@@ -16,11 +16,14 @@ void backgroundTaskCallback() {
   // Overwrite debug print logic
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    oldDebugPrint("xarantolus${kDebugMode ? '.debug' : ''}.rockit: " + (message ?? "No message"), wrapWidth: wrapWidth);
+    oldDebugPrint(
+        "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
+        wrapWidth: wrapWidth);
   };
 
   Workmanager().executeTask((task, inputData) async {
-    var handler = BackgroundHandler.withNotifications(await NotificationHandler.create());
+    var handler =
+        BackgroundHandler.withNotifications(await NotificationHandler.create());
 
     return await handler.callback(task, inputData);
   });
@@ -54,7 +57,8 @@ class BackgroundHandler {
       throw Exception("BackgroundHandler() initialized when instance was null");
     }
     if (instance!.notifications == null) {
-      throw Exception("BackgroundHandler() initialized when instance notification plugin was null");
+      throw Exception(
+          "BackgroundHandler() initialized when instance notification plugin was null");
     }
     return instance!;
   }
@@ -75,7 +79,8 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Rocket Launch Notifications',
         'Rocket Launch Notifications',
-        channelDescription: 'Notifications for rocket launches, e.g. when a launch is about to happen.',
+        channelDescription:
+            'Notifications for rocket launches, e.g. when a launch is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -107,7 +112,8 @@ class BackgroundHandler {
         case periodicEventUpdateTaskName:
           return await handleEventUpdatePeriodic(inputData);
         default:
-          throw FormatException("Expected task name to be for event or update, but got \"$task\"");
+          throw FormatException(
+              "Expected task name to be for event or update, but got \"$task\"");
       }
     } catch (err) {
       debugPrint("Error in scheduled task: $err");
@@ -159,7 +165,8 @@ class BackgroundHandler {
     return "update:$type:lastupdate:$id";
   }
 
-  Future<bool> handleLaunchUpdatePeriodic(Map<String, dynamic>? inputData) async {
+  Future<bool> handleLaunchUpdatePeriodic(
+      Map<String, dynamic>? inputData) async {
     // At first, we load the associated launch
     final launchId = inputData!["launchId"]!;
 
@@ -196,17 +203,19 @@ class BackgroundHandler {
             continue;
           }
 
-          if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
+          if (update.createdOn!.isAfter(lastUpdateTime) &&
+              (update.comment ?? "").isNotEmpty) {
             await notifications!.show(
-              update.id ?? (update.hashCode.abs()),
-              launchTitle,
-              update.comment ?? "No info",
-              _getLaunchUpdateNotifDetails(launchId),
+              id: update.id ?? (update.hashCode.abs()),
+              title: launchTitle,
+              body: update.comment ?? "No info",
+              notificationDetails: _getLaunchUpdateNotifDetails(launchId),
               payload: "$actionLaunchDetails::$launchId",
             );
           }
 
-          if (oldestUpdateTime == null || update.createdOn!.isAfter(oldestUpdateTime)) {
+          if (oldestUpdateTime == null ||
+              update.createdOn!.isAfter(oldestUpdateTime)) {
             oldestUpdateTime = update.createdOn!;
           }
         }
@@ -248,22 +257,22 @@ class BackgroundHandler {
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifications!.cancel(notifID, tag: tag);
+        await notifications!.cancel(id: notifID, tag: tag);
       } catch (err) {
         debugPrint("Error cancelling launch notification $notifID: $err");
       }
 
       await notifications!.zonedSchedule(
-        notifID,
-        launchTitle,
-        "This launch will be in ${notificationSettings[i].displayed}",
-        notifTime,
-        _getLaunchNotifDetails(tag),
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true,
+        id: notifID,
+        title: launchTitle,
+        body: "This launch will be in ${notificationSettings[i].displayed}",
+        scheduledDate: notifTime,
+        notificationDetails: _getLaunchNotifDetails(tag),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: "$actionLaunchDetails::$launchId",
       );
-      debugPrint("Scheduled notification for event '$launchTitle' for $notifTime");
+      debugPrint(
+          "Scheduled notification for event '$launchTitle' for $notifTime");
     }
 
     return true;
@@ -329,7 +338,7 @@ class BackgroundHandler {
       inputData: {
         "launchId": launchId,
       },
-      existingWorkPolicy: ExistingWorkPolicy.replace,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
       constraints: _periodicTaskConstraints,
     );
   }
@@ -349,7 +358,8 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Event Notifications',
         'Event Notifications',
-        channelDescription: 'Notifications for Events, e.g. when a space walk is about to happen.',
+        channelDescription:
+            'Notifications for Events, e.g. when a space walk is about to happen.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -362,7 +372,8 @@ class BackgroundHandler {
       android: AndroidNotificationDetails(
         'Event Updates',
         'Event Updates',
-        channelDescription: 'Notifications when events are updated, e.g. when a space walk is delayed.',
+        channelDescription:
+            'Notifications when events are updated, e.g. when a space walk is delayed.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
@@ -419,12 +430,13 @@ class BackgroundHandler {
       inputData: {
         "eventId": eventId,
       },
-      existingWorkPolicy: ExistingWorkPolicy.replace,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
       constraints: _periodicTaskConstraints,
     );
   }
 
-  Future<bool> handleEventUpdatePeriodic(Map<String, dynamic>? inputData) async {
+  Future<bool> handleEventUpdatePeriodic(
+      Map<String, dynamic>? inputData) async {
     // Adding this offset prevents notifications having the same id (as those of the launch notification)
     const eventNotifIDOffset = 0x0F000000;
 
@@ -464,17 +476,19 @@ class BackgroundHandler {
             continue;
           }
 
-          if (update.createdOn!.isAfter(lastUpdateTime) && (update.comment ?? "").isNotEmpty) {
+          if (update.createdOn!.isAfter(lastUpdateTime) &&
+              (update.comment ?? "").isNotEmpty) {
             await notifications!.show(
-              update.id ?? update.hashCode,
-              eventTitle,
-              update.comment ?? "No info",
-              _getEventUpdateNotifDetails(eventId),
+              id: update.id ?? update.hashCode,
+              title: eventTitle,
+              body: update.comment ?? "No info",
+              notificationDetails: _getEventUpdateNotifDetails(eventId),
               payload: "$actionEventDetails::$eventId",
             );
           }
 
-          if (oldestUpdateTime == null || update.createdOn!.isAfter(oldestUpdateTime)) {
+          if (oldestUpdateTime == null ||
+              update.createdOn!.isAfter(oldestUpdateTime)) {
             oldestUpdateTime = update.createdOn!;
           }
         }
@@ -513,26 +527,28 @@ class BackgroundHandler {
         continue;
       }
 
-      final notifID = eventNotifIDOffset + (notificationSettings.length * event.id).abs() + i;
+      final notifID = eventNotifIDOffset +
+          (notificationSettings.length * event.id).abs() +
+          i;
 
       // Cancel the previously scheduled notification (if possible)
       try {
-        await notifications!.cancel(notifID, tag: tag);
+        await notifications!.cancel(id: notifID, tag: tag);
       } catch (err) {
         debugPrint("Error cancelling event notification $notifID: $err");
       }
 
       await notifications!.zonedSchedule(
-        notifID,
-        eventTitle,
-        "This event will be in ${notificationSettings[i].displayed}",
-        notifTime,
-        _getEventNotifDetails(tag),
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true,
+        id: notifID,
+        title: eventTitle,
+        body: "This event will be in ${notificationSettings[i].displayed}",
+        scheduledDate: notifTime,
+        notificationDetails: _getEventNotifDetails(tag),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: "$actionEventDetails::$eventId",
       );
-      debugPrint("Scheduled notification for event '$eventTitle' for $notifTime");
+      debugPrint(
+          "Scheduled notification for event '$eventTitle' for $notifTime");
     }
 
     return true;
