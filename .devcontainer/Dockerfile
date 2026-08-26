@@ -76,6 +76,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update && apt-get install -y --no-install-recommends gh jq
 
+# Container marker podman doesn't create. Flutter checks it to skip its
+# "running as root" warning, which doesn't apply in a container.
+RUN touch /.dockerenv
+
 ENV CLAUDE_CONFIG_DIR=/root/.claude
 ENV GRADLE_USER_HOME=/root/.gradle
 ENV PUB_CACHE=/root/.pub-cache

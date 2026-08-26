@@ -30,7 +30,12 @@ VS Code: "Reopen in Container". Otherwise:
 
 The container runs as **root**; with rootless podman the default mapping keeps
 files owned by your host user. It deliberately avoids `--userns=keep-id`, which
-fails at create on some podman stores.
+fails at create on some podman stores, and would otherwise run as a UID that
+does not own `/root` or the cache volumes.
+
+Flutter's "running as root" warning is suppressed by the `/.dockerenv` marker
+the image creates — podman doesn't add it, and Flutter uses it to detect that
+root is expected here.
 
 ## Persistence
 
