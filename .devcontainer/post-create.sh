@@ -17,6 +17,12 @@ if command -v claude >/dev/null 2>&1 && command -v android-docs-mcp >/dev/null 2
         claude mcp add android-docs --scope user -- android-docs-mcp || true
 fi
 
+# Drives the emulator over MCP; needs a booted device (.devcontainer/emulator.sh).
+if command -v claude >/dev/null 2>&1 && command -v mcp-server-mobile >/dev/null 2>&1; then
+    claude mcp list 2>/dev/null | grep -q '^mobile' || \
+        claude mcp add mobile --scope user -- mcp-server-mobile || true
+fi
+
 flutter --version
 flutter pub get || echo "==> 'flutter pub get' failed"
 

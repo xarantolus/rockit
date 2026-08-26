@@ -20,10 +20,23 @@ args=(
   -v "$PWD":"$REPO":Z
   -v "${NAME}-gradle":/root/.gradle
   -v "${NAME}-pub":/root/.pub-cache
+  -v "${NAME}-avd":/root/.android
   -e CLAUDE_CONFIG_DIR=/root/.claude
   --mount "type=bind,source=$CLAUDE_STATE,target=/root/.claude,consistency=cached"
   -w "$REPO"
 )
+# Emulator needs KVM. A shell started before you joined the kvm group won't have
+# it, so re-exec through sg to pick it up.
+if [ -e /dev/kvm ]; then
+  if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+    if id -nG | grep -qw kvm || ! getent group kvm | grep -qw "$(id -un)"; then
+      echo "warning: /dev/kvm not accessible; the emulator will not start" >&2
+    else
+      exec sg kvm -c "$(printf '%q ' "$0" "$@")"
+    fi
+  fi
+  args+=(--device /dev/kvm --group-add keep-groups)
+fi
 if [ -d /dev/bus/usb ]; then
   args+=(--cap-add SYS_RAWIO --cap-add CAP_MKNOD --device /dev/bus/usb:/dev/bus/usb)
 fi

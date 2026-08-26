@@ -46,6 +46,22 @@ root is expected here.
 - Gradle (`/root/.gradle`) and pub (`/root/.pub-cache`) caches live on named
   volumes.
 
+## Emulator
+
+The image ships a headless x86_64 AVD (`rockit`, android-36) and the
+`mobile-mcp` server. Start the device, then interact with it over MCP or adb:
+
+```sh
+.devcontainer/emulator.sh start
+adb install -r build/app/outputs/flutter-apk/app-debug.apk
+adb exec-out screencap -p > shot.png
+.devcontainer/emulator.sh stop
+```
+
+This needs `/dev/kvm` inside the container, which `run-container.sh` passes
+through when the host user can open it (join the `kvm` group if not). AVDs are
+stored on a volume so extra API levels persist.
+
 ## Building the app
 
 ```sh

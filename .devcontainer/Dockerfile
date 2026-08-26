@@ -8,6 +8,8 @@ ARG ANDROID_CMDLINE_TOOLS=16111833
 # Platforms now carry a minor version; "android-37" alone does not exist.
 ARG ANDROID_PLATFORMS="platforms;android-37.0 platforms;android-36 platforms;android-34"
 ARG ANDROID_BUILD_TOOLS="build-tools;37.0.0 build-tools;36.0.0 build-tools;34.0.0"
+ARG ANDROID_SYSTEM_IMAGE="system-images;android-36;google_apis;x86_64"
+ARG AVD_NAME=rockit
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
@@ -75,6 +77,21 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && echo "deb [signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
         > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update && apt-get install -y --no-install-recommends gh jq
+
+# Headless emulator. Needs /dev/kvm passed into the container; see
+# .devcontainer/emulator.sh.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get install -y --no-install-recommends \
+        libpulse0 libnss3 libxcomposite1 libxcursor1 libxdamage1 libxi6 \
+        libxtst6 libasound2t64 libgl1 libx11-xcb1 libxfixes3 libxrandr2 \
+        libdrm2 libgbm1 xz-utils
+RUN sdkmanager --install "emulator" "${ANDROID_SYSTEM_IMAGE}" > /dev/null \
+    && echo no | avdmanager create avd -n "${AVD_NAME}" -k "${ANDROID_SYSTEM_IMAGE}" -d pixel_6 --force
+ENV PATH=${PATH}:${ANDROID_HOME}/emulator
+
+# Drives the emulator (tap, type, screenshot) over MCP. Pinned.
+RUN npm install -g @mobilenext/mobile-mcp@1.0.2
 
 # Container marker podman doesn't create. Flutter checks it to skip its
 # "running as root" warning, which doesn't apply in a container.
