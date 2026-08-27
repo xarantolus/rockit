@@ -41,6 +41,8 @@ jobs:
             echo "APP_VERSION=$(yq eval .version pubspec.yaml | cut -d+ -f1)" >> $GITHUB_ENV
             echo "COMMIT_MESSAGE=$(git log -n 1 --oneline | cut -d' ' -f2- -)" >> $GITHUB_ENV
             echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+            # Artifact names cannot contain a slash, branch names can.
+            echo "SAFE_REF=${GITHUB_REF_NAME//\//-}" >> $GITHUB_ENV
 
       - name: Set up signing config
         env:
@@ -66,7 +68,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rockit-apk-${{ env.APP_VERSION }}-${{ github.ref_name }}-${{ github.sha }}
+          name: rockit-apk-${{ env.APP_VERSION }}-${{ env.SAFE_REF }}-${{ github.sha }}
           path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
           retention-days: 30
