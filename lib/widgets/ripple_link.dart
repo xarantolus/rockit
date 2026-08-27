@@ -64,7 +64,11 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget>
               ],
             ],
           ),
-          visualDensity: VisualDensity.comfortable,
+          // The enclosing DetailCard already pads the card edge, and a
+          // ListTile's default 16 on top of that pushed every update well
+          // into the middle of the card.
+          contentPadding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
         ),
       ),
     );

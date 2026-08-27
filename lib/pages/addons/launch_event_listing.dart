@@ -292,12 +292,18 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       try {
         // Scroll the list view to the currently viewed launch. If the user now leaves this view
         // the list will have scrolled to the last viewed item, which is nice
-        final wheight = LaunchEventWidget.calculateHeight(context);
         bool isLandscape = false;
         try {
           isLandscape =
               MediaQuery.maybeOf(context)?.orientation == Orientation.landscape;
         } catch (_) {}
+
+        // The card sizes off its own width, so a two-column landscape grid
+        // gets shorter cards — the offset maths has to use the same number.
+        final wheight = LaunchEventWidget.calculateHeight(
+          context,
+          columns: isLandscape ? 2 : 1,
+        );
 
         // Basically get the offset of the item that's at the given idx.
         final targetOffset = min(
@@ -396,11 +402,17 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       return Center(child: Text(widget.emptyText));
     }
 
+    final columns = MediaQuery.of(context).orientation == Orientation.landscape
+        ? 2
+        : 1;
+
     final grid = InfiniteGridView(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount:
-            MediaQuery.of(context).orientation == Orientation.landscape ? 2 : 1,
-        mainAxisExtent: LaunchEventWidget.calculateHeight(context),
+        crossAxisCount: columns,
+        mainAxisExtent: LaunchEventWidget.calculateHeight(
+          context,
+          columns: columns,
+        ),
       ),
       hasNext: nextItemArg != null,
       nextData: _loadMore,

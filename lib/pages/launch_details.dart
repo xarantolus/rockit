@@ -167,6 +167,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       }
     }
 
+    // Nothing to say. This used to render "Unknown" under "Unknown", which is
+    // how an unnamed spacecraft stage ended up at the bottom of every rocket.
+    if ((title ?? "").isEmpty &&
+        (description ?? "").isEmpty &&
+        (imageURL ?? "").isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final imageWidget = imageURL == null ? null : ImageWidget(imageURL);
 
     return Material(
@@ -180,11 +188,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              if (showTitle)
+              if (showTitle && (title ?? "").isNotEmpty)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    title ?? AppLocalizations.of(context)!.unknown,
+                    title!,
                     style: titleStyle,
                     textAlign: TextAlign.center,
                   ),
@@ -192,17 +200,16 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               if (imageURL != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
+                  // A flat cap, not a fraction of the screen height: these
+                  // are logos and diagrams, and they do not get more
+                  // informative on a taller phone.
                   constraints: shrinkImage
-                      ? BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height / 5,
-                        )
+                      ? const BoxConstraints(maxHeight: 200)
                       : null,
                   child: imageWidget,
                 ),
-              Text(
-                description ?? AppLocalizations.of(context)!.unknown,
-                style: textStyle,
-              ),
+              if ((description ?? "").isNotEmpty)
+                Text(description!, style: textStyle),
             ],
           ),
         ),

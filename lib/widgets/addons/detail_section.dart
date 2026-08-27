@@ -139,9 +139,12 @@ class DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 132,
+            width: 128,
             child: Text(label, style: TextStyle(fontSize: 13.5, color: muted)),
           ),
+          // A long label ("Launch window start") otherwise runs straight into
+          // its value with nothing between them.
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,

@@ -41,20 +41,41 @@ class LaunchEventWidget extends StatefulWidget {
   final DateTime? date;
   final DatePrecision? precision;
 
-  static double _getHeight(BuildContext context) {
+  /// The photos are a mix of 16:9 and 3:2, so there is no ratio that crops
+  /// nothing. 3:2 keeps the image the largest thing on the card.
+  static const aspectRatio = 3 / 2;
+
+  /// Past this the card stops growing and the photo crops instead, so a wide
+  /// window does not show one enormous card.
+  static const maxHeight = 360.0;
+
+  static const margin = EdgeInsets.fromLTRB(10, 6, 10, 6);
+
+  static double _getWidth(BuildContext context) {
     try {
-      return MediaQuery.of(context).size.height;
+      return MediaQuery.of(context).size.width;
     } catch (_) {}
 
     final view = PlatformDispatcher.instance.implicitView;
     if (view == null) {
       return 0;
     }
-    return view.physicalSize.height / view.devicePixelRatio;
+    return view.physicalSize.width / view.devicePixelRatio;
   }
 
-  static double calculateHeight(BuildContext context) {
-    return max(_getHeight(context) / 3, 250);
+  /// How tall the card is when it has [availableWidth] to fill.
+  ///
+  /// Its own width, deliberately: this used to be a third of the *screen
+  /// height*, so the same card grew taller on every taller device until a 20:9
+  /// phone showed one card per screen and a short one showed three.
+  static double heightForWidth(double availableWidth) {
+    final cardWidth = max(availableWidth - margin.horizontal, 0.0);
+
+    return min(cardWidth / aspectRatio, maxHeight) + margin.vertical;
+  }
+
+  static double calculateHeight(BuildContext context, {int columns = 1}) {
+    return heightForWidth(_getWidth(context) / max(columns, 1));
   }
 
   @override
@@ -132,33 +153,45 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: LaunchEventWidget.calculateHeight(context),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14.0),
-        ),
-        elevation: 2,
-        margin: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ImageWidget(
-              _imageUrl(context),
-              heroTag: widget.heroTag,
-              id: widget.heroId,
+    // LayoutBuilder rather than the screen width: in a landscape grid the card
+    // only gets half of it, and the card should size to what it actually has.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : LaunchEventWidget._getWidth(context);
+
+        return SizedBox(
+          height: LaunchEventWidget.heightForWidth(available),
+          child: _card(context),
+        );
+      },
+    );
+  }
+
+  Widget _card(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.0)),
+      elevation: 2,
+      margin: LaunchEventWidget.margin,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageWidget(
+            _imageUrl(context),
+            heroTag: widget.heroTag,
+            id: widget.heroId,
+          ),
+          Positioned.fill(child: _scrim()),
+          Align(alignment: Alignment.bottomLeft, child: _info(context)),
+          if (widget.status != null)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: StatusPill(widget.status, compact: true),
             ),
-            Positioned.fill(child: _scrim()),
-            Align(alignment: Alignment.bottomLeft, child: _info(context)),
-            if (widget.status != null)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: StatusPill(widget.status, compact: true),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }

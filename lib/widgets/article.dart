@@ -5,6 +5,7 @@ import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/image.dart';
 
 class ArticleCardWidget extends StatefulWidget {
@@ -101,9 +102,22 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
       return imageStack;
     }
 
-    return SizedBox(
-      height: max(MediaQuery.of(context).size.height / 3, 200),
-      child: imageStack,
+    // Sized off the card's own width, like the listing cards: a fraction of
+    // the screen height made the same card taller on every taller device.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.of(context).size.width;
+
+        return SizedBox(
+          height: min(
+            width / LaunchEventWidget.aspectRatio,
+            LaunchEventWidget.maxHeight,
+          ),
+          child: imageStack,
+        );
+      },
     );
   }
 
