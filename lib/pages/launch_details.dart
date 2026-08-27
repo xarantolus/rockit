@@ -1,5 +1,3 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
@@ -14,6 +12,7 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
+import 'package:rockit/widgets/addons/launch_timeline.dart';
 import 'package:rockit/util/ordinal.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
@@ -35,6 +34,17 @@ class LaunchDetailsPage extends StatefulWidget {
   /// Set when the user arrived from an update notification, so the page opens
   /// on the update they were told about instead of the top of the mission.
   final bool openUpdates;
+
+  /// Patches that actually have artwork.
+  ///
+  /// The API sometimes lists a patch with no image, and rendering is filtered
+  /// on that — so the section's count has to be filtered the same way, or it
+  /// advertises "1" and expands to nothing.
+  static List<MissionPatch> renderablePatches(List<MissionPatch> all) {
+    return all
+        .where((patch) => (patch.image?.imageUrl ?? "").isNotEmpty)
+        .toList();
+  }
 
   @override
   State<LaunchDetailsPage> createState() => _LaunchDetailsPageState();
@@ -171,26 +181,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
-    final importantPatches = l.where(
-      (element) => (element.image?.imageUrl ?? "").isNotEmpty,
-    );
-    if (importantPatches.isEmpty) {
-      return List.empty();
-    }
-
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(
-          l.length == 1
-              ? AppLocalizations.of(context)!.missionPatch
-              : AppLocalizations.of(context)!.missionPatches,
-          style: titleStyle,
-        ),
-      ),
-      ...importantPatches.map((e) => _missionPatch(context, e, l.length == 1)),
-    ];
+  List<Widget> _missionPatchCards(
+    BuildContext context,
+    List<MissionPatch> patches,
+  ) {
+    return patches
+        .map((e) => _missionPatch(context, e, patches.length == 1))
+        .toList();
   }
 
   Widget _missionPatch(
@@ -265,10 +262,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
-            child: Text(AppLocalizations.of(context)!.info, style: titleStyle),
-          ),
           Table(
             border: TableBorder(
               horizontalInside: BorderSide(
@@ -671,50 +664,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return parts.isEmpty ? null : parts.join(", ");
   }
 
-  /// The countdown milestones, when the API has them — only about one launch in
-  /// eight does.
-  Widget _timeline(BuildContext context, List<TimelineEvent> events) {
-    String offset(Duration d) {
-      final abs = d.abs();
-      final sign = d.isNegative ? "T-" : "T+";
-      if (abs.inHours > 0) {
-        return "$sign${abs.inHours}h ${abs.inMinutes.remainder(60)}m";
-      }
-      if (abs.inMinutes > 0) {
-        return "$sign${abs.inMinutes}m ${abs.inSeconds.remainder(60)}s";
-      }
-      return "$sign${abs.inSeconds}s";
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: events.map((e) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 84,
-                  child: Text(
-                    e.relativeTime == null ? "" : offset(e.relativeTime!),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ),
-                Expanded(child: Text(e.type ?? e.description ?? "")),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _subscription(String launchId) {
     final subscriptionManager = BackgroundHandler();
 
@@ -739,6 +688,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   Widget build(BuildContext context) {
     final launchName =
         widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
+
+    final patches = LaunchDetailsPage.renderablePatches(
+      widget.launch.missionPatches,
+    );
 
     return Scaffold(
       appBar: CustomAppBar.create(context, title: launchName),
@@ -831,7 +784,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               DetailSection(
                 title: AppLocalizations.of(context)!.timeline,
                 count: widget.launch.timeline.length,
-                child: _timeline(context, widget.launch.timeline),
+                child: LaunchTimeline(
+                  events: widget.launch.timeline,
+                  net: widget.launch.net,
+                  precision: widget.launch.netPrecision,
+                ),
               ),
 
             if (widget.launch.updates.isNotEmpty)
@@ -842,11 +799,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 preview: widget.launch.updates.first.comment,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderUpdateList(
-                    context,
-                    titleStyle,
-                    widget.launch.updates,
-                  ),
+                  children: renderUpdateList(context, widget.launch.updates),
                 ),
               ),
 
@@ -883,16 +836,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 ),
               ),
 
-            if (widget.launch.missionPatches.isNotEmpty)
+            if (patches.isNotEmpty)
               DetailSection(
-                title: AppLocalizations.of(context)!.missionPatches,
-                count: widget.launch.missionPatches.length,
+                title: patches.length == 1
+                    ? AppLocalizations.of(context)!.missionPatch
+                    : AppLocalizations.of(context)!.missionPatches,
+                count: patches.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _missionPatches(
-                    context,
-                    widget.launch.missionPatches,
-                  ),
+                  children: _missionPatchCards(context, patches),
                 ),
               ),
 

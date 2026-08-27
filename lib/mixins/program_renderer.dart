@@ -1,38 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/widgets/article.dart';
 
 mixin ProgramRenderer {
-  static const titleStyle = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-  );
-
-  List<Widget> titledList(String title, Iterable<Widget> widgets) {
-    return [
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(title, style: titleStyle),
-      ),
-      ...widgets,
-    ];
-  }
-
+  /// See [UpdateRenderer.renderUpdateList] — the caller's section supplies the
+  /// heading, so these return only the entries.
   List<Widget> renderProgramInfo(BuildContext context, List<Program> programs) {
-    return titledList(
-      programs.length == 1
-          ? AppLocalizations.of(context)!.program
-          : AppLocalizations.of(context)!.programs,
-      programs.map((program) {
-        return ArticleCardWidget(
-          title: program.name,
-          summary: program.description,
-          imageUrl: program.image?.imageUrl,
-          link: program.infoUrl ?? program.wikiUrl,
-          fullImage: true,
-        );
-      }),
-    );
+    return programs
+        .map(
+          (program) => ArticleCardWidget(
+            title: program.name,
+            summary: program.description,
+            imageUrl: program.image?.imageUrl,
+            link: program.infoUrl ?? program.wikiUrl,
+            fullImage: true,
+          ),
+        )
+        .toList();
   }
 }

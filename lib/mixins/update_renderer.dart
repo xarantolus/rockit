@@ -6,18 +6,11 @@ import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/widgets/ripple_link.dart';
 
 mixin UpdateRenderer on DateFormatter, SourceAttribution {
-  List<Widget> renderUpdateList(
-    BuildContext context,
-    TextStyle titleStyle,
-    List<Update> updates,
-  ) {
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(AppLocalizations.of(context)!.updates, style: titleStyle),
-      ),
-      ...updates.map((e) => _update(context, e)),
-    ];
+  /// Just the entries. The enclosing section already carries the heading, and
+  /// a second one inside it was both redundant and indented differently to
+  /// everything around it.
+  List<Widget> renderUpdateList(BuildContext context, List<Update> updates) {
+    return updates.map((e) => _update(context, e)).toList();
   }
 
   Widget _update(BuildContext context, Update u) {

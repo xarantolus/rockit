@@ -46,43 +46,17 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         UpdateRenderer,
         ProgramRenderer,
         LinkCopier {
-  static const titleStyle = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-  );
-
   static const textStyle = TextStyle(fontSize: 16);
 
+  /// Just the description — the event name is already the hero title.
   Widget _eventDetails(BuildContext context, Event e) {
-    return ListTile(
-      title: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            e.name ?? AppLocalizations.of(context)!.unknown,
-            style: titleStyle,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-      subtitle: Text(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Text(
         e.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
         style: textStyle.copyWith(
           color: Theme.of(context).textTheme.bodyMedium!.color,
-        ),
-      ),
-    );
-  }
-
-  Widget _reducedEventDetails(BuildContext context, Event e) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          e.name ?? AppLocalizations.of(context)!.unknown,
-          textAlign: TextAlign.center,
-          style: titleStyle,
         ),
       ),
     );
@@ -109,28 +83,26 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   }
 
   List<Widget> _renderLaunches(List<Launch> launches) {
-    return titledList(
-      launches.length == 1
-          ? AppLocalizations.of(context)!.launch
-          : AppLocalizations.of(context)!.launches,
-      launches.map((l) {
-        return GestureDetector(
-          child: LaunchWidget(l),
-          onTap: () async {
-            await Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(l)));
-          },
-        );
-      }),
-    );
+    return launches
+        .map(
+          (l) => GestureDetector(
+            child: LaunchWidget(l),
+            onTap: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(l)));
+            },
+          ),
+        )
+        .toList();
   }
 
   List<Widget> _renderSpaceStations(List<SpaceStation> stations) {
-    return titledList(
-      stations.length == 1
-          ? AppLocalizations.of(context)!.station
-          : AppLocalizations.of(context)!.stations,
+    return _stationCards(stations);
+  }
+
+  List<Widget> _stationCards(List<SpaceStation> stations) {
+    return List.of(
       stations.map((station) {
         // Yes, reusing the article card widget here is a bit weird,
         // especially because we don't have a link, but it works
@@ -222,9 +194,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (widget.event.description == null)
-                    _reducedEventDetails(context, widget.event)
-                  else
+                  if (widget.event.description != null)
                     _eventDetails(context, widget.event),
                   if (widget.event.vidUrls.isNotEmpty)
                     _openURLButton(
@@ -275,11 +245,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                 preview: widget.event.updates.first.comment,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderUpdateList(
-                    context,
-                    titleStyle,
-                    widget.event.updates,
-                  ),
+                  children: renderUpdateList(context, widget.event.updates),
                 ),
               ),
 
