@@ -43,7 +43,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           next: launchNext,
           preferCache: true,
         );
-        items.addAll(resp.data.results ?? []);
+        items.addAll(resp.data.results);
         launchNext = resp.data.next;
       } catch (e) {
         debugPrint("Error while loading launches for search: $e");
@@ -63,7 +63,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           next: eventNext,
           preferCache: true,
         );
-        items.addAll(resp.data.results ?? []);
+        items.addAll(resp.data.results);
         eventNext = resp.data.next;
       } catch (e) {
         debugPrint("Error while loading events for search: $e");
@@ -153,26 +153,14 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.rocket?.configuration?.description,
         item.rocket?.configuration?.fullName,
         item.rocket?.configuration?.variant,
-        ...(item.rocket?.launcherStage
-                ?.map((e) => [e.launcher?.details, e.launcher?.serialNumber])
-                .fold(
-                  List<String?>.empty(),
-                  (l, txts) => txts..addAll(l ?? []),
-                ) ??
-            []),
-        item.rocket?.spacecraftStage?.name,
-        item.rocket?.spacecraftStage?.serialNumber,
-        item.rocket?.spacecraftStage?.description,
+        ...?item.rocket?.launcherStage.expand(
+          (e) => [e.launcher?.details, e.launcher?.serialNumber],
+        ),
+        ...?item.rocket?.spacecraftStage.expand((e) => [e.name, e.description]),
         item.mission?.description,
         item.pad?.name,
         item.pad?.location?.name,
-        ...(item.vidUrls
-                ?.map((e) => [e.title, e.description])
-                .fold(
-                  List<String?>.empty(),
-                  (l, txts) => txts..addAll(l ?? []),
-                ) ??
-            []),
+        ...item.vidUrls.expand((e) => [e.title, e.description]),
       ]);
     } else if (item is Event) {
       texts.addAll([
@@ -180,13 +168,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.name,
         item.description,
         item.location,
-        ...(item.spacestations
-                ?.map((e) => [e.name, e.description, e.orbit])
-                .fold(
-                  List<String?>.empty(),
-                  (l, txts) => txts..addAll(l ?? []),
-                ) ??
-            []),
+        ...item.spacestations.expand((e) => [e.name, e.description]),
       ]);
     }
     return texts.whereType<String>().toList();
@@ -254,8 +236,8 @@ class LaunchEventSearchDelegate extends SearchDelegate {
             ];
           } else if (item is Event) {
             return [
-              ...?item.program?.map((p) => p.name),
-              ...?item.launches?.map((l) => launchFunction(l)),
+              ...item.program.map((p) => p.name),
+              ...item.launches.expand(launchFunction),
             ];
           } else {
             return [];

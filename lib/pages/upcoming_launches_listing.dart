@@ -24,13 +24,13 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
           return null;
         }
 
-        return NextFuncResult(cached.results ?? [], cached.next);
+        return NextFuncResult(cached.results, cached.next);
       },
       nextFunc: (nextItemArg, current) async {
         final res = await widget.service.upcomingLaunches(next: nextItemArg);
 
         return NextFuncResult(
-          mergePages(current, res.data.results ?? [], (launch) => launch.id),
+          mergePages(current, res.data.results, (launch) => launch.id),
           res.data.next,
           notice: res.error,
         );

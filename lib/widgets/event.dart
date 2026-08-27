@@ -21,8 +21,9 @@ class _EventWidgetState extends State<EventWidget> {
       subtitle: widget.event.location ?? AppLocalizations.of(context)!.unknown,
       heroId: "${widget.event.id}",
       heroTag: "${widget.heroPrefix}event-image",
-      imageURL: widget.event.featureImage,
-      netDate: widget.event.date,
+      image: widget.event.image,
+      date: widget.event.date,
+      precision: widget.event.datePrecision,
     );
   }
 }

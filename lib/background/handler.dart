@@ -189,7 +189,7 @@ class BackgroundHandler {
     final tag = "update:launch:oneoff:$launchId";
     final updateKey = _getUpdateKey("launch", launchId);
 
-    var launchTime = DateTime.tryParse(launch.net ?? "");
+    var launchTime = launch.net;
     if (launchTime == null) {
       // If we cannot parse the time, we just try it on the next run
       return true;
@@ -203,8 +203,8 @@ class BackgroundHandler {
       // not send notifications at that point, because the user just clicked the
       // "Receive notifications" button.
       DateTime? oldestUpdateTime;
-      if (lastUpdateTime != null && launch.updates != null) {
-        for (var update in launch.updates!) {
+      if (lastUpdateTime != null) {
+        for (var update in launch.updates) {
           if (update.createdOn == null) {
             continue;
           }
@@ -532,7 +532,7 @@ class BackgroundHandler {
       return true;
     }
 
-    final event = (await LaunchLibraryAPI().event(eventId)).data;
+    final event = (await LaunchLibraryAPI().event(int.parse(eventId))).data;
 
     final eventTitle = event.name ?? "Unknown";
     final tag = "update:event:oneoff:$eventId";
@@ -552,8 +552,8 @@ class BackgroundHandler {
       // not send notifications at that point, because the user just clicked the
       // "Receive notifications" button.
       DateTime? oldestUpdateTime;
-      if (lastUpdateTime != null && event.updates != null) {
-        for (var update in event.updates!) {
+      if (lastUpdateTime != null) {
+        for (var update in event.updates) {
           if (update.createdOn == null) {
             continue;
           }
@@ -611,7 +611,7 @@ class BackgroundHandler {
 
       final notifID =
           eventNotifIDOffset +
-          (notificationSettings.length * event.id).abs() +
+          (notificationSettings.length * (event.id ?? 0)).abs() +
           i;
 
       // Cancel the previously scheduled notification (if possible)

@@ -52,8 +52,20 @@ class APIClient {
     }
   }
 
+  /// Decodes a JSON body into the object every endpoint in this API returns.
+  ///
+  /// Typed as [Object] rather than `dynamic` so the cast is checked: `dynamic`
+  /// would let a wrong shape flow silently into a model constructor and blow up
+  /// somewhere far away instead.
+  static Map<String, dynamic> asJsonObject(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    throw FormatException("Expected a JSON object, got ${value.runtimeType}");
+  }
+
   /// Same as [readCache], but decodes the body as JSON.
-  Future<dynamic> readCacheJSON(Uri url) async {
+  Future<Object?> readCacheJSON(Uri url) async {
     final body = await readCache(url);
     if (body == null) {
       return null;
@@ -67,7 +79,7 @@ class APIClient {
     }
   }
 
-  Future<ErrorDetails<dynamic>> fetchJSON(
+  Future<ErrorDetails<Object?>> fetchJSON(
     Uri url, [
     bool preferCache = false,
   ]) async {
@@ -76,8 +88,10 @@ class APIClient {
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<ErrorDetails<String>> fetch(Uri url,
-      [bool preferCache = false]) async {
+  Future<ErrorDetails<String>> fetch(
+    Uri url, [
+    bool preferCache = false,
+  ]) async {
     if (preferCache) {
       try {
         var file = await _cacheManager?.getFileFromCache(url.toString());
@@ -108,15 +122,19 @@ class APIClient {
 
     try {
       // At first, we try to get the response by fetching it from the web server
-      var response = await _httpClient.get(url, headers: {
-        "Accept": "application/json",
-        if (!kIsWeb)
-          "User-Agent":
-              "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
-      });
+      var response = await _httpClient.get(
+        url,
+        headers: {
+          "Accept": "application/json",
+          if (!kIsWeb)
+            "User-Agent":
+                "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
+        },
+      );
 
       debugPrint(
-          "Got response for ${url.toString()}: status ${response.statusCode}");
+        "Got response for ${url.toString()}: status ${response.statusCode}",
+      );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw HttpException("Unexpected status code ${response.statusCode}");
@@ -158,7 +176,8 @@ class APIClient {
         etype = ErrorType.cachedFallback;
       } catch (ec) {
         throw Exception(
-            "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");
+          "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)",
+        );
       }
     }
 

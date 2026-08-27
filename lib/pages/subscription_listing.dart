@@ -41,7 +41,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
     }
     for (var eventID in eventIDs) {
       try {
-        list.add((await api.event(eventID, true)).data);
+        list.add((await api.event(int.parse(eventID), true)).data);
       } catch (err) {
         debugPrint("Error loading event with id $eventID: $err");
         hadErrors = true;

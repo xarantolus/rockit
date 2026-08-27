@@ -1,1505 +1,485 @@
-import 'package:rockit/apis/launch_library/events_response.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:rockit/apis/launch_library/common.dart';
+import 'package:rockit/apis/launch_library/iso_duration.dart';
 
-class UpcomingLaunchesResponse {
-  int? count;
-  String? next;
-  String? previous;
-  List<Launch>? results;
+export 'package:rockit/apis/launch_library/common.dart';
 
-  UpcomingLaunchesResponse(
-      {this.count, this.next, this.previous, this.results});
+part 'launch_response.g.dart';
 
-  UpcomingLaunchesResponse.fromJson(Map<String, dynamic> json) {
-    count = json["count"];
-    next = json["next"];
-    previous = json["previous"];
-    results = json["results"] == null
-        ? null
-        : (json["results"] as List).map((e) => Launch.fromJson(e)).toList();
-  }
+/// Launch Library 2.3.0 launch models. See common.dart for why every field is
+/// nullable.
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["count"] = count;
-    data["next"] = next;
-    data["previous"] = previous;
-    if (results != null) {
-      data["results"] = results?.map((e) => e.toJson()).toList();
-    }
-    return data;
-  }
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class LaunchStatus {
+  const LaunchStatus({this.id, this.name, this.abbrev, this.description});
+
+  final int? id;
+  final String? name;
+  final String? abbrev;
+  final String? description;
+
+  factory LaunchStatus.fromJson(Map<String, dynamic> json) =>
+      _$LaunchStatusFromJson(json);
+
+  /// Ids from `/config/launch_statuses/`. An unknown id falls through every
+  /// case and the UI renders it neutrally rather than guessing.
+  bool get isGo => id == 1;
+  bool get isTentative => id == 2 || id == 8; // To Be Determined / Confirmed
+  bool get isSuccess => id == 3;
+  bool get isFailure => id == 4 || id == 7; // Failure / Partial Failure
+  bool get isHold => id == 5;
+  bool get isInFlight => id == 6;
 }
 
-class Launch {
-  String? id;
-  String? url;
-  String? slug;
-  String? flightclubUrl;
-  dynamic rSpacexApiId;
-  String? name;
-  Status? status;
-  String? lastUpdated;
-  List<Update>? updates;
-  String? net;
-  String? windowEnd;
-  String? windowStart;
-  int? probability;
-  String? holdreason;
-  String? failreason;
-  dynamic hashtag;
-  LaunchServiceProvider? launchServiceProvider;
-  Rocket? rocket;
-  Mission? mission;
-  Pad? pad;
-  List<URLInfo>? infoUrls;
-  List<URLInfo>? vidUrls;
-  bool? webcastLive;
-  String? image;
-  dynamic infographic;
-  List<Program>? program;
-  int? orbitalLaunchAttemptCount;
-  int? locationLaunchAttemptCount;
-  int? padLaunchAttemptCount;
-  int? agencyLaunchAttemptCount;
-  int? orbitalLaunchAttemptCountYear;
-  int? locationLaunchAttemptCountYear;
-  int? padLaunchAttemptCountYear;
-  int? agencyLaunchAttemptCountYear;
-  List<MissionPatch>? missionPatches;
-
-  Launch(
-      {this.id,
-      this.url,
-      this.slug,
-      this.flightclubUrl,
-      this.rSpacexApiId,
-      this.name,
-      this.status,
-      this.lastUpdated,
-      this.updates,
-      this.net,
-      this.windowEnd,
-      this.windowStart,
-      this.probability,
-      this.holdreason,
-      this.failreason,
-      this.hashtag,
-      this.launchServiceProvider,
-      this.rocket,
-      this.mission,
-      this.pad,
-      this.infoUrls,
-      this.vidUrls,
-      this.webcastLive,
-      this.image,
-      this.infographic,
-      this.program,
-      this.orbitalLaunchAttemptCount,
-      this.locationLaunchAttemptCount,
-      this.padLaunchAttemptCount,
-      this.agencyLaunchAttemptCount,
-      this.orbitalLaunchAttemptCountYear,
-      this.locationLaunchAttemptCountYear,
-      this.padLaunchAttemptCountYear,
-      this.agencyLaunchAttemptCountYear,
-      this.missionPatches});
-
-  Launch.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    slug = json["slug"];
-    flightclubUrl = json["flightclub_url"];
-    rSpacexApiId = json["r_spacex_api_id"];
-    name = json["name"];
-    status = json["status"] == null ? null : Status.fromJson(json["status"]);
-    lastUpdated = json["last_updated"];
-    updates = json["updates"] == null
-        ? null
-        : (json["updates"] as List).map((e) => Update.fromJson(e)).toList();
-    net = json["net"];
-    windowEnd = json["window_end"];
-    windowStart = json["window_start"];
-    probability = json["probability"];
-    holdreason = json["holdreason"];
-    failreason = json["failreason"];
-    hashtag = json["hashtag"];
-    launchServiceProvider = json["launch_service_provider"] == null
-        ? null
-        : LaunchServiceProvider.fromJson(json["launch_service_provider"]);
-    rocket = json["rocket"] == null ? null : Rocket.fromJson(json["rocket"]);
-    mission =
-        json["mission"] == null ? null : Mission.fromJson(json["mission"]);
-    pad = json["pad"] == null ? null : Pad.fromJson(json["pad"]);
-
-    infoUrls = (json["infoURLs"] ?? []).isEmpty
-        ? null
-        : (json["infoURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
-
-    vidUrls = json["vidURLs"] == null
-        ? null
-        : (json["vidURLs"] as List).map((e) => URLInfo.fromJson(e)).toList();
-    webcastLive = json["webcast_live"];
-    image = json["image"];
-    infographic = json["infographic"];
-    program = json["program"] == null
-        ? null
-        : (json["program"] as List).map((e) => Program.fromJson(e)).toList();
-    orbitalLaunchAttemptCount = json["orbital_launch_attempt_count"];
-    locationLaunchAttemptCount = json["location_launch_attempt_count"];
-    padLaunchAttemptCount = json["pad_launch_attempt_count"];
-    agencyLaunchAttemptCount = json["agency_launch_attempt_count"];
-    orbitalLaunchAttemptCountYear = json["orbital_launch_attempt_count_year"];
-    locationLaunchAttemptCountYear = json["location_launch_attempt_count_year"];
-    padLaunchAttemptCountYear = json["pad_launch_attempt_count_year"];
-    agencyLaunchAttemptCountYear = json["agency_launch_attempt_count_year"];
-    missionPatches = json["mission_patches"] == null
-        ? null
-        : (json["mission_patches"] as List)
-            .map((e) => MissionPatch.fromJson(e))
-            .toList();
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["slug"] = slug;
-    data["flightclub_url"] = flightclubUrl;
-    data["r_spacex_api_id"] = rSpacexApiId;
-    data["name"] = name;
-    if (status != null) data["status"] = status?.toJson();
-    data["last_updated"] = lastUpdated;
-    if (updates != null) {
-      data["updates"] = updates?.map((e) => e.toJson()).toList();
-    }
-    data["net"] = net;
-    data["window_end"] = windowEnd;
-    data["window_start"] = windowStart;
-    data["probability"] = probability;
-    data["holdreason"] = holdreason;
-    data["failreason"] = failreason;
-    data["hashtag"] = hashtag;
-    if (launchServiceProvider != null) {
-      data["launch_service_provider"] = launchServiceProvider?.toJson();
-    }
-    if (rocket != null) data["rocket"] = rocket?.toJson();
-    if (mission != null) data["mission"] = mission?.toJson();
-    if (pad != null) data["pad"] = pad?.toJson();
-    if (infoUrls != null) data["infoURLs"] = infoUrls;
-    if (vidUrls != null) data["vidURLs"] = vidUrls;
-    data["webcast_live"] = webcastLive;
-    data["image"] = image;
-    data["infographic"] = infographic;
-    if (program != null) data["program"] = program;
-    data["orbital_launch_attempt_count"] = orbitalLaunchAttemptCount;
-    data["location_launch_attempt_count"] = locationLaunchAttemptCount;
-    data["pad_launch_attempt_count"] = padLaunchAttemptCount;
-    data["agency_launch_attempt_count"] = agencyLaunchAttemptCount;
-    data["orbital_launch_attempt_count_year"] = orbitalLaunchAttemptCountYear;
-    data["location_launch_attempt_count_year"] = locationLaunchAttemptCountYear;
-    data["pad_launch_attempt_count_year"] = padLaunchAttemptCountYear;
-    data["agency_launch_attempt_count_year"] = agencyLaunchAttemptCountYear;
-    if (missionPatches != null) {
-      data["mission_patches"] = missionPatches?.map((e) => e.toJson()).toList();
-    }
-    return data;
-  }
-}
-
-class MissionPatch {
-  int? id;
-  String? name;
-  int? priority;
-  String? imageUrl;
-  Agency? agency;
-
-  MissionPatch({this.id, this.name, this.priority, this.imageUrl, this.agency});
-
-  MissionPatch.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    name = json["name"];
-    priority = json["priority"];
-    imageUrl = json["image_url"];
-    agency = json["agency"] == null ? null : Agency.fromJson(json["agency"]);
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["name"] = name;
-    data["priority"] = priority;
-    data["image_url"] = imageUrl;
-    if (agency != null) data["agency"] = agency?.toJson();
-    return data;
-  }
-}
-
-class Agency {
-  int? id;
-  String? url;
-  String? name;
-  String? type;
-
-  Agency({this.id, this.url, this.name, this.type});
-
-  Agency.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    name = json["name"];
-    type = json["type"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["type"] = type;
-    return data;
-  }
-}
-
-class Pad {
-  int? id;
-  String? url;
-  int? agencyId;
-  String? name;
-  dynamic infoUrl;
-  String? wikiUrl;
-  String? mapUrl;
-  String? latitude;
-  String? longitude;
-  Location? location;
-  String? mapImage;
-  int? totalLaunchCount;
-
-  Pad(
-      {this.id,
-      this.url,
-      this.agencyId,
-      this.name,
-      this.infoUrl,
-      this.wikiUrl,
-      this.mapUrl,
-      this.latitude,
-      this.longitude,
-      this.location,
-      this.mapImage,
-      this.totalLaunchCount});
-
-  Pad.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    agencyId = json["agency_id"];
-    name = json["name"];
-    infoUrl = json["info_url"];
-    wikiUrl = json["wiki_url"];
-    mapUrl = json["map_url"];
-    latitude = json["latitude"];
-    longitude = json["longitude"];
-    location =
-        json["location"] == null ? null : Location.fromJson(json["location"]);
-    mapImage = json["map_image"];
-    totalLaunchCount = json["total_launch_count"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["agency_id"] = agencyId;
-    data["name"] = name;
-    data["info_url"] = infoUrl;
-    data["wiki_url"] = wikiUrl;
-    data["map_url"] = mapUrl;
-    data["latitude"] = latitude;
-    data["longitude"] = longitude;
-    if (location != null) data["location"] = location?.toJson();
-    data["map_image"] = mapImage;
-    data["total_launch_count"] = totalLaunchCount;
-    return data;
-  }
-}
-
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class Location {
-  int? id;
-  String? url;
-  String? name;
-  String? countryCode;
-  String? mapImage;
-  int? totalLaunchCount;
-  int? totalLandingCount;
-
-  Location(
-      {this.id,
-      this.url,
-      this.name,
-      this.countryCode,
-      this.mapImage,
-      this.totalLaunchCount,
-      this.totalLandingCount});
-
-  Location.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    name = json["name"];
-    countryCode = json["country_code"];
-    mapImage = json["map_image"];
-    totalLaunchCount = json["total_launch_count"];
-    totalLandingCount = json["total_landing_count"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["country_code"] = countryCode;
-    data["map_image"] = mapImage;
-    data["total_launch_count"] = totalLaunchCount;
-    data["total_landing_count"] = totalLandingCount;
-    return data;
-  }
-}
-
-class Mission {
-  int? id;
-  String? name;
-  String? description;
-  dynamic launchDesignator;
-  String? type;
-  Orbit? orbit;
-
-  Mission(
-      {this.id,
-      this.name,
-      this.description,
-      this.launchDesignator,
-      this.type,
-      this.orbit});
-
-  Mission.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    name = json["name"];
-    description = json["description"];
-    launchDesignator = json["launch_designator"];
-    type = json["type"];
-    orbit = json["orbit"] == null ? null : Orbit.fromJson(json["orbit"]);
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["name"] = name;
-    data["description"] = description;
-    data["launch_designator"] = launchDesignator;
-    data["type"] = type;
-    if (orbit != null) data["orbit"] = orbit?.toJson();
-    return data;
-  }
-}
-
-class Orbit {
-  int? id;
-  String? name;
-  String? abbrev;
-
-  Orbit({this.id, this.name, this.abbrev});
-
-  Orbit.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    name = json["name"];
-    abbrev = json["abbrev"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["name"] = name;
-    data["abbrev"] = abbrev;
-    return data;
-  }
-}
-
-class Rocket {
-  int? id;
-  Configuration? configuration;
-  List<LauncherStage>? launcherStage;
-  SpaceCraft? spacecraftStage;
-
-  Rocket(
-      {this.id,
-      this.configuration,
-      required this.launcherStage,
-      this.spacecraftStage});
-
-  Rocket.fromJson(Map<String, dynamic> json) {
-    launcherStage = json["launcher_stage"] == null
-        ? []
-        : (json["launcher_stage"] as List)
-            .map((e) => LauncherStage.fromJson(e))
-            .toList();
-    id = json["id"];
-    configuration = json["configuration"] == null
-        ? null
-        : Configuration.fromJson(json["configuration"]);
-    spacecraftStage = json["spacecraft_stage"]?["spacecraft"] == null
-        ? null
-        : SpaceCraft.fromJson(json["spacecraft_stage"]?["spacecraft"]);
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    if (configuration != null) data["configuration"] = configuration?.toJson();
-    data["launcher_stage"] = launcherStage;
-    return data;
-  }
-}
-
-class Configuration {
-  int? id;
-  String? url;
-  String? name;
-  String? description;
-  String? family;
-  String? fullName;
-  Manufacturer? manufacturer;
-  List<dynamic>? program;
-  String? variant;
-  String? alias;
-  int? minStage;
-  int? maxStage;
-  double? length;
-  double? diameter;
-  String? maidenFlight;
-  String? launchCost;
-  int? launchMass;
-  int? leoCapacity;
-  dynamic gtoCapacity;
-  int? toThrust;
-  dynamic apogee;
-  dynamic vehicleRange;
-  String? imageUrl;
-  String? infoUrl;
-  String? wikiUrl;
-  int? totalLaunchCount;
-  int? consecutiveSuccessfulLaunches;
-  int? successfulLaunches;
-  int? failedLaunches;
-  int? pendingLaunches;
-
-  Configuration(
-      {this.id,
-      this.url,
-      this.name,
-      this.description,
-      this.family,
-      this.fullName,
-      this.manufacturer,
-      this.program,
-      this.variant,
-      this.alias,
-      this.minStage,
-      this.maxStage,
-      this.length,
-      this.diameter,
-      this.maidenFlight,
-      this.launchCost,
-      this.launchMass,
-      this.leoCapacity,
-      this.gtoCapacity,
-      this.toThrust,
-      this.apogee,
-      this.vehicleRange,
-      this.imageUrl,
-      this.infoUrl,
-      this.wikiUrl,
-      this.totalLaunchCount,
-      this.consecutiveSuccessfulLaunches,
-      this.successfulLaunches,
-      this.failedLaunches,
-      this.pendingLaunches});
-
-  Configuration.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    name = json["name"];
-    description = json["description"];
-    family = json["family"];
-    fullName = json["full_name"];
-    manufacturer = json["manufacturer"] == null
-        ? null
-        : Manufacturer.fromJson(json["manufacturer"]);
-    program = json["program"] ?? [];
-    variant = json["variant"];
-    alias = json["alias"];
-    minStage = json["min_stage"];
-    maxStage = json["max_stage"];
-    length = json["length"];
-    diameter = json["diameter"];
-    maidenFlight = json["maiden_flight"];
-    launchCost = json["launch_cost"];
-    launchMass = json["launch_mass"];
-    leoCapacity = json["leo_capacity"];
-    gtoCapacity = json["gto_capacity"];
-    toThrust = json["to_thrust"];
-    apogee = json["apogee"];
-    vehicleRange = json["vehicle_range"];
-    imageUrl = json["image_url"];
-    infoUrl = json["info_url"];
-    wikiUrl = json["wiki_url"];
-    totalLaunchCount = json["total_launch_count"];
-    consecutiveSuccessfulLaunches = json["consecutive_successful_launches"];
-    successfulLaunches = json["successful_launches"];
-    failedLaunches = json["failed_launches"];
-    pendingLaunches = json["pending_launches"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["description"] = description;
-    data["family"] = family;
-    data["full_name"] = fullName;
-    if (manufacturer != null) data["manufacturer"] = manufacturer?.toJson();
-    if (program != null) data["program"] = program;
-    data["variant"] = variant;
-    data["alias"] = alias;
-    data["min_stage"] = minStage;
-    data["max_stage"] = maxStage;
-    data["length"] = length;
-    data["diameter"] = diameter;
-    data["maiden_flight"] = maidenFlight;
-    data["launch_cost"] = launchCost;
-    data["launch_mass"] = launchMass;
-    data["leo_capacity"] = leoCapacity;
-    data["gto_capacity"] = gtoCapacity;
-    data["to_thrust"] = toThrust;
-    data["apogee"] = apogee;
-    data["vehicle_range"] = vehicleRange;
-    data["image_url"] = imageUrl;
-    data["info_url"] = infoUrl;
-    data["wiki_url"] = wikiUrl;
-    data["total_launch_count"] = totalLaunchCount;
-    data["consecutive_successful_launches"] = consecutiveSuccessfulLaunches;
-    data["successful_launches"] = successfulLaunches;
-    data["failed_launches"] = failedLaunches;
-    data["pending_launches"] = pendingLaunches;
-    return data;
-  }
-}
-
-class Manufacturer {
-  int? id;
-  String? url;
-  String? name;
-  bool? featured;
-  String? type;
-  String? countryCode;
-  String? abbrev;
-  String? description;
-  String? administrator;
-  String? foundingYear;
-  String? launchers;
-  String? spacecraft;
-  String? launchLibraryUrl;
-  int? totalLaunchCount;
-  int? consecutiveSuccessfulLaunches;
-  int? successfulLaunches;
-  int? failedLaunches;
-  int? pendingLaunches;
-  int? consecutiveSuccessfulLandings;
-  int? successfulLandings;
-  int? failedLandings;
-  int? attemptedLandings;
-  String? infoUrl;
-  String? wikiUrl;
-  String? logoUrl;
-  String? imageUrl;
-  String? nationUrl;
-
-  Manufacturer(
-      {this.id,
-      this.url,
-      this.name,
-      this.featured,
-      this.type,
-      this.countryCode,
-      this.abbrev,
-      this.description,
-      this.administrator,
-      this.foundingYear,
-      this.launchers,
-      this.spacecraft,
-      this.launchLibraryUrl,
-      this.totalLaunchCount,
-      this.consecutiveSuccessfulLaunches,
-      this.successfulLaunches,
-      this.failedLaunches,
-      this.pendingLaunches,
-      this.consecutiveSuccessfulLandings,
-      this.successfulLandings,
-      this.failedLandings,
-      this.attemptedLandings,
-      this.infoUrl,
-      this.wikiUrl,
-      this.logoUrl,
-      this.imageUrl,
-      this.nationUrl});
-
-  Manufacturer.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    name = json["name"];
-    featured = json["featured"];
-    type = json["type"];
-    countryCode = json["country_code"];
-    abbrev = json["abbrev"];
-    description = json["description"];
-    administrator = json["administrator"];
-    foundingYear = json["founding_year"];
-    launchers = json["launchers"];
-    spacecraft = json["spacecraft"];
-    launchLibraryUrl = json["launch_library_url"];
-    totalLaunchCount = json["total_launch_count"];
-    consecutiveSuccessfulLaunches = json["consecutive_successful_launches"];
-    successfulLaunches = json["successful_launches"];
-    failedLaunches = json["failed_launches"];
-    pendingLaunches = json["pending_launches"];
-    consecutiveSuccessfulLandings = json["consecutive_successful_landings"];
-    successfulLandings = json["successful_landings"];
-    failedLandings = json["failed_landings"];
-    attemptedLandings = json["attempted_landings"];
-    infoUrl = json["info_url"];
-    wikiUrl = json["wiki_url"];
-    logoUrl = json["logo_url"];
-    imageUrl = json["image_url"];
-    nationUrl = json["nation_url"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["featured"] = featured;
-    data["type"] = type;
-    data["country_code"] = countryCode;
-    data["abbrev"] = abbrev;
-    data["description"] = description;
-    data["administrator"] = administrator;
-    data["founding_year"] = foundingYear;
-    data["launchers"] = launchers;
-    data["spacecraft"] = spacecraft;
-    data["launch_library_url"] = launchLibraryUrl;
-    data["total_launch_count"] = totalLaunchCount;
-    data["consecutive_successful_launches"] = consecutiveSuccessfulLaunches;
-    data["successful_launches"] = successfulLaunches;
-    data["failed_launches"] = failedLaunches;
-    data["pending_launches"] = pendingLaunches;
-    data["consecutive_successful_landings"] = consecutiveSuccessfulLandings;
-    data["successful_landings"] = successfulLandings;
-    data["failed_landings"] = failedLandings;
-    data["attempted_landings"] = attemptedLandings;
-    data["info_url"] = infoUrl;
-    data["wiki_url"] = wikiUrl;
-    data["logo_url"] = logoUrl;
-    data["image_url"] = imageUrl;
-    data["nation_url"] = nationUrl;
-    return data;
-  }
-}
-
-class LaunchServiceProvider {
-  int? id;
-  String? url;
-  String? name;
-  bool? featured;
-  String? type;
-  String? countryCode;
-  String? abbrev;
-  String? description;
-  String? administrator;
-  String? foundingYear;
-  String? launchers;
-  String? spacecraft;
-  String? launchLibraryUrl;
-  int? totalLaunchCount;
-  int? consecutiveSuccessfulLaunches;
-  int? successfulLaunches;
-  int? failedLaunches;
-  int? pendingLaunches;
-  int? consecutiveSuccessfulLandings;
-  int? successfulLandings;
-  int? failedLandings;
-  int? attemptedLandings;
-  String? infoUrl;
-  String? wikiUrl;
-  String? logoUrl;
-  String? imageUrl;
-  String? nationUrl;
-
-  LaunchServiceProvider(
-      {this.id,
-      this.url,
-      this.name,
-      this.featured,
-      this.type,
-      this.countryCode,
-      this.abbrev,
-      this.description,
-      this.administrator,
-      this.foundingYear,
-      this.launchers,
-      this.spacecraft,
-      this.launchLibraryUrl,
-      this.totalLaunchCount,
-      this.consecutiveSuccessfulLaunches,
-      this.successfulLaunches,
-      this.failedLaunches,
-      this.pendingLaunches,
-      this.consecutiveSuccessfulLandings,
-      this.successfulLandings,
-      this.failedLandings,
-      this.attemptedLandings,
-      this.infoUrl,
-      this.wikiUrl,
-      this.logoUrl,
-      this.imageUrl,
-      this.nationUrl});
-
-  LaunchServiceProvider.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    url = json["url"];
-    name = json["name"];
-    featured = json["featured"];
-    type = json["type"];
-    countryCode = json["country_code"];
-    abbrev = json["abbrev"];
-    description = json["description"];
-    administrator = json["administrator"];
-    foundingYear = json["founding_year"];
-    launchers = json["launchers"];
-    spacecraft = json["spacecraft"];
-    launchLibraryUrl = json["launch_library_url"];
-    totalLaunchCount = json["total_launch_count"];
-    consecutiveSuccessfulLaunches = json["consecutive_successful_launches"];
-    successfulLaunches = json["successful_launches"];
-    failedLaunches = json["failed_launches"];
-    pendingLaunches = json["pending_launches"];
-    consecutiveSuccessfulLandings = json["consecutive_successful_landings"];
-    successfulLandings = json["successful_landings"];
-    failedLandings = json["failed_landings"];
-    attemptedLandings = json["attempted_landings"];
-    infoUrl = json["info_url"];
-    wikiUrl = json["wiki_url"];
-    logoUrl = json["logo_url"];
-    imageUrl = json["image_url"];
-    nationUrl = json["nation_url"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["featured"] = featured;
-    data["type"] = type;
-    data["country_code"] = countryCode;
-    data["abbrev"] = abbrev;
-    data["description"] = description;
-    data["administrator"] = administrator;
-    data["founding_year"] = foundingYear;
-    data["launchers"] = launchers;
-    data["spacecraft"] = spacecraft;
-    data["launch_library_url"] = launchLibraryUrl;
-    data["total_launch_count"] = totalLaunchCount;
-    data["consecutive_successful_launches"] = consecutiveSuccessfulLaunches;
-    data["successful_launches"] = successfulLaunches;
-    data["failed_launches"] = failedLaunches;
-    data["pending_launches"] = pendingLaunches;
-    data["consecutive_successful_landings"] = consecutiveSuccessfulLandings;
-    data["successful_landings"] = successfulLandings;
-    data["failed_landings"] = failedLandings;
-    data["attempted_landings"] = attemptedLandings;
-    data["info_url"] = infoUrl;
-    data["wiki_url"] = wikiUrl;
-    data["logo_url"] = logoUrl;
-    data["image_url"] = imageUrl;
-    data["nation_url"] = nationUrl;
-    return data;
-  }
-}
-
-class Update {
-  int? id;
-  String? profileImage;
-  String? comment;
-  String? infoUrl;
-  String? createdBy;
-  DateTime? createdOn;
-
-  Update(
-      {this.id,
-      this.profileImage,
-      this.comment,
-      this.infoUrl,
-      this.createdBy,
-      this.createdOn});
-
-  Update.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    profileImage = json["profile_image"];
-    comment = json["comment"];
-    infoUrl = json["info_url"];
-    createdBy = json["created_by"];
-    createdOn =
-        json["created_on"] == null ? null : DateTime.parse(json["created_on"]);
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["profile_image"] = profileImage;
-    data["comment"] = comment;
-    data["info_url"] = infoUrl;
-    data["created_by"] = createdBy;
-    data["created_on"] = createdOn?.toIso8601String();
-    return data;
-  }
-}
-
-class Status {
-  int? id;
-  String? name;
-  String? abbrev;
-  String? description;
-
-  Status({this.id, this.name, this.abbrev, this.description});
-
-  Status.fromJson(Map<String, dynamic> json) {
-    id = json["id"];
-    name = json["name"];
-    abbrev = json["abbrev"];
-    description = json["description"];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["name"] = name;
-    data["abbrev"] = abbrev;
-    data["description"] = description;
-    return data;
-  }
-}
-
-class URLInfo {
-  URLInfo({
-    required this.priority,
-    required this.title,
-    required this.description,
-    required this.featureImage,
-    required this.url,
+  const Location({
+    this.id,
+    this.name,
+    this.timezoneName,
+    this.totalLaunchCount,
+    this.mapImage,
   });
 
-  final int? priority;
-  final String? title;
-  final String? description;
-  final String? featureImage;
-  final String? url;
-
-  factory URLInfo.fromJson(Map<String, dynamic> json) {
-    return URLInfo(
-      priority: json["priority"],
-      title: json["title"],
-      description: json["description"],
-      featureImage: json["feature_image"],
-      url: json["url"],
-    );
-  }
-}
-
-class LauncherStage {
-  LauncherStage({
-    required this.id,
-    required this.type,
-    required this.reused,
-    required this.launcherFlightNumber,
-    required this.launcher,
-    required this.landing,
-    required this.previousFlightDate,
-    required this.turnAroundTimeDays,
-    required this.previousFlight,
-  });
-
-  final int id;
-  final String? type;
-  final bool? reused;
-  final int? launcherFlightNumber;
-  final Launcher? launcher;
-  final Landing? landing;
-  final DateTime? previousFlightDate;
-  final int? turnAroundTimeDays;
-  final PreviousFlight? previousFlight;
-
-  LauncherStage copyWith({
-    int? id,
-    String? type,
-    bool? reused,
-    int? launcherFlightNumber,
-    Launcher? launcher,
-    Landing? landing,
-    DateTime? previousFlightDate,
-    int? turnAroundTimeDays,
-    PreviousFlight? previousFlight,
-  }) {
-    return LauncherStage(
-      id: id ?? this.id,
-      type: type ?? this.type,
-      reused: reused ?? this.reused,
-      launcherFlightNumber: launcherFlightNumber ?? this.launcherFlightNumber,
-      launcher: launcher ?? this.launcher,
-      landing: landing ?? this.landing,
-      previousFlightDate: previousFlightDate ?? this.previousFlightDate,
-      turnAroundTimeDays: turnAroundTimeDays ?? this.turnAroundTimeDays,
-      previousFlight: previousFlight ?? this.previousFlight,
-    );
-  }
-
-  factory LauncherStage.fromJson(Map<String, dynamic> json) {
-    return LauncherStage(
-      id: json["id"],
-      type: json["type"],
-      reused: json["reused"],
-      launcherFlightNumber: json["launcher_flight_number"],
-      launcher:
-          json["launcher"] == null ? null : Launcher.fromJson(json["launcher"]),
-      landing:
-          json["landing"] == null ? null : Landing.fromJson(json["landing"]),
-      previousFlightDate: json["previous_flight_date"] == null
-          ? null
-          : DateTime.parse(json["previous_flight_date"]),
-      turnAroundTimeDays: json["turn_around_time_days"],
-      previousFlight: json["previous_flight"] == null
-          ? null
-          : PreviousFlight.fromJson(json["previous_flight"]),
-    );
-  }
-}
-
-class Landing {
-  Landing({
-    required this.id,
-    required this.attempt,
-    required this.success,
-    required this.description,
-    required this.location,
-    required this.type,
-  });
-
-  final int id;
-  final bool? attempt;
-  final dynamic success;
-  final String? description;
-  final LandingLocation? location;
-  final LandingType? type;
-
-  Landing copyWith({
-    int? id,
-    bool? attempt,
-    bool? success,
-    String? description,
-    LandingLocation? location,
-    LandingType? type,
-  }) {
-    return Landing(
-      id: id ?? this.id,
-      attempt: attempt ?? this.attempt,
-      success: success ?? this.success,
-      description: description ?? this.description,
-      location: location ?? this.location,
-      type: type ?? this.type,
-    );
-  }
-
-  factory Landing.fromJson(Map<String, dynamic> json) {
-    return Landing(
-      id: json["id"],
-      attempt: json["attempt"],
-      success: json["success"],
-      description: json["description"],
-      location: json["location"] == null
-          ? null
-          : LandingLocation.fromJson(json["location"]),
-      type: json["type"] == null ? null : LandingType.fromJson(json["type"]),
-    );
-  }
-}
-
-class LandingLocation {
-  LandingLocation({
-    required this.id,
-    required this.name,
-    required this.abbrev,
-    required this.description,
-    required this.location,
-    required this.successfulLandings,
-  });
-
-  final int id;
+  final int? id;
   final String? name;
-  final String? abbrev;
-  final String? description;
-  final LocationLocation? location;
-  final int? successfulLandings;
 
-  LandingLocation copyWith({
-    int? id,
-    String? name,
-    String? abbrev,
-    String? description,
-    LocationLocation? location,
-    int? successfulLandings,
-  }) {
-    return LandingLocation(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      abbrev: abbrev ?? this.abbrev,
-      description: description ?? this.description,
-      location: location ?? this.location,
-      successfulLandings: successfulLandings ?? this.successfulLandings,
-    );
-  }
+  /// IANA zone of the launch site, e.g. `America/New_York`. Always present in
+  /// 2.3.0, and what makes "08:26 local at the pad" possible.
+  final String? timezoneName;
 
-  factory LandingLocation.fromJson(Map<String, dynamic> json) {
-    return LandingLocation(
-      id: json["id"],
-      name: json["name"],
-      abbrev: json["abbrev"],
-      description: json["description"],
-      location: json["location"] == null
-          ? null
-          : LocationLocation.fromJson(json["location"]),
-      successfulLandings: json["successful_landings"],
-    );
-  }
-}
-
-class LocationLocation {
-  LocationLocation({
-    required this.id,
-    required this.url,
-    required this.name,
-    required this.countryCode,
-    required this.mapImage,
-    required this.totalLaunchCount,
-    required this.totalLandingCount,
-  });
-
-  final int id;
-  final String? url;
-  final String? name;
-  final String? countryCode;
-  final String? mapImage;
   final int? totalLaunchCount;
-  final int? totalLandingCount;
+  final String? mapImage;
 
-  LocationLocation copyWith({
-    int? id,
-    String? url,
-    String? name,
-    String? countryCode,
-    String? mapImage,
-    int? totalLaunchCount,
-    int? totalLandingCount,
-  }) {
-    return LocationLocation(
-      id: id ?? this.id,
-      url: url ?? this.url,
-      name: name ?? this.name,
-      countryCode: countryCode ?? this.countryCode,
-      mapImage: mapImage ?? this.mapImage,
-      totalLaunchCount: totalLaunchCount ?? this.totalLaunchCount,
-      totalLandingCount: totalLandingCount ?? this.totalLandingCount,
-    );
-  }
-
-  factory LocationLocation.fromJson(Map<String, dynamic> json) {
-    return LocationLocation(
-      id: json["id"],
-      url: json["url"],
-      name: json["name"],
-      countryCode: json["country_code"],
-      mapImage: json["map_image"],
-      totalLaunchCount: json["total_launch_count"],
-      totalLandingCount: json["total_landing_count"],
-    );
-  }
+  factory Location.fromJson(Map<String, dynamic> json) =>
+      _$LocationFromJson(json);
 }
 
-class LandingType {
-  LandingType({
-    required this.id,
-    required this.name,
-    required this.abbrev,
-    required this.description,
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Pad {
+  const Pad({
+    this.id,
+    this.name,
+    this.description,
+    this.latitude,
+    this.longitude,
+    this.mapUrl,
+    this.mapImage,
+    this.wikiUrl,
+    this.infoUrl,
+    this.totalLaunchCount,
+    this.country,
+    this.location,
   });
 
-  final int id;
+  final int? id;
   final String? name;
-  final String? abbrev;
   final String? description;
 
-  LandingType copyWith({
-    int? id,
-    String? name,
-    String? abbrev,
-    String? description,
-  }) {
-    return LandingType(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      abbrev: abbrev ?? this.abbrev,
-      description: description ?? this.description,
-    );
-  }
+  /// Strings in 2.2.0, numbers in 2.3.0 — exactly the kind of type change a
+  /// plain cast would throw on.
+  @JsonKey(fromJson: doubleFromJson)
+  final double? latitude;
 
-  factory LandingType.fromJson(Map<String, dynamic> json) {
-    return LandingType(
-      id: json["id"],
-      name: json["name"],
-      abbrev: json["abbrev"],
-      description: json["description"],
-    );
-  }
+  @JsonKey(fromJson: doubleFromJson)
+  final double? longitude;
+
+  final String? mapUrl;
+  final String? mapImage;
+  final String? wikiUrl;
+  final String? infoUrl;
+  final int? totalLaunchCount;
+
+  /// An object in 2.3.0; 2.2.0 sent `country_code` instead.
+  @JsonKey(fromJson: namedFromJson)
+  final String? country;
+
+  final Location? location;
+
+  factory Pad.fromJson(Map<String, dynamic> json) => _$PadFromJson(json);
 }
 
-class Launcher {
-  Launcher({
-    required this.id,
-    required this.url,
-    required this.details,
-    required this.flightProven,
-    required this.serialNumber,
-    required this.status,
-    required this.imageUrl,
-    required this.successfulLandings,
-    required this.attemptedLandings,
-    required this.flights,
-    required this.lastLaunchDate,
-    required this.firstLaunchDate,
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class RocketConfiguration {
+  const RocketConfiguration({
+    this.id,
+    this.name,
+    this.fullName,
+    this.variant,
+    this.description,
+    this.manufacturer,
+    this.image,
+    this.infoUrl,
+    this.wikiUrl,
+    this.reusable,
+    this.length,
+    this.diameter,
+    this.maxStage,
+    this.launchMass,
+    this.leoCapacity,
+    this.gtoCapacity,
+    this.maidenFlight,
+    this.successfulLaunches,
+    this.failedLaunches,
+    this.totalLaunchCount,
   });
 
-  final int id;
-  final String? url;
+  final int? id;
+  final String? name;
+  final String? fullName;
+  final String? variant;
+  final String? description;
+
+  final Agency? manufacturer;
+
+  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  final ApiImage? image;
+
+  final String? infoUrl;
+  final String? wikiUrl;
+  final bool? reusable;
+
+  @JsonKey(fromJson: doubleFromJson)
+  final double? length;
+
+  @JsonKey(fromJson: doubleFromJson)
+  final double? diameter;
+
+  final int? maxStage;
+  final int? launchMass;
+  final int? leoCapacity;
+  final int? gtoCapacity;
+
+  /// A bare `yyyy-MM-dd` rather than a full timestamp.
+  final DateTime? maidenFlight;
+
+  final int? successfulLaunches;
+  final int? failedLaunches;
+  final int? totalLaunchCount;
+
+  factory RocketConfiguration.fromJson(Map<String, dynamic> json) =>
+      _$RocketConfigurationFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class LandingLocation {
+  const LandingLocation({this.name, this.abbrev});
+
+  final String? name;
+  final String? abbrev;
+
+  factory LandingLocation.fromJson(Map<String, dynamic> json) =>
+      _$LandingLocationFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Landing {
+  const Landing({
+    this.attempt,
+    this.success,
+    this.description,
+    this.downrangeDistance,
+    this.type,
+    this.landingLocation,
+  });
+
+  final bool? attempt;
+  final bool? success;
+  final String? description;
+
+  /// Kilometres downrange to the landing zone.
+  @JsonKey(fromJson: doubleFromJson)
+  final double? downrangeDistance;
+
+  @JsonKey(fromJson: namedFromJson)
+  final String? type;
+
+  final LandingLocation? landingLocation;
+
+  factory Landing.fromJson(Map<String, dynamic> json) =>
+      _$LandingFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Launcher {
+  const Launcher({
+    this.id,
+    this.serialNumber,
+    this.details,
+    this.flightProven,
+    this.flights,
+    this.successfulLandings,
+    this.image,
+  });
+
+  final int? id;
+
+  /// The airframe, e.g. `B1072`.
+  final String? serialNumber;
   final String? details;
   final bool? flightProven;
-  final String? serialNumber;
-  final String? status;
-  final String? imageUrl;
-  final int? successfulLandings;
-  final int? attemptedLandings;
+
+  /// Total flights for this airframe, across all missions.
   final int? flights;
-  final DateTime? lastLaunchDate;
-  final DateTime? firstLaunchDate;
+  final int? successfulLandings;
 
-  Launcher copyWith({
-    int? id,
-    String? url,
-    String? details,
-    bool? flightProven,
-    String? serialNumber,
-    String? status,
-    String? imageUrl,
-    int? successfulLandings,
-    int? attemptedLandings,
-    int? flights,
-    DateTime? lastLaunchDate,
-    DateTime? firstLaunchDate,
-  }) {
-    return Launcher(
-      id: id ?? this.id,
-      url: url ?? this.url,
-      details: details ?? this.details,
-      flightProven: flightProven ?? this.flightProven,
-      serialNumber: serialNumber ?? this.serialNumber,
-      status: status ?? this.status,
-      imageUrl: imageUrl ?? this.imageUrl,
-      successfulLandings: successfulLandings ?? this.successfulLandings,
-      attemptedLandings: attemptedLandings ?? this.attemptedLandings,
-      flights: flights ?? this.flights,
-      lastLaunchDate: lastLaunchDate ?? this.lastLaunchDate,
-      firstLaunchDate: firstLaunchDate ?? this.firstLaunchDate,
-    );
-  }
+  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  final ApiImage? image;
 
-  factory Launcher.fromJson(Map<String, dynamic> json) {
-    return Launcher(
-      id: json["id"],
-      url: json["url"],
-      details: json["details"],
-      flightProven: json["flight_proven"],
-      serialNumber: json["serial_number"],
-      status: json["status"],
-      imageUrl: json["image_url"],
-      successfulLandings: json["successful_landings"],
-      attemptedLandings: json["attempted_landings"],
-      flights: json["flights"],
-      lastLaunchDate: json["last_launch_date"] == null
-          ? null
-          : DateTime.parse(json["last_launch_date"]),
-      firstLaunchDate: json["first_launch_date"] == null
-          ? null
-          : DateTime.parse(json["first_launch_date"]),
-    );
-  }
+  factory Launcher.fromJson(Map<String, dynamic> json) =>
+      _$LauncherFromJson(json);
 }
 
-class PreviousFlight {
-  PreviousFlight({
-    required this.id,
-    required this.name,
+/// One booster on this flight, carrying the reuse story the app never showed:
+/// which airframe, how many times it has flown, how fast it was turned around,
+/// and whether it is landing.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class LauncherStage {
+  const LauncherStage({
+    this.id,
+    this.type,
+    this.reused,
+    this.launcherFlightNumber,
+    this.turnAroundTime,
+    this.previousFlightDate,
+    this.launcher,
+    this.landing,
   });
 
-  final String id;
+  final int? id;
+  final String? type;
+  final bool? reused;
+
+  /// Which flight of this particular airframe this is.
+  final int? launcherFlightNumber;
+
+  /// How long this airframe sat between flights. Sent as an ISO-8601 duration
+  /// in 2.3.0 (`P27DT4H`) and as whole days in 2.2.0; both become a [Duration].
+  @JsonKey(readValue: _readTurnAround, fromJson: durationFromJson)
+  final Duration? turnAroundTime;
+
+  final DateTime? previousFlightDate;
+  final Launcher? launcher;
+  final Landing? landing;
+
+  static Object? _readTurnAround(Map<dynamic, dynamic> json, String key) {
+    final value = json[key];
+    if (value != null) return value;
+
+    final days = json['turn_around_time_days'];
+    return days is num ? 'P${days.toInt()}D' : null;
+  }
+
+  factory LauncherStage.fromJson(Map<String, dynamic> json) =>
+      _$LauncherStageFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class SpacecraftStage {
+  const SpacecraftStage({this.id, this.name, this.description, this.image});
+
+  final int? id;
+  final String? name;
+  final String? description;
+
+  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  final ApiImage? image;
+
+  factory SpacecraftStage.fromJson(Map<String, dynamic> json) =>
+      _$SpacecraftStageFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Rocket {
+  const Rocket({
+    this.id,
+    this.configuration,
+    this.launcherStage = const [],
+    this.spacecraftStage = const [],
+  });
+
+  final int? id;
+  final RocketConfiguration? configuration;
+  final List<LauncherStage> launcherStage;
+
+  /// A single object in 2.2.0, a list in 2.3.0 — a crewed flight can carry
+  /// more than one spacecraft.
+  final List<SpacecraftStage> spacecraftStage;
+
+  factory Rocket.fromJson(Map<String, dynamic> json) => _$RocketFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Mission {
+  const Mission({
+    this.id,
+    this.name,
+    this.type,
+    this.description,
+    this.orbit,
+    this.agencies = const [],
+  });
+
+  final int? id;
   final String? name;
 
-  PreviousFlight copyWith({
-    String? id,
-    String? name,
-  }) {
-    return PreviousFlight(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
+  /// e.g. `Earth Science`, `Astrophysics`.
+  final String? type;
+  final String? description;
+  final Orbit? orbit;
+  final List<Agency> agencies;
 
-  factory PreviousFlight.fromJson(Map<String, dynamic> json) {
-    return PreviousFlight(
-      id: json["id"],
-      name: json["name"],
-    );
-  }
+  factory Mission.fromJson(Map<String, dynamic> json) =>
+      _$MissionFromJson(json);
 }
 
-class SpaceCraft {
-  int? id;
-  String? url;
-  String? name;
-  String? serialNumber;
-  Status? status;
-  String? description;
-  SpacecraftConfig? spacecraftConfig;
+/// One milestone in the countdown, e.g. ignition at `-PT7S`. Only about one
+/// launch in eight has any, so this is a bonus section, never a headline.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class TimelineEvent {
+  const TimelineEvent({this.relativeTime, this.type, this.description});
 
-  SpaceCraft(
-      {this.id,
-      this.url,
-      this.name,
-      this.serialNumber,
-      this.status,
-      this.description,
-      this.spacecraftConfig});
+  /// Offset from T-0, negative before liftoff.
+  @JsonKey(fromJson: durationFromJson)
+  final Duration? relativeTime;
 
-  SpaceCraft.fromJson(Map<String, dynamic> json) {
-    if (json["id"] is int) {
-      id = json["id"];
-    }
-    if (json["url"] is String) {
-      url = json["url"];
-    }
-    if (json["name"] is String) {
-      name = json["name"];
-    }
-    if (json["serial_number"] is String) {
-      serialNumber = json["serial_number"];
-    }
-    if (json["status"] is Map) {
-      status = json["status"] == null ? null : Status.fromJson(json["status"]);
-    }
-    if (json["description"] is String) {
-      description = json["description"];
-    }
-    if (json["spacecraft_config"] is Map) {
-      spacecraftConfig = json["spacecraft_config"] == null
-          ? null
-          : SpacecraftConfig.fromJson(json["spacecraft_config"]);
-    }
+  @JsonKey(readValue: _readTypeName)
+  final String? type;
+
+  @JsonKey(readValue: _readTypeDescription)
+  final String? description;
+
+  static Object? _readTypeName(Map<dynamic, dynamic> json, String key) {
+    final type = json['type'];
+    if (type is Map) return type['abbrev'] ?? type['name'];
+    return null;
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    data["serial_number"] = serialNumber;
-    if (status != null) {
-      data["status"] = status?.toJson();
-    }
-    data["description"] = description;
-    if (spacecraftConfig != null) {
-      data["spacecraft_config"] = spacecraftConfig?.toJson();
-    }
-    return data;
+  static Object? _readTypeDescription(Map<dynamic, dynamic> json, String key) {
+    final type = json['type'];
+    return type is Map ? type['description'] : null;
   }
+
+  factory TimelineEvent.fromJson(Map<String, dynamic> json) =>
+      _$TimelineEventFromJson(json);
 }
 
-class SpacecraftConfig {
-  int? id;
-  String? url;
-  String? name;
-  SpacecraftType? type;
-  Agency? agency;
-  bool? inUse;
-  String? capability;
-  String? history;
-  String? details;
-  dynamic maidenFlight;
-  int? height;
-  int? diameter;
-  bool? humanRated;
-  int? crewCapacity;
-  int? payloadCapacity;
-  String? flightLife;
-  String? imageUrl;
-  dynamic nationUrl;
-  String? wikiLink;
-  String? infoLink;
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Launch {
+  const Launch({
+    this.id,
+    this.name,
+    this.slug,
+    this.net,
+    this.netPrecision,
+    this.windowStart,
+    this.windowEnd,
+    this.lastUpdated,
+    this.status,
+    this.image,
+    this.probability,
+    this.weatherConcerns,
+    this.failreason,
+    this.hashtag,
+    this.webcastLive,
+    this.launchServiceProvider,
+    this.rocket,
+    this.mission,
+    this.pad,
+    this.padTurnaround,
+    this.program = const [],
+    this.missionPatches = const [],
+    this.infoUrls = const [],
+    this.vidUrls = const [],
+    this.updates = const [],
+    this.timeline = const [],
+    this.orbitalLaunchAttemptCount,
+    this.agencyLaunchAttemptCount,
+    this.padLaunchAttemptCount,
+  });
 
-  SpacecraftConfig(
-      {this.id,
-      this.url,
-      this.name,
-      this.type,
-      this.agency,
-      this.inUse,
-      this.capability,
-      this.history,
-      this.details,
-      this.maidenFlight,
-      this.height,
-      this.diameter,
-      this.humanRated,
-      this.crewCapacity,
-      this.payloadCapacity,
-      this.flightLife,
-      this.imageUrl,
-      this.nationUrl,
-      this.wikiLink,
-      this.infoLink});
+  final String? id;
+  final String? name;
+  final String? slug;
 
-  SpacecraftConfig.fromJson(Map<String, dynamic> json) {
-    if (json["id"] is int) {
-      id = json["id"];
-    }
-    if (json["url"] is String) {
-      url = json["url"];
-    }
-    if (json["name"] is String) {
-      name = json["name"];
-    }
-    if (json["type"] is Map) {
-      type =
-          json["type"] == null ? null : SpacecraftType.fromJson(json["type"]);
-    }
-    if (json["agency"] is Map) {
-      agency = json["agency"] == null ? null : Agency.fromJson(json["agency"]);
-    }
-    if (json["in_use"] is bool) {
-      inUse = json["in_use"];
-    }
-    if (json["capability"] is String) {
-      capability = json["capability"];
-    }
-    if (json["history"] is String) {
-      history = json["history"];
-    }
-    if (json["details"] is String) {
-      details = json["details"];
-    }
-    maidenFlight = json["maiden_flight"];
-    if (json["height"] is int) {
-      height = json["height"];
-    }
-    if (json["diameter"] is int) {
-      diameter = json["diameter"];
-    }
-    if (json["human_rated"] is bool) {
-      humanRated = json["human_rated"];
-    }
-    if (json["crew_capacity"] is int) {
-      crewCapacity = json["crew_capacity"];
-    }
-    if (json["payload_capacity"] is int) {
-      payloadCapacity = json["payload_capacity"];
-    }
-    if (json["flight_life"] is String) {
-      flightLife = json["flight_life"];
-    }
-    if (json["image_url"] is String) {
-      imageUrl = json["image_url"];
-    }
-    nationUrl = json["nation_url"];
-    if (json["wiki_link"] is String) {
-      wikiLink = json["wiki_link"];
-    }
-    if (json["info_link"] is String) {
-      infoLink = json["info_link"];
-    }
-  }
+  /// No Earlier Than — the headline time, only as precise as [netPrecision].
+  final DateTime? net;
+  final DatePrecision? netPrecision;
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["url"] = url;
-    data["name"] = name;
-    if (type != null) {
-      data["type"] = type?.toJson();
-    }
-    if (agency != null) {
-      data["agency"] = agency?.toJson();
-    }
-    data["in_use"] = inUse;
-    data["capability"] = capability;
-    data["history"] = history;
-    data["details"] = details;
-    data["maiden_flight"] = maidenFlight;
-    data["height"] = height;
-    data["diameter"] = diameter;
-    data["human_rated"] = humanRated;
-    data["crew_capacity"] = crewCapacity;
-    data["payload_capacity"] = payloadCapacity;
-    data["flight_life"] = flightLife;
-    data["image_url"] = imageUrl;
-    data["nation_url"] = nationUrl;
-    data["wiki_link"] = wikiLink;
-    data["info_link"] = infoLink;
-    return data;
-  }
+  final DateTime? windowStart;
+  final DateTime? windowEnd;
+  final DateTime? lastUpdated;
+  final LaunchStatus? status;
+
+  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  final ApiImage? image;
+
+  /// Percentage chance of favourable weather; null until close to launch.
+  @JsonKey(fromJson: intFromJson)
+  final int? probability;
+
+  final String? weatherConcerns;
+  final String? failreason;
+  final String? hashtag;
+  final bool? webcastLive;
+
+  final Agency? launchServiceProvider;
+  final Rocket? rocket;
+  final Mission? mission;
+  final Pad? pad;
+
+  /// Time since the previous launch from this pad.
+  @JsonKey(fromJson: durationFromJson)
+  final Duration? padTurnaround;
+
+  final List<Program> program;
+  final List<MissionPatch> missionPatches;
+
+  /// 2.2.0 spelled these `infoURLs` / `vidURLs`.
+  @JsonKey(readValue: _readInfoUrls)
+  final List<ContentUrl> infoUrls;
+
+  @JsonKey(readValue: _readVidUrls)
+  final List<ContentUrl> vidUrls;
+
+  final List<Update> updates;
+  final List<TimelineEvent> timeline;
+
+  final int? orbitalLaunchAttemptCount;
+  final int? agencyLaunchAttemptCount;
+  final int? padLaunchAttemptCount;
+
+  static Object? _readInfoUrls(Map<dynamic, dynamic> json, String key) =>
+      json[key] ?? json['infoURLs'];
+
+  static Object? _readVidUrls(Map<dynamic, dynamic> json, String key) =>
+      json[key] ?? json['vidURLs'];
+
+  /// Best available human name for the rocket.
+  String? get rocketName =>
+      rocket?.configuration?.fullName ?? rocket?.configuration?.name;
+
+  /// Who is flying it — the card subtitle.
+  String? get providerName =>
+      launchServiceProvider?.name ?? launchServiceProvider?.abbrev;
+
+  factory Launch.fromJson(Map<String, dynamic> json) => _$LaunchFromJson(json);
 }
 
-class SpacecraftType {
-  int? id;
-  String? name;
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class UpcomingLaunchesResponse {
+  const UpcomingLaunchesResponse({
+    this.count,
+    this.next,
+    this.previous,
+    this.results = const [],
+  });
 
-  SpacecraftType({this.id, this.name});
+  final int? count;
+  final String? next;
+  final String? previous;
+  final List<Launch> results;
 
-  SpacecraftType.fromJson(Map<String, dynamic> json) {
-    if (json["id"] is int) {
-      id = json["id"];
-    }
-    if (json["name"] is String) {
-      name = json["name"];
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["id"] = id;
-    data["name"] = name;
-    return data;
-  }
+  factory UpcomingLaunchesResponse.fromJson(Map<String, dynamic> json) =>
+      _$UpcomingLaunchesResponseFromJson(json);
 }

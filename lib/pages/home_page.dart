@@ -68,7 +68,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           );
           break;
         case BackgroundHandler.actionEventDetails:
-          final event = await LaunchLibraryAPI().event(data, true);
+          final event = await LaunchLibraryAPI().event(int.parse(data), true);
           if (!mounted) {
             return;
           }

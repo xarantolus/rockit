@@ -28,7 +28,7 @@ mixin ProgramRenderer {
         return ArticleCardWidget(
           title: program.name,
           summary: program.description,
-          imageUrl: program.imageUrl,
+          imageUrl: program.image?.imageUrl,
           link: program.infoUrl ?? program.wikiUrl,
           fullImage: true,
         );

@@ -1,12 +1,14 @@
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 
-DateTime? getDate(dynamic d) {
+DateTime? getDate(Object? d) {
   if (d is Launch) {
-    return DateTime.tryParse(d.net ?? d.windowStart ?? "")?.toLocal();
+    return (d.net ?? d.windowStart)?.toLocal();
   }
-
-  return (d as Event).date;
+  if (d is Event) {
+    return d.date?.toLocal();
+  }
+  return null;
 }
 
 List<dynamic> sortLaunchesAndEvents(List<dynamic> list) {

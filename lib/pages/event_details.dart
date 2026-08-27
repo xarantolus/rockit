@@ -88,7 +88,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             maxHeight: MediaQuery.of(context).size.height / 2,
           ),
           child: ImageWidget(
-            widget.event.featureImage,
+            widget.event.image?.imageUrl,
             heroTag: "${widget.heroPrefix}event-image",
             id: "${widget.event.id}",
           ),
@@ -135,7 +135,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  List<Widget> _renderSpaceStations(List<Spacestation> stations) {
+  List<Widget> _renderSpaceStations(List<SpaceStation> stations) {
     return titledList(
       stations.length == 1
           ? AppLocalizations.of(context)!.station
@@ -146,8 +146,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         return ArticleCardWidget(
           title: station.name,
           summary: station.description,
-          imageUrl: station.imageUrl,
-          newsSite: station.orbit,
+          imageUrl: station.image?.imageUrl,
         );
       }),
     );
@@ -186,7 +185,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         child: Column(
           children: [
             // Feature image
-            if (widget.event.featureImage != null) ...[_zoomableImage()],
+            if (widget.event.image?.imageUrl != null) ...[_zoomableImage()],
 
             // Mission title & description if possible
             ...[
@@ -194,12 +193,12 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                 _reducedEventDetails(context, widget.event)
               else
                 _eventDetails(context, widget.event),
-              if (widget.event.videoUrl != null)
+              if (widget.event.vidUrls.isNotEmpty)
                 _openURLButton(
                   Icons.play_arrow,
                   AppLocalizations.of(context)!.watchVideo,
                   false,
-                  widget.event.videoUrl!,
+                  widget.event.vidUrls.first.url!,
                 ),
               if (widget.event.newsUrl != null)
                 _openURLButton(
@@ -221,23 +220,23 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               EventCountDownWidget(widget.event),
             ],
 
-            if ((widget.event.launches ?? []).isNotEmpty) ...[
+            if (widget.event.launches.isNotEmpty) ...[
               const Divider(),
-              ..._renderLaunches(widget.event.launches!),
+              ..._renderLaunches(widget.event.launches),
             ],
 
             // Now a list of updates to the data
-            if ((widget.event.updates ?? []).isNotEmpty) ...[
+            if (widget.event.updates.isNotEmpty) ...[
               const Divider(),
-              ...renderUpdateList(context, titleStyle, widget.event.updates!),
+              ...renderUpdateList(context, titleStyle, widget.event.updates),
             ],
-            if ((widget.event.spacestations ?? []).isNotEmpty) ...[
+            if (widget.event.spacestations.isNotEmpty) ...[
               const Divider(),
-              ..._renderSpaceStations(widget.event.spacestations!),
+              ..._renderSpaceStations(widget.event.spacestations),
             ],
-            if ((widget.event.program ?? []).isNotEmpty) ...[
+            if (widget.event.program.isNotEmpty) ...[
               const Divider(),
-              ...renderProgramInfo(context, widget.event.program!),
+              ...renderProgramInfo(context, widget.event.program),
             ],
           ],
         ),

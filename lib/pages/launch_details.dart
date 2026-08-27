@@ -56,7 +56,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             maxHeight: MediaQuery.of(context).size.height / 2,
           ),
           child: ImageWidget(
-            widget.launch.image,
+            widget.launch.image?.imageUrl,
             heroTag: "${widget.heroPrefix}launch-image",
             id: widget.launch.id,
           ),
@@ -112,16 +112,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget _launchServiceProvider(
-    BuildContext context,
-    LaunchServiceProvider provider,
-  ) {
+  Widget _launchServiceProvider(BuildContext context, Agency provider) {
     return _titleImageDescription(
       context,
       clickURL: provider.infoUrl,
       title: provider.name,
       description: provider.description,
-      imageURL: provider.logoUrl ?? provider.imageUrl,
+      imageURL: provider.logo?.imageUrl ?? provider.image?.imageUrl,
     );
   }
 
@@ -133,21 +130,16 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       context,
       title: stage.launcher?.serialNumber,
       description: stage.launcher?.details,
-      imageURL: stage.launcher?.imageUrl,
+      imageURL: stage.launcher?.image?.imageUrl,
     );
   }
 
-  Widget _spacecraftStage(BuildContext context, SpaceCraft spaceCraft) {
-    final name = spaceCraft.spacecraftConfig?.name;
+  Widget _spacecraftStage(BuildContext context, SpacecraftStage spaceCraft) {
     return _titleImageDescription(
       context,
-      title: name == null
-          ? spaceCraft.serialNumber
-          : spaceCraft.serialNumber == null
-          ? name
-          : "$name (${spaceCraft.serialNumber!})",
+      title: spaceCraft.name,
       description: spaceCraft.description,
-      imageURL: spaceCraft.spacecraftConfig?.imageUrl,
+      imageURL: spaceCraft.image?.imageUrl,
     );
   }
 
@@ -158,13 +150,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return stages.map((s) => _stage(context, s)).whereType<Widget>().toList();
   }
 
-  Widget _rocketConfiguration(BuildContext context, Configuration cfg) {
+  Widget _rocketConfiguration(BuildContext context, RocketConfiguration cfg) {
     return _titleImageDescription(
       context,
       title: cfg.fullName,
       description: cfg.description,
       clickURL: cfg.infoUrl,
-      imageURL: cfg.imageUrl,
+      imageURL: cfg.image?.imageUrl,
     );
   }
 
@@ -228,7 +220,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
     final importantPatches = l.where(
-      (element) => (element.imageUrl ?? "").isNotEmpty,
+      (element) => (element.image?.imageUrl ?? "").isNotEmpty,
     );
     if (importantPatches.isEmpty) {
       return List.empty();
@@ -266,7 +258,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 style: titleStyle,
               ),
             ),
-          InteractiveViewer(child: Center(child: ImageWidget(patch.imageUrl))),
+          InteractiveViewer(
+            child: Center(child: ImageWidget(patch.image?.imageUrl)),
+          ),
         ],
       ),
     );
@@ -274,9 +268,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   List<Widget> _urlInfoList(
     BuildContext context,
-    List<URLInfo> l,
+    List<ContentUrl> l,
     String title,
-    Widget Function(BuildContext, URLInfo) mapFunction,
+    Widget Function(BuildContext, ContentUrl) mapFunction,
   ) {
     final widgets = l
         .map((info) {
@@ -305,7 +299,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   Widget _urlInfoArticleWidget(
     BuildContext context,
-    URLInfo info, [
+    ContentUrl info, [
     bool customTab = true,
     Icon? icon,
   ]) {
@@ -339,13 +333,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _generalInfo(BuildContext context, Launch l) {
-    final lastUpdated = DateTime.tryParse(l.lastUpdated ?? "");
+    final lastUpdated = l.lastUpdated;
 
-    final windowStart = DateTime.tryParse(l.windowStart ?? "");
-    final windowEnd = DateTime.tryParse(l.windowEnd ?? "");
+    final windowStart = l.windowStart;
+    final windowEnd = l.windowEnd;
 
-    final landings = (widget.launch.rocket?.launcherStage ?? []);
-    final landing = landings.isNotEmpty ? landings[0].landing : null;
+    final landings = widget.launch.rocket?.launcherStage ?? const [];
+    final landing = landings.isNotEmpty ? landings.first.landing : null;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -381,11 +375,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   AppLocalizations.of(context)!.startProbability,
                   "${l.probability!}%",
                 ),
-              if ((l.holdreason ?? "").isNotEmpty)
-                _descriptionRow(
-                  AppLocalizations.of(context)!.holdReason,
-                  l.holdreason!,
-                ),
               if ((l.failreason ?? "").isNotEmpty)
                 _descriptionRow(
                   AppLocalizations.of(context)!.failReason,
@@ -411,25 +400,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                           : ""),
                 ),
               if (landing != null) ...[
-                if (landing.type != null) ...[
-                  if (landing.type!.name != null &&
-                      landing.type!.abbrev != null)
-                    _descriptionRow(
-                      AppLocalizations.of(context)!.landingType,
-                      ("${landing.type!.name!} (${landing.type!.abbrev!})"),
-                    )
-                  else
-                    _descriptionRow(
-                      AppLocalizations.of(context)!.landingType,
-                      landing.type!.name ??
-                          landing.type!.abbrev ??
-                          AppLocalizations.of(context)!.unknown,
-                    ),
-                ],
-                if (landing.location?.name != null)
+                if (landing.type != null)
+                  _descriptionRow(
+                    AppLocalizations.of(context)!.landingType,
+                    landing.type!,
+                  ),
+                if (landing.landingLocation?.name != null)
                   _descriptionRow(
                     AppLocalizations.of(context)!.landingLocation,
-                    landing.location?.name,
+                    landing.landingLocation?.name,
                   ),
                 if (landing.success == true)
                   _descriptionRow(
@@ -511,14 +490,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             _generalInfo(context, widget.launch),
 
             // Show mission patches
-            if (widget.launch.missionPatches?.isNotEmpty ?? false) ...[
+            if (widget.launch.missionPatches.isNotEmpty) ...[
               ...() {
                 // We only add the divider conditionally;
                 // the function might return zero widgets even if
                 // the mission patch list contains more than 0 items
                 final patches = _missionPatches(
                   context,
-                  widget.launch.missionPatches!,
+                  widget.launch.missionPatches,
                 );
 
                 if (patches.isNotEmpty) {
@@ -531,7 +510,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // Render a list of articles/info URLs
             ..._urlInfoList(
               context,
-              widget.launch.infoUrls ?? [],
+              widget.launch.infoUrls,
               AppLocalizations.of(context)!.moreInfo,
               (ctx, info) => _urlInfoArticleWidget(ctx, info),
             ),
@@ -539,8 +518,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // A list of videos with thumbnails
             ..._urlInfoList(
               context,
-              widget.launch.vidUrls ?? [],
-              (widget.launch.vidUrls ?? []).length == 1
+              widget.launch.vidUrls,
+              widget.launch.vidUrls.length == 1
                   ? AppLocalizations.of(context)!.video
                   : AppLocalizations.of(context)!.videos,
               (ctx, vid) => _urlInfoArticleWidget(
@@ -552,9 +531,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ),
 
             // Now a list of updates to the data
-            if ((widget.launch.updates ?? []).isNotEmpty) ...[
+            if (widget.launch.updates.isNotEmpty) ...[
               const Divider(),
-              ...renderUpdateList(context, titleStyle, widget.launch.updates!),
+              ...renderUpdateList(context, titleStyle, widget.launch.updates),
             ],
 
             // An informative description of the rocket
@@ -567,17 +546,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             ],
 
             // Info for the upper stage (e.g. Starship number)
-            if ((widget.launch.rocket?.spacecraftStage) != null) ...[
+            if (widget.launch.rocket?.spacecraftStage.isNotEmpty ?? false) ...[
               const Divider(),
-              _spacecraftStage(context, widget.launch.rocket!.spacecraftStage!),
+              ...widget.launch.rocket!.spacecraftStage.map(
+                (stage) => _spacecraftStage(context, stage),
+              ),
             ],
 
             // Info for the first stage (e.g. Starship/Falcon booster)
-            if ((widget.launch.rocket?.launcherStage ?? []).isNotEmpty) ...[
+            if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false) ...[
               const Divider(),
               ..._launcherStages(
                 context,
-                widget.launch.rocket?.launcherStage ?? [],
+                widget.launch.rocket?.launcherStage ?? const [],
               ),
             ],
 
@@ -592,14 +573,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             // There are some incomplete pads that we shouldn't render6
             if (widget.launch.pad != null &&
-                widget.launch.pad?.location?.countryCode != "UNK") ...[
+                widget.launch.pad?.country != "Unknown") ...[
               const Divider(),
               _launchPad(context, widget.launch.pad!),
             ],
 
-            if ((widget.launch.program ?? []).isNotEmpty) ...[
+            if (widget.launch.program.isNotEmpty) ...[
               const Divider(),
-              ...renderProgramInfo(context, widget.launch.program!),
+              ...renderProgramInfo(context, widget.launch.program),
             ],
           ],
         ),

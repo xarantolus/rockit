@@ -24,13 +24,13 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
           return null;
         }
 
-        return NextFuncResult(cached.results ?? [], cached.next);
+        return NextFuncResult(cached.results, cached.next);
       },
       nextFunc: (nextItemArg, current) async {
         final res = await widget.service.upcomingEvents(next: nextItemArg);
 
         return NextFuncResult(
-          mergePages(current, res.data.results ?? [], (event) => event.id),
+          mergePages(current, res.data.results, (event) => event.id),
           res.data.next,
           notice: res.error,
         );

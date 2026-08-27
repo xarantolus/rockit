@@ -23,10 +23,10 @@ class _LaunchWidgetState extends State<LaunchWidget> {
           AppLocalizations.of(context)!.unknown,
       heroId: "${widget.launch.id}",
       heroTag: "${widget.heroPrefix}launch-image",
-      imageURL: widget.launch.image,
-      netDate: DateTime.tryParse(
-        widget.launch.net ?? widget.launch.windowStart ?? "",
-      ),
+      image: widget.launch.image,
+      status: widget.launch.status,
+      date: widget.launch.net ?? widget.launch.windowStart,
+      precision: widget.launch.netPrecision,
     );
   }
 }

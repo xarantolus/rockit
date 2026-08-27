@@ -14,32 +14,67 @@ class LaunchLibraryAPI extends APIClient {
   // Actual, private constructor
   LaunchLibraryAPI._internal();
 
+  /// How much of the recent past to keep in the listings, so a launch that just
+  /// happened does not vanish the moment it lifts off.
+  static const recentPastWindow = Duration(days: 1);
+
+  /// The lower bound for a listing query, rounded down to midnight UTC.
+  ///
+  /// The rounding is not cosmetic. This value goes into the query string, and
+  /// the query string *is* the HTTP cache key — an unrounded `now` would
+  /// produce a new URL on every call, so the cache would never hit and
+  /// cache-first loading would silently stop working. At day granularity the
+  /// URL is stable for 24 hours.
+  @visibleForTesting
+  static DateTime listingCutoff(DateTime now) {
+    final utc = now.toUtc().subtract(recentPastWindow);
+
+    return DateTime.utc(utc.year, utc.month, utc.day);
+  }
+
+  static String _cutoffParam(DateTime now) {
+    // The API wants `2026-08-26T00:00:00Z`.
+    return "${listingCutoff(now).toIso8601String().split('.').first}Z";
+  }
+
   Uri _endpoint(String path, Map<String, dynamic> query) {
     query["format"] = "json";
 
     if (kReleaseMode) {
-      return Uri.https('ll.thespacedevs.com', "/2.2.0$path", query);
+      return Uri.https('ll.thespacedevs.com', "/2.3.0$path", query);
     }
-    return Uri.https('lldev.thespacedevs.com', "/2.2.0$path", query);
+    return Uri.https('lldev.thespacedevs.com', "/2.3.0$path", query);
   }
 
-  Uri upcomingLaunchesUri({String? next}) {
+  /// Listings use `/launches/` rather than `/launches/upcoming/`: the upcoming
+  /// endpoint drops everything in the past, and `hide_recent_previous` became
+  /// inert in 2.3.0. Filtering by `net__gte` instead keeps [recentPastWindow]
+  /// of just-launched missions in the list.
+  ///
+  /// `mode=detailed` is deliberate. It is ~32 KB per launch against ~10 KB for
+  /// `normal`, but it means opening a launch costs no extra request — and the
+  /// API allows only 15 requests an hour, so requests are the scarce resource,
+  /// not bytes.
+  Uri upcomingLaunchesUri({String? next, DateTime? now}) {
     return next != null
         ? Uri.parse(next)
-        : _endpoint("/launch/upcoming/", {
-            "hide_recent_previous": "false",
+        : _endpoint("/launches/", {
+            "net__gte": _cutoffParam(now ?? DateTime.now()),
+            "ordering": "net",
             "include_suborbital": "true",
             "limit": "50",
             "mode": "detailed",
-            "related": "false",
           });
   }
 
-  Uri upcomingEventsUri({String? next}) {
+  Uri upcomingEventsUri({String? next, DateTime? now}) {
     return next != null
         ? Uri.parse(next)
-        : _endpoint("/event/upcoming/", {
+        : _endpoint("/events/", {
+            "date__gte": _cutoffParam(now ?? DateTime.now()),
+            "ordering": "date",
             "limit": "50",
+            "mode": "detailed",
           });
   }
 
@@ -49,16 +84,20 @@ class LaunchLibraryAPI extends APIClient {
   }) async {
     var res = await fetchJSON(upcomingLaunchesUri(next: next), preferCache);
 
-    return res.bubble(UpcomingLaunchesResponse.fromJson(res.data));
+    return res.bubble(
+      UpcomingLaunchesResponse.fromJson(APIClient.asJsonObject(res.data)),
+    );
   }
 
-  /// The stored page of upcoming launches, without touching the network.
+  /// The stored page of launches, without touching the network.
   Future<UpcomingLaunchesResponse?> cachedUpcomingLaunches({
     String? next,
   }) async {
     var json = await readCacheJSON(upcomingLaunchesUri(next: next));
 
-    return json == null ? null : UpcomingLaunchesResponse.fromJson(json);
+    return json == null
+        ? null
+        : UpcomingLaunchesResponse.fromJson(APIClient.asJsonObject(json));
   }
 
   Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents({
@@ -67,38 +106,36 @@ class LaunchLibraryAPI extends APIClient {
   }) async {
     var res = await fetchJSON(upcomingEventsUri(next: next), preferCache);
 
-    return res.bubble(UpcomingEventsResponse.fromJson(res.data));
+    return res.bubble(
+      UpcomingEventsResponse.fromJson(APIClient.asJsonObject(res.data)),
+    );
   }
 
-  /// The stored page of upcoming events, without touching the network.
-  Future<UpcomingEventsResponse?> cachedUpcomingEvents({
-    String? next,
-  }) async {
+  /// The stored page of events, without touching the network.
+  Future<UpcomingEventsResponse?> cachedUpcomingEvents({String? next}) async {
     var json = await readCacheJSON(upcomingEventsUri(next: next));
 
-    return json == null ? null : UpcomingEventsResponse.fromJson(json);
+    return json == null
+        ? null
+        : UpcomingEventsResponse.fromJson(APIClient.asJsonObject(json));
   }
 
   Future<ErrorDetails<Launch>> launch(
     String id, [
     bool preferCache = false,
   ]) async {
-    var uri = _endpoint("/launch/$id", {});
+    var uri = _endpoint("/launches/$id/", {});
 
     var res = await fetchJSON(uri, preferCache);
 
-    return res.bubble(Launch.fromJson(res.data));
+    return res.bubble(Launch.fromJson(APIClient.asJsonObject(res.data)));
   }
 
-  // the id given should be either a String or int
-  Future<ErrorDetails<Event>> event(
-    dynamic id, [
-    bool preferCache = false,
-  ]) async {
-    var uri = _endpoint("/event/$id", {});
+  Future<ErrorDetails<Event>> event(int id, [bool preferCache = false]) async {
+    var uri = _endpoint("/events/$id/", {});
 
     var res = await fetchJSON(uri, preferCache);
 
-    return res.bubble(Event.fromJson(res.data));
+    return res.bubble(Event.fromJson(APIClient.asJsonObject(res.data)));
   }
 }

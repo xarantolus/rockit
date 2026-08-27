@@ -26,13 +26,9 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
   void initState() {
     super.initState();
 
-    try {
-      net = DateTime.parse(widget.launch.net ?? "");
-    } catch (_) {}
-
-    try {
-      windowStart = DateTime.parse(widget.launch.windowStart ?? "");
-    } catch (_) {}
+    // Parsed at the API boundary now, so these are already DateTimes.
+    net = widget.launch.net;
+    windowStart = widget.launch.windowStart;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
