@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/launch_library/api.dart';
@@ -262,13 +263,12 @@ class BackgroundHandler {
         debugPrint("Error cancelling launch notification $notifID: $err");
       }
 
-      await notifications!.zonedSchedule(
+      await _schedule(
         id: notifID,
         title: launchTitle,
         body: "This launch will be in ${notificationSettings[i].displayed}",
         scheduledDate: notifTime,
         notificationDetails: _getLaunchNotifDetails(tag),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: "$actionLaunchDetails::$launchId",
       );
       debugPrint(
@@ -317,12 +317,80 @@ class BackgroundHandler {
 
   /// Requests what scheduled notifications need. Both are no-ops on Android
   /// versions that grant them at install time.
+  ///
+  /// `POST_NOTIFICATIONS` (Android 13 / API 33 and up) shows a normal runtime
+  /// dialog. `SCHEDULE_EXACT_ALARM` cannot: requesting it sends the user out to
+  /// a system settings screen, and from Android 14 (API 34) it is denied by
+  /// default. Scheduling has to work whether or not they come back with it.
   Future<void> _ensureNotificationPermissions() async {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
     if (await Permission.scheduleExactAlarm.isDenied) {
       await Permission.scheduleExactAlarm.request();
+    }
+  }
+
+  /// Which alarm mode to schedule with, given whether exact alarms are allowed.
+  ///
+  /// An exact alarm without the permission is not a degraded notification, it
+  /// is *no* notification: the plugin throws `exact_alarms_not_permitted` and
+  /// nothing gets registered. A launch reminder that arrives a few minutes late
+  /// is much better than one that never arrives, so fall back to an inexact
+  /// alarm instead.
+  @visibleForTesting
+  static AndroidScheduleMode scheduleModeFor({required bool exactAllowed}) {
+    return exactAllowed
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+  }
+
+  Future<AndroidScheduleMode> _scheduleMode() async {
+    try {
+      return scheduleModeFor(
+        exactAllowed: await Permission.scheduleExactAlarm.isGranted,
+      );
+    } catch (err) {
+      debugPrint("Could not check the exact alarm permission: $err");
+      return AndroidScheduleMode.inexactAllowWhileIdle;
+    }
+  }
+
+  /// Schedules one notification, degrading to an inexact alarm rather than
+  /// failing when exact alarms are not permitted.
+  Future<void> _schedule({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime scheduledDate,
+    required NotificationDetails notificationDetails,
+    required String payload,
+  }) async {
+    Future<void> withMode(AndroidScheduleMode mode) {
+      return notifications!.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledDate,
+        notificationDetails: notificationDetails,
+        androidScheduleMode: mode,
+        payload: payload,
+      );
+    }
+
+    final mode = await _scheduleMode();
+
+    try {
+      await withMode(mode);
+    } on PlatformException catch (err) {
+      if (mode != AndroidScheduleMode.exactAllowWhileIdle) {
+        rethrow;
+      }
+
+      // The permission is revocable, so it can disappear between the check
+      // above and this call.
+      debugPrint("Exact alarm refused ($err), scheduling an inexact one");
+      await withMode(AndroidScheduleMode.inexactAllowWhileIdle);
     }
   }
 
@@ -549,13 +617,12 @@ class BackgroundHandler {
         debugPrint("Error cancelling event notification $notifID: $err");
       }
 
-      await notifications!.zonedSchedule(
+      await _schedule(
         id: notifID,
         title: eventTitle,
         body: "This event will be in ${notificationSettings[i].displayed}",
         scheduledDate: notifTime,
         notificationDetails: _getEventNotifDetails(tag),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: "$actionEventDetails::$eventId",
       );
       debugPrint(
