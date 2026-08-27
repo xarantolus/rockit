@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rockit/apis/coalesce.dart';
 import 'package:rockit/apis/error_details.dart';
 
 class APIClient {
@@ -88,10 +89,18 @@ class APIClient {
     return details.bubble(jsonDecode(details.data));
   }
 
-  Future<ErrorDetails<String>> fetch(
-    Uri url, [
-    bool preferCache = false,
-  ]) async {
+  /// Requests that have not settled yet, keyed by URL and cache preference.
+  static final _inFlight = <String, Future<ErrorDetails<String>>>{};
+
+  Future<ErrorDetails<String>> fetch(Uri url, [bool preferCache = false]) {
+    return coalesce(
+      _inFlight,
+      "${preferCache ? 'cache' : 'net'} $url",
+      () => _fetch(url, preferCache),
+    );
+  }
+
+  Future<ErrorDetails<String>> _fetch(Uri url, bool preferCache) async {
     if (preferCache) {
       try {
         var file = await _cacheManager?.getFileFromCache(url.toString());

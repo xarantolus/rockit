@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/article_listing.dart';
@@ -34,6 +35,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
     unawaited(pushPayloadPage());
     widget.appPayload.addListener(pushPayloadPage);
+
+    // News only: the Launch Library allows fifteen requests an hour, so the
+    // launches and events tabs stay strictly on demand.
+    unawaited(SpaceFlightNewsAPI().prefetchArticles());
   }
 
   // pushPayloadPage is called when the app is opened via a notification.
