@@ -12,11 +12,11 @@ import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/detail_section.dart';
+import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
-import 'package:rockit/widgets/event_countdown.dart';
-import 'package:rockit/widgets/image.dart';
 import 'package:rockit/widgets/launch.dart';
 
 class EventDetailsPage extends StatefulWidget {
@@ -75,23 +75,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           e.name ?? AppLocalizations.of(context)!.unknown,
           textAlign: TextAlign.center,
           style: titleStyle,
-        ),
-      ),
-    );
-  }
-
-  Widget _zoomableImage() {
-    return InteractiveViewer(
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height / 2,
-          ),
-          child: ImageWidget(
-            widget.event.image?.imageUrl,
-            heroTag: "${widget.heroPrefix}event-image",
-            id: "${widget.event.id}",
-          ),
         ),
       ),
     );
@@ -172,6 +155,28 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
+  Widget _quickFacts(BuildContext context, Event e) {
+    final chips = <Widget>[
+      if (e.type != null) InfoChip(label: e.type!, icon: Icons.event_outlined),
+      if (e.location != null)
+        InfoChip(label: e.location!, icon: Icons.place_outlined),
+      if (e.duration != null)
+        InfoChip(
+          label: AppLocalizations.of(context)!.daysUnit(e.duration!.inDays),
+          icon: Icons.schedule,
+        ),
+    ];
+
+    if (chips.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,61 +188,102 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Feature image
-            if (widget.event.image?.imageUrl != null) ...[_zoomableImage()],
+            LaunchHero(
+              image: widget.event.image,
+              title:
+                  widget.event.name ??
+                  AppLocalizations.of(context)!.unknownEvent,
+              subtitle: widget.event.type ?? widget.event.location,
+              // Events have no launch status, and their dates are never
+              // precise to a time, so this always renders a window.
+              date: widget.event.date,
+              precision: widget.event.datePrecision,
+              heroTag: "${widget.heroPrefix}event-image",
+              heroId: "${widget.event.id}",
+            ),
 
-            // Mission title & description if possible
-            ...[
-              if (widget.event.description == null)
-                _reducedEventDetails(context, widget.event)
-              else
-                _eventDetails(context, widget.event),
-              if (widget.event.vidUrls.isNotEmpty)
-                _openURLButton(
-                  Icons.play_arrow,
-                  AppLocalizations.of(context)!.watchVideo,
-                  false,
-                  widget.event.vidUrls.first.url!,
+            _quickFacts(context, widget.event),
+
+            if (!kIsWeb) _subscription("${widget.event.id}"),
+
+            DetailSection(
+              title: AppLocalizations.of(context)!.info,
+              initiallyExpanded: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (widget.event.description == null)
+                    _reducedEventDetails(context, widget.event)
+                  else
+                    _eventDetails(context, widget.event),
+                  if (widget.event.vidUrls.isNotEmpty)
+                    _openURLButton(
+                      Icons.play_arrow,
+                      AppLocalizations.of(context)!.watchVideo,
+                      false,
+                      widget.event.vidUrls.first.url!,
+                    ),
+                  if (widget.event.newsUrl != null)
+                    _openURLButton(
+                      Icons.open_in_browser,
+                      AppLocalizations.of(context)!.moreInfo,
+                      true,
+                      widget.event.newsUrl!,
+                    ),
+                ],
+              ),
+            ),
+
+            // Events often hang off a launch; this is the way through to it.
+            if (widget.event.launches.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.launches,
+                count: widget.event.launches.length,
+                preview: widget.event.launches.first.name,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _renderLaunches(widget.event.launches),
                 ),
-              if (widget.event.newsUrl != null)
-                _openURLButton(
-                  Icons.open_in_browser,
-                  AppLocalizations.of(context)!.moreInfo,
-                  true,
-                  widget.event.newsUrl!,
+              ),
+
+            if (widget.event.spacestations.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.stations,
+                count: widget.event.spacestations.length,
+                preview: widget.event.spacestations.first.name,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _renderSpaceStations(widget.event.spacestations),
                 ),
-            ],
+              ),
 
-            if (!kIsWeb) ...[
-              const Divider(),
-              _subscription("${widget.event.id}"),
-            ],
+            if (widget.event.updates.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.updates,
+                count: widget.event.updates.length,
+                preview: widget.event.updates.first.comment,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: renderUpdateList(
+                    context,
+                    titleStyle,
+                    widget.event.updates,
+                  ),
+                ),
+              ),
 
-            // Show a countdown
-            if (widget.event.date != null) ...[
-              const Divider(),
-              EventCountDownWidget(widget.event),
-            ],
-
-            if (widget.event.launches.isNotEmpty) ...[
-              const Divider(),
-              ..._renderLaunches(widget.event.launches),
-            ],
-
-            // Now a list of updates to the data
-            if (widget.event.updates.isNotEmpty) ...[
-              const Divider(),
-              ...renderUpdateList(context, titleStyle, widget.event.updates),
-            ],
-            if (widget.event.spacestations.isNotEmpty) ...[
-              const Divider(),
-              ..._renderSpaceStations(widget.event.spacestations),
-            ],
-            if (widget.event.program.isNotEmpty) ...[
-              const Divider(),
-              ...renderProgramInfo(context, widget.event.program),
-            ],
+            if (widget.event.program.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.programs,
+                count: widget.event.program.length,
+                preview: widget.event.program.first.name,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: renderProgramInfo(context, widget.event.program),
+                ),
+              ),
           ],
         ),
       ),
