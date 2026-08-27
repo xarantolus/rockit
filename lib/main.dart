@@ -44,6 +44,10 @@ void main() async {
   if (!kIsWeb) {
     // Initialize background tasks
     Workmanager().initialize(backgroundTaskCallback);
+
+    // Keeps the listings warm between sessions, so a cold start has something
+    // to paint immediately.
+    unawaited(BackgroundHandler().scheduleCacheWarming());
   }
 
   runApp(RockItApp(appPayloadNotifier));

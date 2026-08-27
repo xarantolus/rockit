@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/apis/launch_library/events_response.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
+import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/notifications/create.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -79,6 +82,17 @@ class BackgroundHandler {
   static const periodicLaunchUpdateTaskName = "update:launch:periodic";
   static const periodicEventUpdateTaskName = "update:event:periodic";
 
+  /// Refreshes the first page of every listing on a schedule, so opening the
+  /// app paints real data instead of a spinner. Only one of these ever exists,
+  /// hence a fixed id rather than one per subscription.
+  static const periodicCacheWarmTaskName = "cache:warm:periodic";
+  static const _cacheWarmTaskId = "cache-warm";
+
+  /// Twice a day. The cost is two Launch Library requests per run against a
+  /// budget of fifteen an hour, and its data barely moves faster than that;
+  /// news is free but there is no reason to fetch it on its own schedule.
+  static const cacheWarmInterval = Duration(hours: 12);
+
   final _periodicTaskConstraints = Constraints(
     networkType: NetworkType.connected,
   );
@@ -120,6 +134,8 @@ class BackgroundHandler {
           return await handleLaunchUpdatePeriodic(inputData);
         case periodicEventUpdateTaskName:
           return await handleEventUpdatePeriodic(inputData);
+        case periodicCacheWarmTaskName:
+          return await handleCacheWarm();
         default:
           throw FormatException(
             "Expected task name to be for event or update, but got \"$task\"",
@@ -128,6 +144,119 @@ class BackgroundHandler {
     } catch (err) {
       debugPrint("Error in scheduled task: $err");
       rethrow;
+    }
+  }
+
+  /// Registers the cache warmer. Safe to call on every start.
+  ///
+  /// `update` rather than `replace`: replacing cancels the pending work and
+  /// restarts the twelve hours, so on an app that is opened daily the task
+  /// would never actually come due.
+  Future<void> scheduleCacheWarming() async {
+    try {
+      await Workmanager().registerPeriodicTask(
+        _cacheWarmTaskId,
+        periodicCacheWarmTaskName,
+        frequency: cacheWarmInterval,
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
+        constraints: _periodicTaskConstraints,
+      );
+    } catch (err) {
+      debugPrint("Could not schedule cache warming: $err");
+    }
+  }
+
+  /// Fetches the first page of launches, events and news purely for the cache.
+  ///
+  /// This runs in a background isolate, but it is the same app: the HTTP cache
+  /// is one directory on disk, so what this stores is what the UI reads back.
+  /// (If the app happens to be in the foreground at the same time, the two
+  /// isolates can overwrite each other's cache *index*; the response files
+  /// survive, so the worst case is a cache miss, not bad data.)
+  Future<bool> handleCacheWarm() async {
+    final api = LaunchLibraryAPI();
+
+    // In parallel: this API regularly takes ten seconds a request and the
+    // three are independent, so there is no reason to add them up.
+    final results = await Future.wait([
+      _warmCache("launches", () async {
+        final launches = (await api.upcomingLaunches()).data.results;
+        await _refreshSubscriptionsFrom(launches: launches);
+      }),
+      _warmCache("events", () async {
+        final events = (await api.upcomingEvents()).data.results;
+        await _refreshSubscriptionsFrom(events: events);
+      }),
+      _warmCache("news", () => SpaceFlightNewsAPI().articles()),
+    ]);
+
+    // Returning false asks WorkManager to run the whole task again. That is
+    // only right when nothing worked; one dead endpoint should not make us
+    // re-spend requests on the two that succeeded.
+    return results.any((ok) => ok);
+  }
+
+  /// Runs the subscription logic over anything we already downloaded.
+  ///
+  /// The listing is `mode=detailed`, so a subscribed launch that appears in it
+  /// carries exactly what the per-launch task would have fetched — updates
+  /// included. Processing it here means the hourly per-launch tasks find
+  /// nothing new to report and, more importantly, that a subscription stays
+  /// current even on a device where those tasks are being throttled.
+  ///
+  /// Anything *not* in the listing (further out than one page, or already
+  /// past) is left to its own task; this never adds a request.
+  Future<void> _refreshSubscriptionsFrom({
+    List<Launch>? launches,
+    List<Event>? events,
+  }) async {
+    if (launches != null) {
+      final subscribed = (await _loadIDs(launchesKey)).toSet();
+
+      for (final launch in launches) {
+        final id = launch.id;
+        if (id == null || !subscribed.contains(id)) {
+          continue;
+        }
+
+        try {
+          await processLaunch(launch, id);
+          debugPrint("Refreshed subscribed launch $id from the listing");
+        } catch (err) {
+          debugPrint("Could not refresh subscribed launch $id: $err");
+        }
+      }
+    }
+
+    if (events != null) {
+      final subscribed = (await _loadIDs(eventsKey)).toSet();
+
+      for (final event in events) {
+        final id = event.id;
+        if (id == null || !subscribed.contains("$id")) {
+          continue;
+        }
+
+        try {
+          await processEvent(event, "$id");
+          debugPrint("Refreshed subscribed event $id from the listing");
+        } catch (err) {
+          debugPrint("Could not refresh subscribed event $id: $err");
+        }
+      }
+    }
+  }
+
+  Future<bool> _warmCache(String what, Future<void> Function() fetch) async {
+    try {
+      await fetch();
+      debugPrint("Warmed the $what cache");
+
+      return true;
+    } catch (err) {
+      debugPrint("Could not warm the $what cache: $err");
+
+      return false;
     }
   }
 
@@ -188,8 +317,19 @@ class BackgroundHandler {
       return true;
     }
 
-    final launch = (await LaunchLibraryAPI().launch(launchId)).data;
+    return await processLaunch(
+      (await LaunchLibraryAPI().launch(launchId)).data,
+      launchId,
+    );
+  }
 
+  /// Everything the periodic launch task does once it *has* the launch:
+  /// notify about new updates, reschedule the reminders, unsubscribe when it
+  /// is long past.
+  ///
+  /// Split out from the fetch so [handleCacheWarm] can feed it launches it
+  /// already downloaded as part of the listing, which costs no request at all.
+  Future<bool> processLaunch(Launch launch, String launchId) async {
     final launchTitle = launch.name ?? "Unknown";
     final tag = "update:launch:oneoff:$launchId";
     final updateKey = _getUpdateKey("launch", launchId);
@@ -524,9 +664,6 @@ class BackgroundHandler {
   Future<bool> handleEventUpdatePeriodic(
     Map<String, dynamic>? inputData,
   ) async {
-    // Adding this offset prevents notifications having the same id (as those of the launch notification)
-    const eventNotifIDOffset = 0x0F000000;
-
     // At first, we load the associated event
     final eventId = inputData!["eventId"]! as String;
 
@@ -537,7 +674,16 @@ class BackgroundHandler {
       return true;
     }
 
-    final event = (await LaunchLibraryAPI().event(int.parse(eventId))).data;
+    return await processEvent(
+      (await LaunchLibraryAPI().event(int.parse(eventId))).data,
+      eventId,
+    );
+  }
+
+  /// The event twin of [processLaunch].
+  Future<bool> processEvent(Event event, String eventId) async {
+    // Adding this offset prevents notifications having the same id (as those of the launch notification)
+    const eventNotifIDOffset = 0x0F000000;
 
     final eventTitle = event.name ?? "Unknown";
     final tag = "update:event:oneoff:$eventId";
