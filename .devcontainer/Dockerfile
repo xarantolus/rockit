@@ -8,6 +8,18 @@ ARG ANDROID_CMDLINE_TOOLS=16111833
 # Platforms now carry a minor version; "android-37" alone does not exist.
 ARG ANDROID_PLATFORMS="platforms;android-37.0 platforms;android-36 platforms;android-34"
 ARG ANDROID_BUILD_TOOLS="build-tools;37.0.0 build-tools;36.0.0 build-tools;34.0.0"
+# Two NDKs are genuinely needed:
+#  - 28.2.13676358 matches flutter.ndkVersion for FLUTTER_VERSION (see
+#    packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt), which
+#    is where android/app/build.gradle gets its NDK version from.
+#  - 25.1.8937393 is hardcoded by rive_common (a dependency of the pinned
+#    rive ^0.13.20) in its ndkVersionFromLocalProperties(). It builds native
+#    code with minSdk 19, which NDK 28 no longer supports, so it cannot simply
+#    be pointed at the newer one via the rive.ndk.version property.
+ARG ANDROID_NDK="ndk;28.2.13676358 ndk;25.1.8937393"
+# rive_common builds native code with CMake, which Gradle otherwise downloads
+# on the first build.
+ARG ANDROID_CMAKE="cmake;3.22.1"
 ARG ANDROID_SYSTEM_IMAGE="system-images;android-36;google_apis;x86_64"
 ARG AVD_NAME=rockit
 
@@ -38,8 +50,13 @@ RUN mkdir -p "${ANDROID_HOME}/cmdline-tools" \
 
 ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 
+# The NDK ships in the image on purpose. Left out, Gradle downloads it during
+# the first build; if that download is interrupted (a timeout, a killed build)
+# it leaves a partial NDK behind, and every later build fails with "Android
+# sdkmanager did not install NDK <version>" until the directory is deleted by
+# hand.
 RUN yes | sdkmanager --licenses > /dev/null \
-    && sdkmanager --install "platform-tools" ${ANDROID_PLATFORMS} ${ANDROID_BUILD_TOOLS} > /dev/null
+    && sdkmanager --install "platform-tools" ${ANDROID_PLATFORMS} ${ANDROID_BUILD_TOOLS} ${ANDROID_NDK} ${ANDROID_CMAKE} > /dev/null
 
 ENV FLUTTER_ROOT=/opt/flutter
 RUN curl -fsSL -o /tmp/flutter.tar.xz \
