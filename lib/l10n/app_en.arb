@@ -251,5 +251,31 @@
         "type": "String"
       }
     }
-  }
+  },
+  "justNow": "Just now",
+  "agoMinutes": "{count,plural, =1{1 min ago}other{{count} min ago}}",
+  "@agoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoHours": "{count,plural, =1{1 hour ago}other{{count} hours ago}}",
+  "@agoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoDays": "{count,plural, =1{1 day ago}other{{count} days ago}}",
+  "@agoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relatedLaunch": "Related launch"
 }

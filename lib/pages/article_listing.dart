@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/cache_first.dart';
+import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/paging.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
@@ -14,7 +16,7 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/refreshing_overlay.dart';
-import 'package:rockit/widgets/article.dart';
+import 'package:rockit/widgets/article_row.dart';
 
 class ArticleListingPage extends StatefulWidget {
   ArticleListingPage({super.key});
@@ -41,12 +43,37 @@ class _ArticleListingPageState extends State<ArticleListingPage>
         },
       );
 
+  /// Cached launches keyed by id, for the "related launch" chip.
+  Map<String, Launch>? _launchesById;
+
   @override
   void initState() {
     super.initState();
 
     controller.addListener(_onControllerUpdate);
     unawaited(controller.start());
+    unawaited(_loadCachedLaunches());
+  }
+
+  /// Reads whatever launches are already cached so an article can link to the
+  /// one it is about. Deliberately cache-only: the Launch Library allows 15
+  /// requests an hour and a decoration is not worth one of them.
+  Future<void> _loadCachedLaunches() async {
+    try {
+      final cached = await LaunchLibraryAPI().cachedUpcomingLaunches();
+      if (cached == null || !mounted) {
+        return;
+      }
+
+      setState(() {
+        _launchesById = {
+          for (final launch in cached.results)
+            if (launch.id != null) launch.id!: launch,
+        };
+      });
+    } catch (e) {
+      debugPrint("Could not read cached launches for article links: $e");
+    }
   }
 
   @override
@@ -97,16 +124,25 @@ class _ArticleListingPageState extends State<ArticleListingPage>
 
     return RefreshingOverlay(
       refreshing: controller.isRefreshing,
-      child: NewsList(articles, widget.service),
+      child: NewsList(articles, widget.service, launchesById: _launchesById),
     );
   }
 }
 
 class NewsList extends StatefulWidget {
-  const NewsList(this.initialArticles, this.service, {super.key});
+  const NewsList(
+    this.initialArticles,
+    this.service, {
+    this.launchesById,
+    super.key,
+  });
 
   final List<Article> initialArticles;
   final SpaceFlightNewsAPI service;
+
+  /// Launches already in the cache, keyed by id. Only used to decorate rows,
+  /// so a miss simply means no chip — never an extra request.
+  final Map<String, Launch>? launchesById;
 
   @override
   State<NewsList> createState() => _NewsListState();
@@ -216,13 +252,18 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
           itemCount: articles.length,
           itemBuilder: (BuildContext context, int index) {
             final a = articles[index];
-            return ArticleCardWidget(
+            return ArticleRow(
               title: a.title,
               link: a.url,
               imageUrl: a.imageUrl,
               newsSite: a.newsSite,
-              summary: a.summary,
               publishDate: a.publishedAt,
+              relatedLaunch: widget.launchesById == null
+                  ? null
+                  : a.launchIds
+                        .map((id) => widget.launchesById![id])
+                        .whereType<Launch>()
+                        .firstOrNull,
             );
           },
         ),
