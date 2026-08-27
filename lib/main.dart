@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/notifications/create.dart';
@@ -17,6 +20,14 @@ void main() async {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (!kIsWeb) {
+    // Android 15 (API 35) forces edge-to-edge on apps targeting it, and
+    // targetSdk follows flutter.*, so we get it whether we ask or not. Opting
+    // in explicitly makes API 24-34 lay out the same way, so there is one
+    // layout to reason about instead of two.
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+  }
 
   // Allow significantly more render image cache. This makes images reload less
   // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.

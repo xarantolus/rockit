@@ -17,6 +17,7 @@ class InfiniteGridView extends StatefulWidget {
     this.controller,
     this.physics,
     this.cacheExtent,
+    this.padding,
   });
 
   final SliverGridDelegate gridDelegate;
@@ -28,6 +29,10 @@ class InfiniteGridView extends StatefulWidget {
   final ScrollController? controller;
   final ScrollPhysics? physics;
   final double? cacheExtent;
+
+  /// Applied inside the scrollable, so content scrolls through it rather than
+  /// being clipped — used to keep the last row clear of the system bars.
+  final EdgeInsets? padding;
 
   @override
   State<InfiniteGridView> createState() => _InfiniteGridViewState();
@@ -66,6 +71,7 @@ class _InfiniteGridViewState extends State<InfiniteGridView> {
           ? SingleChildScrollView(
               controller: widget.controller,
               physics: widget.physics,
+              padding: widget.padding,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -90,7 +96,7 @@ class _InfiniteGridViewState extends State<InfiniteGridView> {
               itemCount: widget.itemCount,
               controller: widget.controller,
               physics: widget.physics,
-              padding: EdgeInsets.zero,
+              padding: widget.padding ?? EdgeInsets.zero,
             ),
     );
   }

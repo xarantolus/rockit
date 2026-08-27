@@ -10,6 +10,7 @@ import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
@@ -472,6 +473,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
+        padding: bottomSystemBarPadding(context),
         child: Column(
           children: [
             // If we have an image, we show it at the top

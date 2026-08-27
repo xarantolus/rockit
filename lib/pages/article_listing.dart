@@ -11,6 +11,7 @@ import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/refreshing_overlay.dart';
 import 'package:rockit/widgets/article.dart';
@@ -213,6 +214,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
           scrollCacheExtent:
               ScrollCacheExtent.pixels(MediaQuery.of(context).size.height * 2),
           physics: const BouncingScrollPhysics(),
+          padding: bottomSystemBarPadding(context),
           itemCount: articles.length,
           itemBuilder: (BuildContext context, int index) {
             final a = articles[index];

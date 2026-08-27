@@ -172,7 +172,22 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     );
   }
 
-  TabBar _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
+  /// The tab bar is a plain [TabBar], which — unlike a Material
+  /// `NavigationBar` — applies no window insets of its own. Edge-to-edge means
+  /// the gesture pill and 3-button navigation draw over it, so pad it out of
+  /// their way and paint the surface behind, otherwise the labels sit under the
+  /// pill.
+  Widget _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: _buildTabBar(context, appIcon),
+      ),
+    );
+  }
+
+  TabBar _buildTabBar(BuildContext context, ImageIcon appIcon) {
     return TabBar(
       labelColor: Theme.of(context).textTheme.bodyMedium!.color,
       unselectedLabelColor: Colors.grey[500],

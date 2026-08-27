@@ -3,6 +3,7 @@ import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/insets.dart';
 
 // This page is not localized because I wanted to keep the original description from the space devs
 class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
@@ -28,7 +29,8 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
         title: AppLocalizations.of(context)!.sources,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding:
+            const EdgeInsets.all(12.0).add(bottomSystemBarPadding(context)),
         child: Column(
           children: [
             Text(

@@ -12,6 +12,7 @@ import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/event_countdown.dart';
@@ -183,6 +184,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
+        padding: bottomSystemBarPadding(context),
         child: Column(
           children: [
             // Feature image

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
+import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class LaunchEventSearchDelegate extends SearchDelegate {
@@ -85,10 +85,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
       hintColor: Colors.white,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.primary,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: colorScheme.primary,
-          systemNavigationBarColor: colorScheme.primary,
-        ),
+        systemOverlayStyle: systemOverlayStyle(context),
       ),
     );
   }

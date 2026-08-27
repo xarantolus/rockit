@@ -11,6 +11,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/refreshing_overlay.dart';
@@ -398,6 +399,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       nextData: _loadMore,
       loadingWidget: const PlanetLoadingAnimation(),
       physics: const BouncingScrollPhysics(),
+      padding: bottomSystemBarPadding(context),
       controller: listController,
       itemCount: items.isEmpty ? 1 : items.length,
       // We pre-load up to 5 screens of info, that way images load already
