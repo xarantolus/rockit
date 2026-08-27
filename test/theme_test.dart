@@ -5,13 +5,13 @@ import 'package:rockit/main.dart';
 void main() {
   group('page transitions', () {
     test('detail pages rise from the bottom on Android', () {
-      // Flutter's current Android default slides in from the side, which reads
-      // as sideways motion in a vertically scrolled list and fights the
-      // horizontal pager between launches.
+      // Must not be OpenUpwards: that one reveals the page through a clip
+      // sweeping bottom to top, so the hero at the top is uncovered last and
+      // the text over it snaps in at the end.
       for (final theme in [RockItApp.lightTheme, RockItApp.darkTheme]) {
         expect(
           theme.pageTransitionsTheme.builders[TargetPlatform.android],
-          isA<OpenUpwardsPageTransitionsBuilder>(),
+          isA<FadeUpwardsPageTransitionsBuilder>(),
         );
       }
     });

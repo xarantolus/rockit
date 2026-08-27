@@ -60,13 +60,19 @@ class RockItApp extends StatelessWidget {
   static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
   static const _secondaryColorDark = Color.fromARGB(255, 58, 111, 207);
 
-  /// Push a detail page up from the bottom.
+  /// Push a detail page up from the bottom, as one piece.
   ///
   /// Flutter's current Android default slides in from the side (the
   /// predictive-back transition), which reads as sideways motion in a list you
-  /// scroll vertically and also fights the horizontal pager between launches.
+  /// scroll vertically and fights the horizontal pager between launches.
+  ///
+  /// Fade-upwards and not *open*-upwards: the latter reveals the page through a
+  /// clip rectangle sweeping bottom to top, so the hero at the top of the page
+  /// is uncovered last and its overlaid text snaps in at the very end. This one
+  /// is a plain slide plus fade, so the image and the text on it arrive
+  /// together.
   static const _pageTransitions = PageTransitionsTheme(
-    builders: {TargetPlatform.android: OpenUpwardsPageTransitionsBuilder()},
+    builders: {TargetPlatform.android: FadeUpwardsPageTransitionsBuilder()},
   );
 
   static const appName = 'Rock It!';
