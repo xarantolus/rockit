@@ -395,6 +395,7 @@ class Launch {
     this.timeline = const [],
     this.orbitalLaunchAttemptCount,
     this.agencyLaunchAttemptCount,
+    this.agencyLaunchAttemptCountYear,
     this.padLaunchAttemptCount,
   });
 
@@ -446,7 +447,15 @@ class Launch {
   final List<TimelineEvent> timeline;
 
   final int? orbitalLaunchAttemptCount;
+
+  /// All-time launch count for this provider.
   final int? agencyLaunchAttemptCount;
+
+  /// Count within the current year — a different, much smaller number, and the
+  /// one that belongs in a "this year" sentence.
+  final int? agencyLaunchAttemptCountYear;
+
+  /// All-time launch count from this pad.
   final int? padLaunchAttemptCount;
 
   static Object? _readInfoUrls(Map<dynamic, dynamic> json, String key) =>

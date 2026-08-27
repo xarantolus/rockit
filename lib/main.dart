@@ -60,7 +60,78 @@ class RockItApp extends StatelessWidget {
   static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
   static const _secondaryColorDark = Color.fromARGB(255, 58, 111, 207);
 
+  /// Push a detail page up from the bottom.
+  ///
+  /// Flutter's current Android default slides in from the side (the
+  /// predictive-back transition), which reads as sideways motion in a list you
+  /// scroll vertically and also fights the horizontal pager between launches.
+  static const _pageTransitions = PageTransitionsTheme(
+    builders: {TargetPlatform.android: OpenUpwardsPageTransitionsBuilder()},
+  );
+
   static const appName = 'Rock It!';
+
+  /// Exposed so the theming can be asserted directly; building the whole app
+  /// in a test would pull in the network and platform plugins.
+  @visibleForTesting
+  static ThemeData get lightTheme =>
+      ThemeData.from(
+        colorScheme: const ColorScheme.light().copyWith(
+          brightness: Brightness.light,
+          primary: _themeColor,
+          secondary: _secondaryColor,
+          surface: Colors.grey[200],
+          surfaceContainerHighest: Colors.transparent,
+          surfaceContainerLowest: Colors.transparent,
+          onSecondary: Colors.white,
+        ),
+        textTheme: Typography.blackHelsinki.copyWith(
+          bodyMedium: const TextStyle(
+            // color: Colors.grey[800],
+            fontSize: 14,
+          ),
+        ),
+      ).copyWith(
+        pageTransitionsTheme: _pageTransitions,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: _themeColor,
+          centerTitle: true,
+          actionsIconTheme: IconThemeData(color: Colors.white),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.grey[100], // Slightly brighter background
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(color: Colors.grey[300]!), // Border color
+          ),
+        ),
+      );
+
+  @visibleForTesting
+  static ThemeData get darkTheme =>
+      ThemeData.from(
+        colorScheme: const ColorScheme.dark().copyWith(
+          brightness: Brightness.dark,
+          primary: _themeColorDark,
+          secondary: _secondaryColorDark,
+          surface: Colors.grey[900],
+          surfaceContainerHighest: Colors.transparent,
+          surfaceContainerLowest: Colors.transparent,
+          onSecondary: Colors.white,
+        ),
+        textTheme: Typography.whiteHelsinki.copyWith(
+          bodyMedium: TextStyle(color: Colors.grey[200], fontSize: 14),
+        ),
+      ).copyWith(
+        pageTransitionsTheme: _pageTransitions,
+        cardTheme: CardThemeData(
+          color: Colors.grey[850],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(color: Colors.grey[700]!), // Border color
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -68,60 +139,8 @@ class RockItApp extends StatelessWidget {
       title: appName,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme:
-          ThemeData.from(
-            colorScheme: const ColorScheme.light().copyWith(
-              brightness: Brightness.light,
-              primary: _themeColor,
-              secondary: _secondaryColor,
-              surface: Colors.grey[200],
-              surfaceContainerHighest: Colors.transparent,
-              surfaceContainerLowest: Colors.transparent,
-              onSecondary: Colors.white,
-            ),
-            textTheme: Typography.blackHelsinki.copyWith(
-              bodyMedium: const TextStyle(
-                // color: Colors.grey[800],
-                fontSize: 14,
-              ),
-            ),
-          ).copyWith(
-            appBarTheme: const AppBarTheme(
-              backgroundColor: _themeColor,
-              centerTitle: true,
-              actionsIconTheme: IconThemeData(color: Colors.white),
-            ),
-            cardTheme: CardThemeData(
-              color: Colors.grey[100], // Slightly brighter background
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                side: BorderSide(color: Colors.grey[300]!), // Border color
-              ),
-            ),
-          ),
-      darkTheme:
-          ThemeData.from(
-            colorScheme: const ColorScheme.dark().copyWith(
-              brightness: Brightness.dark,
-              primary: _themeColorDark,
-              secondary: _secondaryColorDark,
-              surface: Colors.grey[900],
-              surfaceContainerHighest: Colors.transparent,
-              surfaceContainerLowest: Colors.transparent,
-              onSecondary: Colors.white,
-            ),
-            textTheme: Typography.whiteHelsinki.copyWith(
-              bodyMedium: TextStyle(color: Colors.grey[200], fontSize: 14),
-            ),
-          ).copyWith(
-            cardTheme: CardThemeData(
-              color: Colors.grey[850],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                side: BorderSide(color: Colors.grey[700]!), // Border color
-              ),
-            ),
-          ),
+      theme: lightTheme,
+      darkTheme: darkTheme,
       home: RockItHomePage(appPayload, title: appName),
     );
   }

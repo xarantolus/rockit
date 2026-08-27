@@ -172,5 +172,87 @@
         "type": "int"
       }
     }
+  },
+  "agencyLaunchThisYear": "{ordinal} {agency} launch this year",
+  "@agencyLaunchThisYear": {
+    "placeholders": {
+      "ordinal": {
+        "type": "String"
+      },
+      "agency": {
+        "type": "String"
+      }
+    }
+  },
+  "padLaunchNumber": "{ordinal} launch from {pad}",
+  "@padLaunchNumber": {
+    "placeholders": {
+      "ordinal": {
+        "type": "String"
+      },
+      "pad": {
+        "type": "String"
+      }
+    }
+  },
+  "padLastUsed": "Pad last used {duration} ago",
+  "@padLastUsed": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "boosterTurnaround": "{duration} turnaround",
+  "@boosterTurnaround": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "boosterLanding": "Landing",
+  "boosterNoLanding": "Expended",
+  "downrange": "{distance} km downrange",
+  "@downrange": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "specHeight": "Height",
+  "specDiameter": "Diameter",
+  "specMassToLeo": "To LEO",
+  "specMassToGto": "To GTO",
+  "specStages": "Stages",
+  "specMaidenFlight": "First flight",
+  "specRecord": "Record",
+  "specRecordValue": "{successful} succeeded, {failed} failed",
+  "@specRecordValue": {
+    "placeholders": {
+      "successful": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "metres": "{value} m",
+  "@metres": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "kilograms": "{value} kg",
+  "@kilograms": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
   }
 }

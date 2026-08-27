@@ -240,6 +240,8 @@ Launch _$LaunchFromJson(Map<String, dynamic> json) => Launch(
       ?.toInt(),
   agencyLaunchAttemptCount: (json['agency_launch_attempt_count'] as num?)
       ?.toInt(),
+  agencyLaunchAttemptCountYear:
+      (json['agency_launch_attempt_count_year'] as num?)?.toInt(),
   padLaunchAttemptCount: (json['pad_launch_attempt_count'] as num?)?.toInt(),
 );
 

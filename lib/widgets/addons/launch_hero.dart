@@ -79,23 +79,41 @@ class LaunchHero extends StatelessWidget with DateFormatter {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          ImageWidget(image?.imageUrl, heroTag: heroTag, id: heroId),
-          const Positioned.fill(
-            child: DecoratedBox(
+          // Without a photo the placeholder is a rocket glyph on a plain
+          // background — a dark scrim and white text over that is illegible in
+          // the light theme, so fall back to a solid colour panel instead.
+          if (image?.imageUrl == null)
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  stops: [0.0, 0.6, 1.0],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [
-                    Color(0xF2000000),
-                    Color(0x59000000),
-                    Color(0x1A000000),
+                    Theme.of(context).colorScheme.primary,
+                    const Color(0xFF11151C),
                   ],
                 ),
               ),
+            )
+          else ...[
+            ImageWidget(image?.imageUrl, heroTag: heroTag, id: heroId),
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    stops: [0.0, 0.6, 1.0],
+                    colors: [
+                      Color(0xF2000000),
+                      Color(0x59000000),
+                      Color(0x1A000000),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
@@ -144,22 +162,29 @@ class LaunchHero extends StatelessWidget with DateFormatter {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                  // The viewer's own timezone is the one that matters, so it
+                  // gets the brighter, larger line...
                   if (showsCountdown && date != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       formatDateTimeLocal(context, date!),
                       style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
+                  // ...and the launch site's is a quieter footnote under it.
                   if (siteTime != null)
-                    Text(
-                      localizations.localSiteTime(siteTime),
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Text(
+                        localizations.localSiteTime(siteTime),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12.5,
+                        ),
                       ),
                     ),
                 ],

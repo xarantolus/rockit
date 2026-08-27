@@ -53,8 +53,15 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       final action = splitPayload[0];
       final data = splitPayload.sublist(1).join("::");
 
+      // An update notification lands on the same page, but opened on the
+      // updates rather than at the top.
+      final fromUpdate =
+          action == BackgroundHandler.actionLaunchUpdate ||
+          action == BackgroundHandler.actionEventUpdate;
+
       switch (action) {
         case BackgroundHandler.actionLaunchDetails:
+        case BackgroundHandler.actionLaunchUpdate:
           // If we received a notification about a launch, we 99% sure have that launch cached
           final launch = await LaunchLibraryAPI().launch(data, true);
           if (!mounted) {
@@ -63,11 +70,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => LaunchDetailsPage(launch.data),
+              builder: (context) =>
+                  LaunchDetailsPage(launch.data, openUpdates: fromUpdate),
             ),
           );
           break;
         case BackgroundHandler.actionEventDetails:
+        case BackgroundHandler.actionEventUpdate:
           final event = await LaunchLibraryAPI().event(int.parse(data), true);
           if (!mounted) {
             return;
@@ -75,7 +84,8 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => EventDetailsPage(event.data),
+              builder: (context) =>
+                  EventDetailsPage(event.data, openUpdates: fromUpdate),
             ),
           );
           break;

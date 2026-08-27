@@ -43,6 +43,11 @@ class BackgroundHandler {
   static const actionLaunchDetails = "launch-details";
   static const actionEventDetails = "event-details";
 
+  /// Separate actions for the "this changed" notifications, so tapping one can
+  /// land on the update that prompted it rather than the top of the page.
+  static const actionLaunchUpdate = "launch-update";
+  static const actionEventUpdate = "event-update";
+
   static BackgroundHandler? instance;
 
   FlutterLocalNotificationsPlugin? notifications;
@@ -216,7 +221,7 @@ class BackgroundHandler {
               title: launchTitle,
               body: update.comment ?? "No info",
               notificationDetails: _getLaunchUpdateNotifDetails(launchId),
-              payload: "$actionLaunchDetails::$launchId",
+              payload: "$actionLaunchUpdate::$launchId",
             );
           }
 
@@ -565,7 +570,7 @@ class BackgroundHandler {
               title: eventTitle,
               body: update.comment ?? "No info",
               notificationDetails: _getEventUpdateNotifDetails(eventId),
-              payload: "$actionEventDetails::$eventId",
+              payload: "$actionEventUpdate::$eventId",
             );
           }
 

@@ -14,17 +14,27 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
+import 'package:rockit/util/ordinal.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
-  const LaunchDetailsPage(this.launch, {this.heroPrefix = "", super.key});
+  const LaunchDetailsPage(
+    this.launch, {
+    this.heroPrefix = "",
+    this.openUpdates = false,
+    super.key,
+  });
 
   final Launch launch;
 
   final String heroPrefix;
+
+  /// Set when the user arrived from an update notification, so the page opens
+  /// on the update they were told about instead of the top of the mission.
+  final bool openUpdates;
 
   @override
   State<LaunchDetailsPage> createState() => _LaunchDetailsPageState();
@@ -50,36 +60,17 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   static const tableTextStyle = TextStyle(fontSize: 16);
 
   static const textStyle = TextStyle(fontSize: 16);
+
+  /// Just the description. The mission name is already the hero title, so
+  /// repeating it here said the same thing twice.
   Widget _missionDetails(BuildContext context, Mission m) {
-    return ListTile(
-      title: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            m.name ?? AppLocalizations.of(context)!.unknown,
-            style: titleStyle,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-      subtitle: Text(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Text(
         m.description ?? AppLocalizations.of(context)!.noDescription,
         softWrap: true,
         style: textStyle.copyWith(
           color: Theme.of(context).textTheme.bodyMedium!.color,
-        ),
-      ),
-    );
-  }
-
-  Widget _reducedMissionDetails(BuildContext context, Launch l) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          l.name ?? AppLocalizations.of(context)!.unknown,
-          textAlign: TextAlign.center,
-          style: titleStyle,
         ),
       ),
     );
@@ -93,7 +84,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       description: pad.location?.name,
       imageURL: pad.mapImage ?? pad.location?.mapImage,
       shrinkImage: false,
-      zoomableImage: true,
     );
   }
 
@@ -107,18 +97,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  Widget? _stage(BuildContext context, LauncherStage stage) {
-    if (stage.launcher == null) {
-      return null;
-    }
-    return _titleImageDescription(
-      context,
-      title: stage.launcher?.serialNumber,
-      description: stage.launcher?.details,
-      imageURL: stage.launcher?.image?.imageUrl,
-    );
-  }
-
   Widget _spacecraftStage(BuildContext context, SpacecraftStage spaceCraft) {
     return _titleImageDescription(
       context,
@@ -126,13 +104,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       description: spaceCraft.description,
       imageURL: spaceCraft.image?.imageUrl,
     );
-  }
-
-  List<Widget> _launcherStages(
-    BuildContext context,
-    List<LauncherStage> stages,
-  ) {
-    return stages.map((s) => _stage(context, s)).whereType<Widget>().toList();
   }
 
   Widget _rocketConfiguration(BuildContext context, RocketConfiguration cfg) {
@@ -152,7 +123,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     String? imageURL,
     String? clickURL,
     bool shrinkImage = true,
-    bool zoomableImage = false,
   }) {
     void openClickURL() async {
       if ((clickURL ?? "").isNotEmpty) {
@@ -188,9 +158,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                           maxHeight: MediaQuery.of(context).size.height / 5,
                         )
                       : null,
-                  child: zoomableImage
-                      ? InteractiveViewer(child: Center(child: imageWidget))
-                      : imageWidget,
+                  child: imageWidget,
                 ),
               Text(
                 description ?? AppLocalizations.of(context)!.unknown,
@@ -243,9 +211,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 style: titleStyle,
               ),
             ),
-          InteractiveViewer(
-            child: Center(child: ImageWidget(patch.image?.imageUrl)),
-          ),
+          Center(child: ImageWidget(patch.image?.imageUrl)),
         ],
       ),
     );
@@ -385,6 +351,273 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         ],
       ),
     );
+  }
+
+  /// Two or three quiet lines of context the API sends on every launch and the
+  /// app used to drop entirely: where this flight sits in the provider's year,
+  /// in the pad's history, and how fast the pad was turned around.
+  Widget _launchStats(BuildContext context, Launch l) {
+    final localizations = AppLocalizations.of(context)!;
+    final lines = <String>[];
+
+    final agencyYear = l.agencyLaunchAttemptCountYear;
+    final provider = l.providerName;
+    if (agencyYear != null && agencyYear > 0 && provider != null) {
+      lines.add(
+        localizations.agencyLaunchThisYear(
+          englishOrdinal(agencyYear),
+          provider,
+        ),
+      );
+    }
+
+    final padCount = l.padLaunchAttemptCount;
+    final padName = l.pad?.name;
+    if (padCount != null && padCount > 0 && padName != null) {
+      lines.add(
+        localizations.padLaunchNumber(englishOrdinal(padCount), padName),
+      );
+    }
+
+    final turnaround = l.padTurnaround;
+    if (turnaround != null && turnaround.inDays >= 1) {
+      lines.add(
+        localizations.padLastUsed(localizations.daysUnit(turnaround.inDays)),
+      );
+    }
+
+    if (lines.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final muted = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.6);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lines
+            .map(
+              (line) => Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(line, style: TextStyle(fontSize: 13, color: muted)),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  /// One booster, with the reuse story spelled out. A 56dp avatar is one of the
+  /// few places the 256x256 thumbnail is genuinely the right image.
+  Widget _boosterCard(BuildContext context, LauncherStage stage) {
+    final localizations = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65);
+
+    final launcher = stage.launcher;
+    final landing = stage.landing;
+
+    final facts = <String>[];
+    if (stage.launcherFlightNumber != null) {
+      facts.add(localizations.boosterFlight(stage.launcherFlightNumber!));
+    }
+    if (stage.turnAroundTime != null && stage.turnAroundTime!.inDays >= 1) {
+      facts.add(
+        localizations.boosterTurnaround(
+          localizations.daysUnit(stage.turnAroundTime!.inDays),
+        ),
+      );
+    }
+
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (launcher?.image != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 56,
+                height: 56,
+                child: ImageWidget(launcher!.image!.urlFor(56 * dpr)),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        launcher?.serialNumber ?? stage.type ?? "",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (stage.reused != null)
+                      InfoChip(
+                        label: stage.reused!
+                            ? localizations.boosterReused
+                            : localizations.boosterNew,
+                      ),
+                  ],
+                ),
+                if (facts.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text(
+                      facts.join(" · "),
+                      style: TextStyle(fontSize: 13.5, color: muted),
+                    ),
+                  ),
+                if (landing != null) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    landing.attempt == false
+                        ? localizations.boosterNoLanding
+                        : [
+                            localizations.boosterLanding,
+                            [
+                              landing.type,
+                              landing.landingLocation?.abbrev ??
+                                  landing.landingLocation?.name,
+                            ].whereType<String>().join(", "),
+                          ].where((p) => p.isNotEmpty).join(": "),
+                    style: TextStyle(fontSize: 13.5, color: muted),
+                  ),
+                  if (landing.downrangeDistance != null)
+                    Text(
+                      localizations.downrange(
+                        landing.downrangeDistance!.toStringAsFixed(1),
+                      ),
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The physical numbers. Only rows the API actually filled in are rendered,
+  /// so a sparsely-described rocket shows a short table rather than a wall of
+  /// "Unknown".
+  Widget _rocketSpecs(BuildContext context, RocketConfiguration cfg) {
+    final localizations = AppLocalizations.of(context)!;
+    final rows = <(String, String)>[];
+
+    void add(String label, String? value) {
+      if (value != null) rows.add((label, value));
+    }
+
+    String? number(num? value) =>
+        value == null ? null : value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
+
+    add(
+      localizations.specHeight,
+      cfg.length == null ? null : localizations.metres(number(cfg.length)!),
+    );
+    add(
+      localizations.specDiameter,
+      cfg.diameter == null ? null : localizations.metres(number(cfg.diameter)!),
+    );
+    add(
+      localizations.specMassToLeo,
+      cfg.leoCapacity == null
+          ? null
+          : localizations.kilograms(_thousands(cfg.leoCapacity!)),
+    );
+    add(
+      localizations.specMassToGto,
+      cfg.gtoCapacity == null
+          ? null
+          : localizations.kilograms(_thousands(cfg.gtoCapacity!)),
+    );
+    add(localizations.specStages, cfg.maxStage?.toString());
+    add(
+      localizations.specMaidenFlight,
+      cfg.maidenFlight == null ? null : formatDate(context, cfg.maidenFlight!),
+    );
+    if (cfg.successfulLaunches != null && cfg.failedLaunches != null) {
+      add(
+        localizations.specRecord,
+        localizations.specRecordValue(
+          cfg.successfulLaunches!,
+          cfg.failedLaunches!,
+        ),
+      );
+    }
+
+    if (rows.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final muted = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.65);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      child: Column(
+        children: rows
+            .map(
+              (row) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 118,
+                      child: Text(
+                        row.$1,
+                        style: TextStyle(fontSize: 14, color: muted),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        row.$2,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  static String _thousands(int value) {
+    final digits = value.toString();
+    final buffer = StringBuffer();
+
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
   }
 
   /// The facts worth seeing without opening anything: what is flying, where to,
@@ -532,17 +765,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             _quickFacts(context, widget.launch),
 
+            _launchStats(context, widget.launch),
+
             if (widget.launch.id != null && !kIsWeb)
               _subscription(widget.launch.id!),
 
-            // Open by default: it is what the page is about.
-            DetailSection(
-              title: AppLocalizations.of(context)!.mission,
-              initiallyExpanded: true,
-              child: widget.launch.mission == null
-                  ? _reducedMissionDetails(context, widget.launch)
-                  : _missionDetails(context, widget.launch.mission!),
-            ),
+            // Open by default: it is what the page is about. Dropped entirely
+            // when there is no description, since the name is already the hero.
+            if (widget.launch.mission?.description != null)
+              DetailSection(
+                title: AppLocalizations.of(context)!.mission,
+                initiallyExpanded: !widget.openUpdates,
+                child: _missionDetails(context, widget.launch.mission!),
+              ),
 
             DetailSection(
               title: AppLocalizations.of(context)!.info,
@@ -563,6 +798,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                         context,
                         widget.launch.rocket!.configuration!,
                       ),
+                    _rocketSpecs(context, widget.launch.rocket!.configuration!),
                     ...widget.launch.rocket!.spacecraftStage.map(
                       (stage) => _spacecraftStage(context, stage),
                     ),
@@ -577,10 +813,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 preview: _boosterPreview(context, widget.launch),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _launcherStages(
-                    context,
-                    widget.launch.rocket!.launcherStage,
-                  ),
+                  children: widget.launch.rocket!.launcherStage
+                      .map((stage) => _boosterCard(context, stage))
+                      .toList(),
                 ),
               ),
 
@@ -602,6 +837,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.updates.isNotEmpty)
               DetailSection(
                 title: AppLocalizations.of(context)!.updates,
+                initiallyExpanded: widget.openUpdates,
                 count: widget.launch.updates.length,
                 preview: widget.launch.updates.first.comment,
                 child: Column(

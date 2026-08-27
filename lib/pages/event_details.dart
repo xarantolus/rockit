@@ -20,11 +20,19 @@ import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/launch.dart';
 
 class EventDetailsPage extends StatefulWidget {
-  const EventDetailsPage(this.event, {this.heroPrefix = "", super.key});
+  const EventDetailsPage(
+    this.event, {
+    this.heroPrefix = "",
+    this.openUpdates = false,
+    super.key,
+  });
 
   final Event event;
 
   final String heroPrefix;
+
+  /// See [LaunchDetailsPage.openUpdates].
+  final bool openUpdates;
 
   @override
   State<EventDetailsPage> createState() => _EventDetailsPageState();
@@ -210,7 +218,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
             DetailSection(
               title: AppLocalizations.of(context)!.info,
-              initiallyExpanded: true,
+              initiallyExpanded: !widget.openUpdates,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -262,6 +270,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if (widget.event.updates.isNotEmpty)
               DetailSection(
                 title: AppLocalizations.of(context)!.updates,
+                initiallyExpanded: widget.openUpdates,
                 count: widget.event.updates.length,
                 preview: widget.event.updates.first.comment,
                 child: Column(
