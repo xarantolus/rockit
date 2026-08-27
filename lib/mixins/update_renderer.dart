@@ -14,10 +14,7 @@ mixin UpdateRenderer on DateFormatter, SourceAttribution {
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(
-          AppLocalizations.of(context)!.updates,
-          style: titleStyle,
-        ),
+        child: Text(AppLocalizations.of(context)!.updates, style: titleStyle),
       ),
       ...updates.map((e) => _update(context, e)),
     ];

@@ -22,10 +22,7 @@ class _ImageWidgetState extends State<ImageWidget>
   static final CacheManager? _cacheManager = () {
     try {
       return CacheManager(
-        Config(
-          'images',
-          stalePeriod: const Duration(days: 7),
-        ),
+        Config('images', stalePeriod: const Duration(days: 7)),
       );
     } catch (e) {
       debugPrint("Could not initialize cache manager: $e");

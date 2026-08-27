@@ -33,8 +33,9 @@ void main() {
     });
 
     test('parses the nested rocket and pad detail the cards render', () {
-      final launch =
-          UpcomingLaunchesResponse.fromJson(fixture('launches')).results!.first;
+      final launch = UpcomingLaunchesResponse.fromJson(
+        fixture('launches'),
+      ).results!.first;
 
       expect(launch.rocket?.configuration?.fullName, isNotNull);
       expect(launch.pad?.name, isNotNull);

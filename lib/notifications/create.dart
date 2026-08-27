@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationHandler {
-  static Future<FlutterLocalNotificationsPlugin> create(
-      [ValueNotifier<String>? payloadNotification]) async {
+  static Future<FlutterLocalNotificationsPlugin> create([
+    ValueNotifier<String>? payloadNotification,
+  ]) async {
     var localNotifs = FlutterLocalNotificationsPlugin();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project

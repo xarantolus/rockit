@@ -23,8 +23,9 @@ SystemUiOverlayStyle systemOverlayStyle(BuildContext context) {
     systemNavigationBarColor: Colors.transparent,
     // Navigation sits over app content, not over the app bar, so its icons
     // follow the theme rather than being light like the status bar's.
-    systemNavigationBarIconBrightness:
-        darkTheme ? Brightness.light : Brightness.dark,
+    systemNavigationBarIconBrightness: darkTheme
+        ? Brightness.light
+        : Brightness.dark,
     systemNavigationBarContrastEnforced: true,
   );
 }
@@ -48,17 +49,15 @@ class CustomAppBar {
           ? null
           : Text(
               title,
-              style: titleStyle?.copyWith(color: Colors.white) ??
+              style:
+                  titleStyle?.copyWith(color: Colors.white) ??
                   const TextStyle(color: Colors.white),
             ),
       leading: icon == null
           ? null
           : Padding(
               padding: const EdgeInsets.all(12.0),
-              child: Tooltip(
-                message: title ?? "",
-                child: icon,
-              ),
+              child: Tooltip(message: title ?? "", child: icon),
             ),
       actions: actions,
     );

@@ -18,13 +18,15 @@ void backgroundTaskCallback() {
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
     oldDebugPrint(
-        "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
-        wrapWidth: wrapWidth);
+      "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
+      wrapWidth: wrapWidth,
+    );
   };
 
   Workmanager().executeTask((task, inputData) async {
-    var handler =
-        BackgroundHandler.withNotifications(await NotificationHandler.create());
+    var handler = BackgroundHandler.withNotifications(
+      await NotificationHandler.create(),
+    );
 
     return await handler.callback(task, inputData);
   });
@@ -59,7 +61,8 @@ class BackgroundHandler {
     }
     if (instance!.notifications == null) {
       throw Exception(
-          "BackgroundHandler() initialized when instance notification plugin was null");
+        "BackgroundHandler() initialized when instance notification plugin was null",
+      );
     }
     return instance!;
   }
@@ -114,7 +117,8 @@ class BackgroundHandler {
           return await handleEventUpdatePeriodic(inputData);
         default:
           throw FormatException(
-              "Expected task name to be for event or update, but got \"$task\"");
+            "Expected task name to be for event or update, but got \"$task\"",
+          );
       }
     } catch (err) {
       debugPrint("Error in scheduled task: $err");
@@ -167,7 +171,8 @@ class BackgroundHandler {
   }
 
   Future<bool> handleLaunchUpdatePeriodic(
-      Map<String, dynamic>? inputData) async {
+    Map<String, dynamic>? inputData,
+  ) async {
     // At first, we load the associated launch
     final launchId = inputData!["launchId"]!;
 
@@ -272,7 +277,8 @@ class BackgroundHandler {
         payload: "$actionLaunchDetails::$launchId",
       );
       debugPrint(
-          "Scheduled notification for event '$launchTitle' for $notifTime");
+        "Scheduled notification for event '$launchTitle' for $notifTime",
+      );
     }
 
     return true;
@@ -412,9 +418,7 @@ class BackgroundHandler {
       _taskNameForLaunch(launchId),
       periodicLaunchUpdateTaskName,
       frequency: const Duration(hours: 1),
-      inputData: {
-        "launchId": launchId,
-      },
+      inputData: {"launchId": launchId},
       existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
       constraints: _periodicTaskConstraints,
     );
@@ -506,16 +510,15 @@ class BackgroundHandler {
       _taskNameForEvent(eventId),
       periodicEventUpdateTaskName,
       frequency: const Duration(hours: 1),
-      inputData: {
-        "eventId": eventId,
-      },
+      inputData: {"eventId": eventId},
       existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
       constraints: _periodicTaskConstraints,
     );
   }
 
   Future<bool> handleEventUpdatePeriodic(
-      Map<String, dynamic>? inputData) async {
+    Map<String, dynamic>? inputData,
+  ) async {
     // Adding this offset prevents notifications having the same id (as those of the launch notification)
     const eventNotifIDOffset = 0x0F000000;
 
@@ -606,7 +609,8 @@ class BackgroundHandler {
         continue;
       }
 
-      final notifID = eventNotifIDOffset +
+      final notifID =
+          eventNotifIDOffset +
           (notificationSettings.length * event.id).abs() +
           i;
 
@@ -626,7 +630,8 @@ class BackgroundHandler {
         payload: "$actionEventDetails::$eventId",
       );
       debugPrint(
-          "Scheduled notification for event '$eventTitle' for $notifTime");
+        "Scheduled notification for event '$eventTitle' for $notifTime",
+      );
     }
 
     return true;

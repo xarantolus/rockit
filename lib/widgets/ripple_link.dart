@@ -3,8 +3,13 @@ import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 
 class RippleLinkWidget extends StatefulWidget {
-  const RippleLinkWidget(this.mainText,
-      {super.key, this.bottomRight, this.bottomLeft, this.url});
+  const RippleLinkWidget(
+    this.mainText, {
+    super.key,
+    this.bottomRight,
+    this.bottomLeft,
+    this.url,
+  });
 
   final String mainText;
   final String? bottomLeft;
@@ -31,9 +36,7 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget>
         },
         onLongPress: () => copyLink(context, widget.url),
         child: ListTile(
-          title: Text(
-            widget.mainText,
-          ),
+          title: Text(widget.mainText),
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -47,8 +50,9 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget>
                 ),
               if (widget.bottomRight != null)
                 Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(widget.bottomRight!)),
+                  alignment: Alignment.centerRight,
+                  child: Text(widget.bottomRight!),
+                ),
             ],
           ),
           visualDensity: VisualDensity.comfortable,

@@ -18,13 +18,15 @@ class _LaunchWidgetState extends State<LaunchWidget> {
   Widget build(BuildContext context) {
     return LaunchEventWidget(
       title: widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch,
-      subtitle: widget.launch.launchServiceProvider?.name ??
+      subtitle:
+          widget.launch.launchServiceProvider?.name ??
           AppLocalizations.of(context)!.unknown,
       heroId: "${widget.launch.id}",
       heroTag: "${widget.heroPrefix}launch-image",
       imageURL: widget.launch.image,
       netDate: DateTime.tryParse(
-          widget.launch.net ?? widget.launch.windowStart ?? ""),
+        widget.launch.net ?? widget.launch.windowStart ?? "",
+      ),
     );
   }
 }

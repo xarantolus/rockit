@@ -67,12 +67,7 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget>
           fontWeight: FontWeight.bold,
         ),
       ),
-      trailing: Text(
-        _netText(),
-        style: const TextStyle(
-          color: Colors.white70,
-        ),
-      ),
+      trailing: Text(_netText(), style: const TextStyle(color: Colors.white70)),
       subtitle: Text(
         widget.subtitle,
         style: const TextStyle(

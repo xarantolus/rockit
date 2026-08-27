@@ -32,8 +32,8 @@ class NextFuncResult<I, S> {
 
 /// Loads a page from the network. [current] is the list to extend, empty on a
 /// first load or a refresh.
-typedef NextFunc<I, N> = Future<NextFuncResult<I, N>> Function(
-    N? nextItemArg, List<I> current);
+typedef NextFunc<I, N> =
+    Future<NextFuncResult<I, N>> Function(N? nextItemArg, List<I> current);
 
 /// Reads the first page out of the cache, or returns null when nothing is
 /// stored. Must not touch the network.
@@ -50,8 +50,8 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.scrollOffset,
     this.heroPrefix = "",
     super.key,
-  })  : assert(initialItems == null || nextFunc == null),
-        assert(initialItems != null || nextFunc != null);
+  }) : assert(initialItems == null || nextFunc == null),
+       assert(initialItems != null || nextFunc != null);
 
   // Either initialItems OR nextFunc must be given
   final List<I>? initialItems;
@@ -84,13 +84,13 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
 
   late final CacheFirstController<NextFuncResult<I, N>> controller =
       CacheFirstController(
-    loadCached: () async => await widget.cachedFunc?.call(),
-    loadFresh: () async {
-      final result = await widget.nextFunc!(null, <I>[]);
-      controller.noteNotice(result.notice);
-      return result;
-    },
-  );
+        loadCached: () async => await widget.cachedFunc?.call(),
+        loadFresh: () async {
+          final result = await widget.nextFunc!(null, <I>[]);
+          controller.noteNotice(result.notice);
+          return result;
+        },
+      );
 
   @override
   void initState() {
@@ -148,7 +148,8 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
       if (controller.status == ListingStatus.failed) {
         return GestureDetector(
           child: ErrorWidget(
-              "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+            "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}",
+          ),
           onTap: () => unawaited(controller.refresh()),
         );
       }
@@ -159,9 +160,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
     // An empty cached page while the refresh is still running is not "nothing
     // to show" yet, so keep waiting rather than flashing the empty text.
     if (results.items.isEmpty && !controller.isRefreshing) {
-      return Center(
-        child: Text(widget.emptyText),
-      );
+      return Center(child: Text(widget.emptyText));
     }
 
     return RefreshingOverlay(
@@ -172,9 +171,15 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
 }
 
 class ItemList<I, N> extends StatefulWidget {
-  const ItemList(this.initial, this.nextFunc, this.refreshOnLeave,
-      this.emptyText, this.heroPrefix,
-      {this.scrollOffset, super.key});
+  const ItemList(
+    this.initial,
+    this.nextFunc,
+    this.refreshOnLeave,
+    this.emptyText,
+    this.heroPrefix, {
+    this.scrollOffset,
+    super.key,
+  });
 
   final NextFuncResult<I, N> initial;
 
@@ -220,8 +225,9 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     nextItemArg = widget.initial.nextArg;
   }
 
-  late ScrollController listController =
-      ScrollController(initialScrollOffset: widget.scrollOffset?.value ?? 0);
+  late ScrollController listController = ScrollController(
+    initialScrollOffset: widget.scrollOffset?.value ?? 0,
+  );
 
   Future<bool> _updateItems([bool? refresh]) async {
     if (_currentlyLoading) {
@@ -340,23 +346,26 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
           var pv = PageView.custom(
             physics: const BouncingScrollPhysics(),
-            childrenDelegate: SliverChildBuilderDelegate(
-              (context, idx) {
-                if (idx >= items.length) {
-                  return null;
-                }
-                if (items[idx] is Launch) {
-                  return LaunchDetailsPage(items[idx] as Launch,
-                      heroPrefix: widget.heroPrefix);
-                } else if (items[idx] is Event) {
-                  return EventDetailsPage(items[idx] as Event,
-                      heroPrefix: widget.heroPrefix);
-                } else {
-                  throw Exception(
-                      "Invalid data type ${items[idx].runtimeType} in launch/event pageview");
-                }
-              },
-            ),
+            childrenDelegate: SliverChildBuilderDelegate((context, idx) {
+              if (idx >= items.length) {
+                return null;
+              }
+              if (items[idx] is Launch) {
+                return LaunchDetailsPage(
+                  items[idx] as Launch,
+                  heroPrefix: widget.heroPrefix,
+                );
+              } else if (items[idx] is Event) {
+                return EventDetailsPage(
+                  items[idx] as Event,
+                  heroPrefix: widget.heroPrefix,
+                );
+              } else {
+                throw Exception(
+                  "Invalid data type ${items[idx].runtimeType} in launch/event pageview",
+                );
+              }
+            }),
             controller: pc,
             onPageChanged: (idx) async {
               // Always adjust the current scroll position of the list
@@ -384,9 +393,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
   Widget build(BuildContext context) {
     // This list is only empty if we unsubscribed from the last launch/event
     if (items.isEmpty) {
-      return Center(
-        child: Text(widget.emptyText),
-      );
+      return Center(child: Text(widget.emptyText));
     }
 
     final grid = InfiniteGridView(
@@ -406,20 +413,23 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       cacheExtent: MediaQuery.of(context).size.height * 5,
       itemBuilder: (context, index) {
         if (items.isEmpty) {
-          return Center(
-            child: Text(widget.emptyText),
-          );
+          return Center(child: Text(widget.emptyText));
         }
         final Widget childWidget;
         if (items[index] is Launch) {
-          childWidget = LaunchWidget(items[index] as Launch,
-              heroPrefix: widget.heroPrefix);
+          childWidget = LaunchWidget(
+            items[index] as Launch,
+            heroPrefix: widget.heroPrefix,
+          );
         } else if (items[index] is Event) {
-          childWidget =
-              EventWidget(items[index] as Event, heroPrefix: widget.heroPrefix);
+          childWidget = EventWidget(
+            items[index] as Event,
+            heroPrefix: widget.heroPrefix,
+          );
         } else {
           throw Exception(
-              "Invalid data type ${items[index].runtimeType} in launch/event listing");
+            "Invalid data type ${items[index].runtimeType} in launch/event listing",
+          );
         }
         return GestureDetector(
           child: childWidget,

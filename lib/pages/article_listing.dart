@@ -33,13 +33,13 @@ class _ArticleListingPageState extends State<ArticleListingPage>
 
   late final CacheFirstController<List<Article>> controller =
       CacheFirstController(
-    loadCached: () => widget.service.cachedArticles(),
-    loadFresh: () async {
-      final res = await widget.service.articles();
-      controller.noteNotice(res.error);
-      return res.data;
-    },
-  );
+        loadCached: () => widget.service.cachedArticles(),
+        loadFresh: () async {
+          final res = await widget.service.articles();
+          controller.noteNotice(res.error);
+          return res.data;
+        },
+      );
 
   @override
   void initState() {
@@ -79,7 +79,8 @@ class _ArticleListingPageState extends State<ArticleListingPage>
         return Center(
           child: GestureDetector(
             child: ErrorWidget(
-                "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+              "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}",
+            ),
             onTap: () => unawaited(controller.refresh()),
           ),
         );
@@ -91,9 +92,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
     // An empty cached page while the refresh is still running is not "nothing
     // to show" yet, so keep waiting rather than flashing the empty text.
     if (articles.isEmpty && !controller.isRefreshing) {
-      return Center(
-        child: Text(AppLocalizations.of(context)!.noNews),
-      );
+      return Center(child: Text(AppLocalizations.of(context)!.noNews));
     }
 
     return RefreshingOverlay(
@@ -150,9 +149,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.loadingFail),
-          ),
+          SnackBar(content: Text(AppLocalizations.of(context)!.loadingFail)),
         );
       }
 
@@ -211,8 +208,9 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
         onLoadMore: _loadMore,
         textBuilder: _buildLoadingText,
         child: ListView.builder(
-          scrollCacheExtent:
-              ScrollCacheExtent.pixels(MediaQuery.of(context).size.height * 2),
+          scrollCacheExtent: ScrollCacheExtent.pixels(
+            MediaQuery.of(context).size.height * 2,
+          ),
           physics: const BouncingScrollPhysics(),
           padding: bottomSystemBarPadding(context),
           itemCount: articles.length,

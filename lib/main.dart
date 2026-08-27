@@ -15,8 +15,9 @@ void main() async {
   final oldDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
     oldDebugPrint(
-        "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
-        wrapWidth: wrapWidth);
+      "xarantolus${kDebugMode ? '.debug' : ''}.rockit: ${message ?? "No message"}",
+      wrapWidth: wrapWidth,
+    );
   };
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,61 +68,60 @@ class RockItApp extends StatelessWidget {
       title: appName,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData.from(
-        colorScheme: const ColorScheme.light().copyWith(
-          brightness: Brightness.light,
-          primary: _themeColor,
-          secondary: _secondaryColor,
-          surface: Colors.grey[200],
-          surfaceContainerHighest: Colors.transparent,
-          surfaceContainerLowest: Colors.transparent,
-          onSecondary: Colors.white,
-        ),
-        textTheme: Typography.blackHelsinki.copyWith(
-          bodyMedium: const TextStyle(
-            // color: Colors.grey[800],
-            fontSize: 14,
+      theme:
+          ThemeData.from(
+            colorScheme: const ColorScheme.light().copyWith(
+              brightness: Brightness.light,
+              primary: _themeColor,
+              secondary: _secondaryColor,
+              surface: Colors.grey[200],
+              surfaceContainerHighest: Colors.transparent,
+              surfaceContainerLowest: Colors.transparent,
+              onSecondary: Colors.white,
+            ),
+            textTheme: Typography.blackHelsinki.copyWith(
+              bodyMedium: const TextStyle(
+                // color: Colors.grey[800],
+                fontSize: 14,
+              ),
+            ),
+          ).copyWith(
+            appBarTheme: const AppBarTheme(
+              backgroundColor: _themeColor,
+              centerTitle: true,
+              actionsIconTheme: IconThemeData(color: Colors.white),
+            ),
+            cardTheme: CardThemeData(
+              color: Colors.grey[100], // Slightly brighter background
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                side: BorderSide(color: Colors.grey[300]!), // Border color
+              ),
+            ),
           ),
-        ),
-      ).copyWith(
-        appBarTheme: const AppBarTheme(
-          backgroundColor: _themeColor,
-          centerTitle: true,
-          actionsIconTheme: IconThemeData(color: Colors.white),
-        ),
-        cardTheme: CardThemeData(
-          color: Colors.grey[100], // Slightly brighter background
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            side: BorderSide(color: Colors.grey[300]!), // Border color
+      darkTheme:
+          ThemeData.from(
+            colorScheme: const ColorScheme.dark().copyWith(
+              brightness: Brightness.dark,
+              primary: _themeColorDark,
+              secondary: _secondaryColorDark,
+              surface: Colors.grey[900],
+              surfaceContainerHighest: Colors.transparent,
+              surfaceContainerLowest: Colors.transparent,
+              onSecondary: Colors.white,
+            ),
+            textTheme: Typography.whiteHelsinki.copyWith(
+              bodyMedium: TextStyle(color: Colors.grey[200], fontSize: 14),
+            ),
+          ).copyWith(
+            cardTheme: CardThemeData(
+              color: Colors.grey[850],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                side: BorderSide(color: Colors.grey[700]!), // Border color
+              ),
+            ),
           ),
-        ),
-      ),
-      darkTheme: ThemeData.from(
-        colorScheme: const ColorScheme.dark().copyWith(
-          brightness: Brightness.dark,
-          primary: _themeColorDark,
-          secondary: _secondaryColorDark,
-          surface: Colors.grey[900],
-          surfaceContainerHighest: Colors.transparent,
-          surfaceContainerLowest: Colors.transparent,
-          onSecondary: Colors.white,
-        ),
-        textTheme: Typography.whiteHelsinki.copyWith(
-          bodyMedium: TextStyle(
-            color: Colors.grey[200],
-            fontSize: 14,
-          ),
-        ),
-      ).copyWith(
-        cardTheme: CardThemeData(
-          color: Colors.grey[850],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            side: BorderSide(color: Colors.grey[700]!), // Border color
-          ),
-        ),
-      ),
       home: RockItHomePage(appPayload, title: appName),
     );
   }

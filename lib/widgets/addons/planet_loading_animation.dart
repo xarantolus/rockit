@@ -12,13 +12,8 @@ class PlanetLoadingAnimation extends StatelessWidget {
     final animSize = min(size.width, size.height) / 2;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: animSize,
-        maxWidth: animSize,
-      ),
-      child: const RiveAnimation.asset(
-        "assets/animations/One_Planet.riv",
-      ),
+      constraints: BoxConstraints(maxHeight: animSize, maxWidth: animSize),
+      child: const RiveAnimation.asset("assets/animations/One_Planet.riv"),
     );
   }
 }

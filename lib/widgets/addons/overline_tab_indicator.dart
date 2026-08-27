@@ -66,12 +66,7 @@ class OverlineTabIndicator extends Decoration {
 
   Rect _indicatorRectFor(Rect rect, TextDirection textDirection) {
     final Rect indicator = insets.resolve(textDirection).deflateRect(rect);
-    return Rect.fromLTWH(
-      indicator.left,
-      0,
-      indicator.width,
-      borderSide.width,
-    );
+    return Rect.fromLTWH(indicator.left, 0, indicator.width, borderSide.width);
   }
 
   @override

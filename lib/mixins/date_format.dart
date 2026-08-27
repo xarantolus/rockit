@@ -82,8 +82,11 @@ mixin DateFormatter {
     return formatFriendly(context, d, formatDate).text;
   }
 
-  FriendlyDateResult formatFriendly(BuildContext context, DateTime d,
-      String Function(BuildContext, DateTime) f) {
+  FriendlyDateResult formatFriendly(
+    BuildContext context,
+    DateTime d,
+    String Function(BuildContext, DateTime) f,
+  ) {
     d = d.toLocal();
     var now = DateTime.now().toLocal();
 

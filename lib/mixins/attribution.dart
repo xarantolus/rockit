@@ -67,7 +67,7 @@ mixin SourceAttribution {
     "mhi.com": (_, __) => "Mitsubishi Heavy Industries",
     "northropgrumman.com": (_, __) => "Northrop Grumman",
     "scaled.com": (_, __) => "Scaled Composites",
-    "sncorp.com": (_, __) => "Sierra Nevada Corporation"
+    "sncorp.com": (_, __) => "Sierra Nevada Corporation",
   };
 
   String? sourceAttributionText(BuildContext context, String? infoURL) {
@@ -81,8 +81,10 @@ mixin SourceAttribution {
       if (specialHostFuncs.containsKey(infoHost?.toLowerCase())) {
         final uri = Uri.tryParse(infoURL);
         if (uri != null) {
-          var newText =
-              specialHostFuncs[infoHost!.toLowerCase()]!(context, uri);
+          var newText = specialHostFuncs[infoHost!.toLowerCase()]!(
+            context,
+            uri,
+          );
           if (newText != null) {
             infoText = newText;
           }

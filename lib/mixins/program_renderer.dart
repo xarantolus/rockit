@@ -13,10 +13,7 @@ mixin ProgramRenderer {
     return [
       Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Text(
-          title,
-          style: titleStyle,
-        ),
+        child: Text(title, style: titleStyle),
       ),
       ...widgets,
     ];

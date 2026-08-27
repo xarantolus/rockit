@@ -61,9 +61,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             return;
           }
 
-          await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => LaunchDetailsPage(launch.data),
-          ));
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => LaunchDetailsPage(launch.data),
+            ),
+          );
           break;
         case BackgroundHandler.actionEventDetails:
           final event = await LaunchLibraryAPI().event(data, true);
@@ -71,9 +73,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             return;
           }
 
-          await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => EventDetailsPage(event.data),
-          ));
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => EventDetailsPage(event.data),
+            ),
+          );
           break;
       }
     } catch (e) {
@@ -120,8 +124,9 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       isLoadingSearch = true;
     });
 
-    final delegate =
-        await LaunchEventSearchDelegate.searchLaunchesAndEvents(context);
+    final delegate = await LaunchEventSearchDelegate.searchLaunchesAndEvents(
+      context,
+    );
 
     // Loading the search index walks every cached page, which is slow enough
     // that the user can leave before it finishes.
@@ -131,11 +136,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
     delegate.maybeShowSnack(context);
 
-    await showSearch(
-      context: context,
-      delegate: delegate.data,
-      query: '',
-    );
+    await showSearch(context: context, delegate: delegate.data, query: '');
 
     setState(() {
       isLoadingSearch = false;
@@ -173,11 +174,9 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           icon: const Icon(Icons.info_outline, color: Colors.white),
           tooltip: AppLocalizations.of(context)!.sources,
           onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const CreditPage(),
-              ),
-            );
+            await Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const CreditPage()));
           },
         ),
       ],
@@ -192,10 +191,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   Widget _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
     return Material(
       color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(
-        top: false,
-        child: _buildTabBar(context, appIcon),
-      ),
+      child: SafeArea(top: false, child: _buildTabBar(context, appIcon)),
     );
   }
 
@@ -215,10 +211,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
         ),
       ),
       tabs: [
-        Tab(
-          icon: appIcon,
-          text: AppLocalizations.of(context)!.launches,
-        ),
+        Tab(icon: appIcon, text: AppLocalizations.of(context)!.launches),
         Tab(
           icon: const Icon(Icons.event),
           text: AppLocalizations.of(context)!.events,
@@ -233,8 +226,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    const appIcon = ImageIcon(AssetImage("assets/rocket-white-small.png"),
-        color: Colors.white);
+    const appIcon = ImageIcon(
+      AssetImage("assets/rocket-white-small.png"),
+      color: Colors.white,
+    );
 
     final lightTheme = Theme.of(context).brightness == Brightness.light;
     final menuRocketIcon = ImageIcon(
@@ -255,9 +250,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
                     tooltip: AppLocalizations.of(context)!.search,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     child: isLoadingSearch
-                        ? const CircularProgressIndicator(
-                            color: Colors.white,
-                          )
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : const Icon(Icons.search, color: Colors.white),
                   );
                 },

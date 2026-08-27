@@ -47,10 +47,7 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
 
   @override
   Widget build(BuildContext context) {
-    const bigTextStyle = TextStyle(
-      fontSize: 30,
-      fontWeight: FontWeight.w800,
-    );
+    const bigTextStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.w800);
 
     var displayedDate = net ?? windowStart;
 
@@ -122,10 +119,7 @@ class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>
           mainAxisSize: MainAxisSize.max,
           children: [
             if (textAbove.isNotEmpty) Text(textAbove),
-            Text(
-              dateText,
-              style: bigTextStyle,
-            ),
+            Text(dateText, style: bigTextStyle),
             if (additionalNote.isNotEmpty) Text(additionalNote),
           ],
         ),

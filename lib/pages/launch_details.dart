@@ -44,13 +44,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     fontSize: 16,
     fontWeight: FontWeight.w700,
   );
-  static const tableTextStyle = TextStyle(
-    fontSize: 16,
-  );
+  static const tableTextStyle = TextStyle(fontSize: 16);
 
-  static const textStyle = TextStyle(
-    fontSize: 16,
-  );
+  static const textStyle = TextStyle(fontSize: 16);
 
   Widget _zoomableImage() {
     return InteractiveViewer(
@@ -117,7 +113,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _launchServiceProvider(
-      BuildContext context, LaunchServiceProvider provider) {
+    BuildContext context,
+    LaunchServiceProvider provider,
+  ) {
     return _titleImageDescription(
       context,
       clickURL: provider.infoUrl,
@@ -146,15 +144,17 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       title: name == null
           ? spaceCraft.serialNumber
           : spaceCraft.serialNumber == null
-              ? name
-              : "$name (${spaceCraft.serialNumber!})",
+          ? name
+          : "$name (${spaceCraft.serialNumber!})",
       description: spaceCraft.description,
       imageURL: spaceCraft.spacecraftConfig?.imageUrl,
     );
   }
 
   List<Widget> _launcherStages(
-      BuildContext context, List<LauncherStage> stages) {
+    BuildContext context,
+    List<LauncherStage> stages,
+  ) {
     return stages.map((s) => _stage(context, s)).whereType<Widget>().toList();
   }
 
@@ -188,8 +188,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     return Material(
       child: InkWell(
         onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
-        onLongPress:
-            (clickURL ?? "").isEmpty ? null : () => copyLink(context, clickURL),
+        onLongPress: (clickURL ?? "").isEmpty
+            ? null
+            : () => copyLink(context, clickURL),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
@@ -211,11 +212,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                         )
                       : null,
                   child: zoomableImage
-                      ? InteractiveViewer(
-                          child: Center(
-                            child: imageWidget,
-                          ),
-                        )
+                      ? InteractiveViewer(child: Center(child: imageWidget))
                       : imageWidget,
                 ),
               Text(
@@ -230,8 +227,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   List<Widget> _missionPatches(BuildContext context, List<MissionPatch> l) {
-    final importantPatches =
-        l.where((element) => (element.imageUrl ?? "").isNotEmpty);
+    final importantPatches = l.where(
+      (element) => (element.imageUrl ?? "").isNotEmpty,
+    );
     if (importantPatches.isEmpty) {
       return List.empty();
     }
@@ -251,7 +249,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   }
 
   Widget _missionPatch(
-      BuildContext context, MissionPatch patch, bool isSingle) {
+    BuildContext context,
+    MissionPatch patch,
+    bool isSingle,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -265,11 +266,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 style: titleStyle,
               ),
             ),
-          InteractiveViewer(
-            child: Center(
-              child: ImageWidget(patch.imageUrl),
-            ),
-          ),
+          InteractiveViewer(child: Center(child: ImageWidget(patch.imageUrl))),
         ],
       ),
     );
@@ -300,17 +297,18 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       const Divider(),
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(
-          title,
-          style: titleStyle,
-        ),
+        child: Text(title, style: titleStyle),
       ),
       ...widgets,
     ];
   }
 
-  Widget _urlInfoArticleWidget(BuildContext context, URLInfo info,
-      [bool customTab = true, Icon? icon]) {
+  Widget _urlInfoArticleWidget(
+    BuildContext context,
+    URLInfo info, [
+    bool customTab = true,
+    Icon? icon,
+  ]) {
     return ArticleCardWidget(
       title: info.title,
       link: info.url,
@@ -355,40 +353,44 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
-            child: Text(
-              AppLocalizations.of(context)!.info,
-              style: titleStyle,
-            ),
+            child: Text(AppLocalizations.of(context)!.info, style: titleStyle),
           ),
           Table(
             border: TableBorder(
               horizontalInside: BorderSide(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .color!
-                      .withValues(alpha: .5)),
+                color: Theme.of(
+                  context,
+                ).textTheme.bodyMedium!.color!.withValues(alpha: .5),
+              ),
             ),
             columnWidths: const {
               0: IntrinsicColumnWidth(),
               1: FlexColumnWidth(),
             },
             children: [
-              _descriptionRow(AppLocalizations.of(context)!.status,
-                  l.status?.name ?? AppLocalizations.of(context)!.unknown),
               _descriptionRow(
-                  AppLocalizations.of(context)!.statusDescription,
-                  l.status?.description ??
-                      AppLocalizations.of(context)!.unknown),
+                AppLocalizations.of(context)!.status,
+                l.status?.name ?? AppLocalizations.of(context)!.unknown,
+              ),
+              _descriptionRow(
+                AppLocalizations.of(context)!.statusDescription,
+                l.status?.description ?? AppLocalizations.of(context)!.unknown,
+              ),
               if ((l.probability ?? -1) > 0)
-                _descriptionRow(AppLocalizations.of(context)!.startProbability,
-                    "${l.probability!}%"),
+                _descriptionRow(
+                  AppLocalizations.of(context)!.startProbability,
+                  "${l.probability!}%",
+                ),
               if ((l.holdreason ?? "").isNotEmpty)
                 _descriptionRow(
-                    AppLocalizations.of(context)!.holdReason, l.holdreason!),
+                  AppLocalizations.of(context)!.holdReason,
+                  l.holdreason!,
+                ),
               if ((l.failreason ?? "").isNotEmpty)
                 _descriptionRow(
-                    AppLocalizations.of(context)!.failReason, l.failreason!),
+                  AppLocalizations.of(context)!.failReason,
+                  l.failreason!,
+                ),
               if (l.mission?.orbit != null)
                 _descriptionRow(
                   AppLocalizations.of(context)!.targetOrbit,
@@ -396,15 +398,18 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                       AppLocalizations.of(context)!.unknown,
                 ),
               if (windowStart != null)
-                _descriptionRow(AppLocalizations.of(context)!.windowStart,
-                    formatDateTimeFriendlyText(context, windowStart)),
+                _descriptionRow(
+                  AppLocalizations.of(context)!.windowStart,
+                  formatDateTimeFriendlyText(context, windowStart),
+                ),
               if (windowEnd != null)
                 _descriptionRow(
-                    AppLocalizations.of(context)!.windowEnd,
-                    formatDateTimeFriendlyText(context, windowEnd) +
-                        (windowStart == windowEnd
-                            ? " (${AppLocalizations.of(context)!.likeStartTime})"
-                            : "")),
+                  AppLocalizations.of(context)!.windowEnd,
+                  formatDateTimeFriendlyText(context, windowEnd) +
+                      (windowStart == windowEnd
+                          ? " (${AppLocalizations.of(context)!.likeStartTime})"
+                          : ""),
+                ),
               if (landing != null) ...[
                 if (landing.type != null) ...[
                   if (landing.type!.name != null &&
@@ -422,18 +427,26 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                     ),
                 ],
                 if (landing.location?.name != null)
-                  _descriptionRow(AppLocalizations.of(context)!.landingLocation,
-                      landing.location?.name),
+                  _descriptionRow(
+                    AppLocalizations.of(context)!.landingLocation,
+                    landing.location?.name,
+                  ),
                 if (landing.success == true)
-                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess,
-                      AppLocalizations.of(context)!.yes)
+                  _descriptionRow(
+                    AppLocalizations.of(context)!.landingSuccess,
+                    AppLocalizations.of(context)!.yes,
+                  )
                 else if (landing.success == false)
-                  _descriptionRow(AppLocalizations.of(context)!.landingSuccess,
-                      AppLocalizations.of(context)!.no),
+                  _descriptionRow(
+                    AppLocalizations.of(context)!.landingSuccess,
+                    AppLocalizations.of(context)!.no,
+                  ),
               ],
               if (lastUpdated != null)
-                _descriptionRow(AppLocalizations.of(context)!.lastUpdate,
-                    formatDateTimeFriendlyText(context, lastUpdated)),
+                _descriptionRow(
+                  AppLocalizations.of(context)!.lastUpdate,
+                  formatDateTimeFriendlyText(context, lastUpdated),
+                ),
             ],
           ),
         ],
@@ -467,19 +480,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
 
     return Scaffold(
-      appBar: CustomAppBar.create(
-        context,
-        title: launchName,
-      ),
+      appBar: CustomAppBar.create(context, title: launchName),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),
         child: Column(
           children: [
             // If we have an image, we show it at the top
-            if (widget.launch.image != null) ...[
-              _zoomableImage(),
-            ],
+            if (widget.launch.image != null) ...[_zoomableImage()],
 
             // Then a mission description
             ...[
@@ -553,7 +561,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.rocket?.configuration?.description != null) ...[
               const Divider(),
               _rocketConfiguration(
-                  context, widget.launch.rocket!.configuration!),
+                context,
+                widget.launch.rocket!.configuration!,
+              ),
             ],
 
             // Info for the upper stage (e.g. Starship number)
@@ -566,7 +576,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if ((widget.launch.rocket?.launcherStage ?? []).isNotEmpty) ...[
               const Divider(),
               ..._launcherStages(
-                  context, widget.launch.rocket?.launcherStage ?? []),
+                context,
+                widget.launch.rocket?.launcherStage ?? [],
+              ),
             ],
 
             // And a bunch of info about the launch provider
@@ -588,7 +600,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if ((widget.launch.program ?? []).isNotEmpty) ...[
               const Divider(),
               ...renderProgramInfo(context, widget.launch.program!),
-            ]
+            ],
           ],
         ),
       ),
@@ -598,8 +610,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
 class LaunchSubscriptionWidget extends StatefulWidget {
   const LaunchSubscriptionWidget(
-      this.initialValue, this.launchId, this.subscriptionManager,
-      {super.key});
+    this.initialValue,
+    this.launchId,
+    this.subscriptionManager, {
+    super.key,
+  });
 
   final bool initialValue;
   final String launchId;
@@ -636,9 +651,7 @@ class _LaunchSubscriptionWidgetState extends State<LaunchSubscriptionWidget> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            AppLocalizations.of(context)!.notificationDescription,
-          ),
+          child: Text(AppLocalizations.of(context)!.notificationDescription),
         ),
       ],
     );

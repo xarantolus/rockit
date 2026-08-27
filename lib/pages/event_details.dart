@@ -43,9 +43,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     fontWeight: FontWeight.bold,
   );
 
-  static const textStyle = TextStyle(
-    fontSize: 16,
-  );
+  static const textStyle = TextStyle(fontSize: 16);
 
   Widget _eventDetails(BuildContext context, Event e) {
     return ListTile(
@@ -128,11 +126,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         return GestureDetector(
           child: LaunchWidget(l),
           onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (ctx) => LaunchDetailsPage(l),
-              ),
-            );
+            await Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(l)));
           },
         );
       }),
@@ -144,23 +140,25 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       stations.length == 1
           ? AppLocalizations.of(context)!.station
           : AppLocalizations.of(context)!.stations,
-      stations.map(
-        (station) {
-          // Yes, reusing the article card widget here is a bit weird,
-          // especially because we don't have a link, but it works
-          return ArticleCardWidget(
-            title: station.name,
-            summary: station.description,
-            imageUrl: station.imageUrl,
-            newsSite: station.orbit,
-          );
-        },
-      ),
+      stations.map((station) {
+        // Yes, reusing the article card widget here is a bit weird,
+        // especially because we don't have a link, but it works
+        return ArticleCardWidget(
+          title: station.name,
+          summary: station.description,
+          imageUrl: station.imageUrl,
+          newsSite: station.orbit,
+        );
+      }),
     );
   }
 
   Widget _openURLButton(
-      IconData icon, String text, bool customTab, String url) {
+    IconData icon,
+    String text,
+    bool customTab,
+    String url,
+  ) {
     return OutlinedButton.icon(
       onPressed: () async {
         if (customTab) {
@@ -188,9 +186,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         child: Column(
           children: [
             // Feature image
-            if (widget.event.featureImage != null) ...[
-              _zoomableImage(),
-            ],
+            if (widget.event.featureImage != null) ...[_zoomableImage()],
 
             // Mission title & description if possible
             ...[
@@ -242,7 +238,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if ((widget.event.program ?? []).isNotEmpty) ...[
               const Divider(),
               ...renderProgramInfo(context, widget.event.program!),
-            ]
+            ],
           ],
         ),
       ),
@@ -252,8 +248,11 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
 class EventSubscriptionWidget extends StatefulWidget {
   const EventSubscriptionWidget(
-      this.initialValue, this.eventId, this.subscriptionManager,
-      {super.key});
+    this.initialValue,
+    this.eventId,
+    this.subscriptionManager, {
+    super.key,
+  });
 
   final bool initialValue;
   final String eventId;
@@ -290,9 +289,7 @@ class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            AppLocalizations.of(context)!.notificationDescription,
-          ),
+          child: Text(AppLocalizations.of(context)!.notificationDescription),
         ),
       ],
     );

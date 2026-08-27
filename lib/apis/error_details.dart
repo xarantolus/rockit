@@ -19,11 +19,9 @@ enum ErrorType {
   }
 
   void showSnack(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        text(context),
-      ),
-    ));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(text(context))));
   }
 }
 

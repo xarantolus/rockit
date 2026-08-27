@@ -60,27 +60,29 @@ void main() {
       expect(fresh.calls, 1);
     });
 
-    test('with no cache it loads, showing nothing until the network answers',
-        () async {
-      final fresh = _Gate<String>();
+    test(
+      'with no cache it loads, showing nothing until the network answers',
+      () async {
+        final fresh = _Gate<String>();
 
-      final controller = CacheFirstController<String>(
-        loadCached: () async => null,
-        loadFresh: fresh.call,
-      );
+        final controller = CacheFirstController<String>(
+          loadCached: () async => null,
+          loadFresh: fresh.call,
+        );
 
-      final started = controller.start();
-      await Future<void>.delayed(Duration.zero);
+        final started = controller.start();
+        await Future<void>.delayed(Duration.zero);
 
-      expect(controller.data, isNull);
-      expect(controller.status, ListingStatus.loading);
+        expect(controller.data, isNull);
+        expect(controller.status, ListingStatus.loading);
 
-      fresh.completer.complete('fresh');
-      await started;
+        fresh.completer.complete('fresh');
+        await started;
 
-      expect(controller.data, 'fresh');
-      expect(controller.status, ListingStatus.ready);
-    });
+        expect(controller.data, 'fresh');
+        expect(controller.status, ListingStatus.ready);
+      },
+    );
 
     test('a failed refresh keeps the cached data on screen', () async {
       final controller = CacheFirstController<String>(

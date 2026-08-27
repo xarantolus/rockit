@@ -63,10 +63,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
           padding: const EdgeInsets.all(4),
           child: Text(
             widget.newsSite!,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14.0,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.0),
           ),
         ),
       ),
@@ -91,10 +88,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
             alignment: Alignment.bottomRight,
             child: _newsSite(background: true),
           ),
-        if (widget.icon != null)
-          Center(
-            child: widget.icon,
-          ),
+        if (widget.icon != null) Center(child: widget.icon),
       ],
     );
 
@@ -114,9 +108,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
     final hasImage = (widget.imageUrl ?? "").isNotEmpty;
     return Center(
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: radius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: radius),
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: Material(
           color: Theme.of(context).cardTheme.color,
@@ -162,9 +154,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                           : const EdgeInsets.fromLTRB(8, 8, 8, 4),
                       child: Text(
                         dottedText(widget.summary!),
-                        style: const TextStyle(
-                          fontSize: 15,
-                        ),
+                        style: const TextStyle(fontSize: 15),
                       ),
                     ),
 
@@ -194,7 +184,7 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                                 context,
                                 widget.publishDate!,
                               ),
-                            )
+                            ),
                         ],
                       ),
                     ),

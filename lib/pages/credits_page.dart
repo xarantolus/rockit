@@ -11,13 +11,8 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    const titleStyle = TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-    );
-    const descStyle = TextStyle(
-      fontSize: 18,
-    );
+    const titleStyle = TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+    const descStyle = TextStyle(fontSize: 18);
 
     const spaceDevsLink = "https://thespacedevs.com/";
     const projectLink = "https://github.com/xarantolus/rockit";
@@ -29,8 +24,9 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
         title: AppLocalizations.of(context)!.sources,
       ),
       body: Padding(
-        padding:
-            const EdgeInsets.all(12.0).add(bottomSystemBarPadding(context)),
+        padding: const EdgeInsets.all(
+          12.0,
+        ).add(bottomSystemBarPadding(context)),
         child: Column(
           children: [
             Text(
@@ -50,10 +46,7 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
               label: Text(AppLocalizations.of(context)!.openWebsite),
             ),
             const Divider(),
-            Text(
-              AppLocalizations.of(context)!.development,
-              style: titleStyle,
-            ),
+            Text(AppLocalizations.of(context)!.development, style: titleStyle),
             Text(
               AppLocalizations.of(context)!.developmentDescription,
               style: descStyle,
@@ -67,10 +60,7 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
               label: Text(AppLocalizations.of(context)!.openWebsite),
             ),
             const Divider(),
-            Text(
-              AppLocalizations.of(context)!.twitterBot,
-              style: titleStyle,
-            ),
+            Text(AppLocalizations.of(context)!.twitterBot, style: titleStyle),
             Text(
               AppLocalizations.of(context)!.twitterBotDescription,
               style: descStyle,

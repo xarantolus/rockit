@@ -36,10 +36,7 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
 
   @override
   Widget build(BuildContext context) {
-    const bigTextStyle = TextStyle(
-      fontSize: 30,
-      fontWeight: FontWeight.w800,
-    );
+    const bigTextStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.w800);
 
     var textAbove = "", dateText = "", additionalNote = "";
 
@@ -47,10 +44,7 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
 
     var timeUntil = timeDiff(date);
     if (timeUntil.isNegative) {
-      final formattedDate = formatDateTimeFriendly(
-        context,
-        date.toLocal(),
-      );
+      final formattedDate = formatDateTimeFriendly(context, date.toLocal());
 
       textAbove = formattedDate.isFriendly
           ? AppLocalizations.of(context)!.eventWas
@@ -87,10 +81,7 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
           mainAxisSize: MainAxisSize.max,
           children: [
             if (textAbove.isNotEmpty) Text(textAbove),
-            Text(
-              dateText,
-              style: bigTextStyle,
-            ),
+            Text(dateText, style: bigTextStyle),
             if (additionalNote.isNotEmpty) Text(additionalNote),
           ],
         ),

@@ -23,10 +23,7 @@ enum ListingStatus {
 /// state and the UI reacts to it, which keeps async gaps out of the widget tree
 /// and makes the rules testable without pumping a widget.
 class CacheFirstController<T> extends ChangeNotifier {
-  CacheFirstController({
-    required this.loadCached,
-    required this.loadFresh,
-  });
+  CacheFirstController({required this.loadCached, required this.loadFresh});
 
   /// Returns what is stored locally, or null when nothing is. Must not touch
   /// the network — the whole point is that it returns in milliseconds.

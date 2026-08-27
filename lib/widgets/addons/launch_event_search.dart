@@ -16,14 +16,14 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     required String searchLabel,
     required Color? searchTextColor,
     required List<dynamic> launchesAndEvents,
-  })  : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
-        super(
-          searchFieldLabel: searchLabel,
-          searchFieldStyle: TextStyle(color: searchTextColor),
-        );
+  }) : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
+       super(
+         searchFieldLabel: searchLabel,
+         searchFieldStyle: TextStyle(color: searchTextColor),
+       );
 
   static Future<ErrorDetails<LaunchEventSearchDelegate>>
-      searchLaunchesAndEvents(BuildContext context) async {
+  searchLaunchesAndEvents(BuildContext context) async {
     // Read what the delegate needs from the context before any of the paging
     // below, which can run for a while.
     final searchLabel = AppLocalizations.of(context)!.search;
@@ -39,8 +39,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     String? launchNext;
     do {
       try {
-        final resp =
-            await api.upcomingLaunches(next: launchNext, preferCache: true);
+        final resp = await api.upcomingLaunches(
+          next: launchNext,
+          preferCache: true,
+        );
         items.addAll(resp.data.results ?? []);
         launchNext = resp.data.next;
       } catch (e) {
@@ -57,8 +59,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     String? eventNext;
     do {
       try {
-        final resp =
-            await api.upcomingEvents(next: eventNext, preferCache: true);
+        final resp = await api.upcomingEvents(
+          next: eventNext,
+          preferCache: true,
+        );
         items.addAll(resp.data.results ?? []);
         eventNext = resp.data.next;
       } catch (e) {
@@ -151,8 +155,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.rocket?.configuration?.variant,
         ...(item.rocket?.launcherStage
                 ?.map((e) => [e.launcher?.details, e.launcher?.serialNumber])
-                .fold(List<String?>.empty(),
-                    (l, txts) => txts..addAll(l ?? [])) ??
+                .fold(
+                  List<String?>.empty(),
+                  (l, txts) => txts..addAll(l ?? []),
+                ) ??
             []),
         item.rocket?.spacecraftStage?.name,
         item.rocket?.spacecraftStage?.serialNumber,
@@ -160,8 +166,12 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.mission?.description,
         item.pad?.name,
         item.pad?.location?.name,
-        ...(item.vidUrls?.map((e) => [e.title, e.description]).fold(
-                List<String?>.empty(), (l, txts) => txts..addAll(l ?? [])) ??
+        ...(item.vidUrls
+                ?.map((e) => [e.title, e.description])
+                .fold(
+                  List<String?>.empty(),
+                  (l, txts) => txts..addAll(l ?? []),
+                ) ??
             []),
       ]);
     } else if (item is Event) {
@@ -172,8 +182,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         item.location,
         ...(item.spacestations
                 ?.map((e) => [e.name, e.description, e.orbit])
-                .fold(List<String?>.empty(),
-                    (l, txts) => txts..addAll(l ?? [])) ??
+                .fold(
+                  List<String?>.empty(),
+                  (l, txts) => txts..addAll(l ?? []),
+                ) ??
             []),
       ]);
     }
@@ -243,7 +255,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           } else if (item is Event) {
             return [
               ...?item.program?.map((p) => p.name),
-              ...?item.launches?.map((l) => launchFunction(l))
+              ...?item.launches?.map((l) => launchFunction(l)),
             ];
           } else {
             return [];
@@ -263,9 +275,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     final suggestions = _searchSuggestions();
 
     if (suggestions.isEmpty) {
-      return Center(
-        child: Text(AppLocalizations.of(context)!.emptyResults),
-      );
+      return Center(child: Text(AppLocalizations.of(context)!.emptyResults));
     }
 
     return ListView.builder(
