@@ -84,7 +84,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
         refreshOnLeave: true,
         heroPrefix: "subscription-",
         emptyText: AppLocalizations.of(context)!.noSubscriptions,
-        nextFunc: (context, nextItemArg, current) async {
+        nextFunc: (nextItemArg, current) async {
           var items = await loadLaunchesAndEvents();
 
           return NextFuncResult(items.list, null);

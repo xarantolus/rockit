@@ -23,11 +23,8 @@ class LaunchLibraryAPI extends APIClient {
     return Uri.https('lldev.thespacedevs.com', "/2.2.0$path", query);
   }
 
-  Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches({
-    String? next,
-    bool preferCache = false,
-  }) async {
-    var uri = next != null
+  Uri upcomingLaunchesUri({String? next}) {
+    return next != null
         ? Uri.parse(next)
         : _endpoint("/launch/upcoming/", {
             "hide_recent_previous": "false",
@@ -36,24 +33,50 @@ class LaunchLibraryAPI extends APIClient {
             "mode": "detailed",
             "related": "false",
           });
+  }
 
-    var res = await fetchJSON(uri, preferCache);
+  Uri upcomingEventsUri({String? next}) {
+    return next != null
+        ? Uri.parse(next)
+        : _endpoint("/event/upcoming/", {
+            "limit": "50",
+          });
+  }
+
+  Future<ErrorDetails<UpcomingLaunchesResponse>> upcomingLaunches({
+    String? next,
+    bool preferCache = false,
+  }) async {
+    var res = await fetchJSON(upcomingLaunchesUri(next: next), preferCache);
 
     return res.bubble(UpcomingLaunchesResponse.fromJson(res.data));
+  }
+
+  /// The stored page of upcoming launches, without touching the network.
+  Future<UpcomingLaunchesResponse?> cachedUpcomingLaunches({
+    String? next,
+  }) async {
+    var json = await readCacheJSON(upcomingLaunchesUri(next: next));
+
+    return json == null ? null : UpcomingLaunchesResponse.fromJson(json);
   }
 
   Future<ErrorDetails<UpcomingEventsResponse>> upcomingEvents({
     String? next,
     bool preferCache = false,
   }) async {
-    var uri = next != null
-        ? Uri.parse(next)
-        : _endpoint("/event/upcoming/", {
-            "limit": "50",
-          });
-    var res = await fetchJSON(uri, preferCache);
+    var res = await fetchJSON(upcomingEventsUri(next: next), preferCache);
 
     return res.bubble(UpcomingEventsResponse.fromJson(res.data));
+  }
+
+  /// The stored page of upcoming events, without touching the network.
+  Future<UpcomingEventsResponse?> cachedUpcomingEvents({
+    String? next,
+  }) async {
+    var json = await readCacheJSON(upcomingEventsUri(next: next));
+
+    return json == null ? null : UpcomingEventsResponse.fromJson(json);
   }
 
   Future<ErrorDetails<Launch>> launch(

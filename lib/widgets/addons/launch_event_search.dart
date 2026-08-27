@@ -125,10 +125,6 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
-  String _itemText(dynamic item) {
-    return (item is Launch ? item.name : (item as Event).name) ?? "";
-  }
-
   List<String> _keyTexts(dynamic item) {
     List<String?> texts = [];
 

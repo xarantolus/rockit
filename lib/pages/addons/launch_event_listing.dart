@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'dart:core';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/widgets/infinite_grid_view.dart';
+import 'package:rockit/apis/cache_first.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
+import 'package:rockit/widgets/addons/refreshing_overlay.dart';
 import 'package:rockit/widgets/event.dart';
 import 'package:rockit/widgets/launch.dart';
 
@@ -18,13 +22,27 @@ class NextFuncResult<I, S> {
 
   List<I> items;
 
-  NextFuncResult(this.items, this.nextArg);
+  /// Set when the load succeeded only partially, e.g. it fell back to the
+  /// cache. Surfaced as a snackbar once.
+  final error_type? notice;
+
+  NextFuncResult(this.items, this.nextArg, {this.notice});
 }
+
+/// Loads a page from the network. [current] is the list to extend, empty on a
+/// first load or a refresh.
+typedef NextFunc<I, N> = Future<NextFuncResult<I, N>> Function(
+    N? nextItemArg, List<I> current);
+
+/// Reads the first page out of the cache, or returns null when nothing is
+/// stored. Must not touch the network.
+typedef CachedFunc<I, N> = Future<NextFuncResult<I, N>?> Function();
 
 class LaunchEventListing<I, N> extends StatefulWidget {
   const LaunchEventListing({
     this.initialItems,
     this.nextFunc,
+    this.cachedFunc,
     this.initialNextItemArg,
     required this.emptyText,
     this.refreshOnLeave = false,
@@ -36,8 +54,12 @@ class LaunchEventListing<I, N> extends StatefulWidget {
 
   // Either initialItems OR nextFunc must be given
   final List<I>? initialItems;
-  final Future<NextFuncResult<I, N>> Function(
-      BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
+  final NextFunc<I, N>? nextFunc;
+
+  /// Reads the first page out of the cache so it can be shown before the
+  /// network answers. Listings that have no cache leave this null and simply
+  /// show the loading animation until [nextFunc] returns.
+  final CachedFunc<I, N>? cachedFunc;
 
   final N? initialNextItemArg;
 
@@ -49,14 +71,6 @@ class LaunchEventListing<I, N> extends StatefulWidget {
 
   final ValueNotifier<double>? scrollOffset;
 
-  Future<NextFuncResult<I, N>> loadItems(
-      BuildContext context, N? nextItemArg, List<I> current) async {
-    if (initialItems != null) {
-      return NextFuncResult<I, N>(initialItems!, null);
-    }
-    return nextFunc!(context, nextItemArg, current);
-  }
-
   @override
   State<LaunchEventListing<I, N>> createState() =>
       _LaunchEventListingState<I, N>();
@@ -67,60 +81,91 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<NextFuncResult<I, N>> ftr = widget.loadItems(context, null, []);
+  late final CacheFirstController<NextFuncResult<I, N>> controller =
+      CacheFirstController(
+    loadCached: () async => await widget.cachedFunc?.call(),
+    loadFresh: () async {
+      final result = await widget.nextFunc!(null, <I>[]);
+      controller.noteNotice(result.notice);
+      return result;
+    },
+  );
+
+  @override
+  void initState() {
+    super.initState();
+
+    // The tab keeps this state alive, so this runs once per app start rather
+    // than on every tab switch — which matters at 15 requests per hour.
+    if (widget.initialItems == null) {
+      controller.addListener(_onControllerUpdate);
+      unawaited(controller.start());
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_onControllerUpdate);
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onControllerUpdate() {
+    if (!mounted) {
+      return;
+    }
+
+    final notice = controller.takeNotice();
+
+    setState(() {});
+
+    notice?.showSnack(context);
+  }
+
+  Widget _buildList(NextFuncResult<I, N> results) {
+    return ItemList(
+      results,
+      widget.nextFunc,
+      widget.refreshOnLeave,
+      widget.emptyText,
+      widget.heroPrefix,
+      scrollOffset: widget.scrollOffset,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     if (widget.initialItems != null) {
-      return ItemList(
-        NextFuncResult<I, N>(widget.initialItems!, null),
-        widget.nextFunc,
-        widget.refreshOnLeave,
-        widget.emptyText,
-        widget.heroPrefix,
-        scrollOffset: widget.scrollOffset,
+      return _buildList(NextFuncResult<I, N>(widget.initialItems!, null));
+    }
+
+    final results = controller.data;
+
+    if (results == null) {
+      if (controller.status == ListingStatus.failed) {
+        return GestureDetector(
+          child: ErrorWidget(
+              "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+          onTap: () => unawaited(controller.refresh()),
+        );
+      }
+
+      return const Center(child: PlanetLoadingAnimation());
+    }
+
+    // An empty cached page while the refresh is still running is not "nothing
+    // to show" yet, so keep waiting rather than flashing the empty text.
+    if (results.items.isEmpty && !controller.isRefreshing) {
+      return Center(
+        child: Text(widget.emptyText),
       );
     }
 
-    return Center(
-      child: FutureBuilder<NextFuncResult<I, N>>(
-        future: ftr,
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return const PlanetLoadingAnimation();
-            default:
-              if (snapshot.hasError) {
-                return GestureDetector(
-                  child: ErrorWidget(
-                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-                  onTap: () => setState(() {
-                    ftr = widget.loadItems(context, null, []);
-                  }),
-                );
-              } else {
-                final results = snapshot.data!;
-                if (results.items.isEmpty) {
-                  return Center(
-                    child: Text(widget.emptyText),
-                  );
-                } else {
-                  return ItemList(
-                    results,
-                    widget.nextFunc,
-                    widget.refreshOnLeave,
-                    widget.emptyText,
-                    widget.heroPrefix,
-                    scrollOffset: widget.scrollOffset,
-                  );
-                }
-              }
-          }
-        },
-      ),
+    return RefreshingOverlay(
+      refreshing: controller.isRefreshing,
+      child: _buildList(results),
     );
   }
 }
@@ -139,8 +184,7 @@ class ItemList<I, N> extends StatefulWidget {
 
   final ValueNotifier<double>? scrollOffset;
 
-  final Future<NextFuncResult<I, N>> Function(
-      BuildContext context, N? nextItemArg, List<I> current)? nextFunc;
+  final NextFunc<I, N>? nextFunc;
 
   @override
   State<ItemList<I, N>> createState() => _ItemListState<I, N>();
@@ -151,6 +195,29 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
   late N? nextItemArg = widget.initial.nextArg;
 
   bool _currentlyLoading = false;
+
+  /// Whether the user has paged past the first page.
+  bool _paged = false;
+
+  @override
+  void didUpdateWidget(ItemList<I, N> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (identical(widget.initial, oldWidget.initial)) {
+      return;
+    }
+
+    // A background refresh produced a new first page. If the user has already
+    // paged further, dropping their extra pages would shrink the list out from
+    // under them mid-scroll — so keep what they have. The refresh still landed
+    // in the HTTP cache and will be picked up on the next start.
+    if (_paged) {
+      return;
+    }
+
+    items = widget.initial.items;
+    nextItemArg = widget.initial.nextArg;
+  }
 
   late ScrollController listController =
       ScrollController(initialScrollOffset: widget.scrollOffset?.value ?? 0);
@@ -167,22 +234,27 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       var nextURL = refresh == true ? null : nextItemArg;
 
       var newItems = await widget.nextFunc!(
-        context,
         nextURL,
-        refresh == true ? [] : items,
+        refresh == true ? <I>[] : items,
       );
 
-      setState(() {
-        // Refresh? => replace
-        items = newItems.items;
-        nextItemArg = newItems.nextArg;
-      });
+      if (mounted) {
+        setState(() {
+          // Refresh? => replace
+          items = newItems.items;
+          nextItemArg = newItems.nextArg;
+          _paged = refresh != true;
+        });
+
+        newItems.notice?.showSnack(context);
+      }
     } catch (e) {
       error = e;
     } finally {
-      setState(() {
-        _currentlyLoading = false;
-      });
+      _currentlyLoading = false;
+      if (mounted) {
+        setState(() {});
+      }
     }
 
     if (error != null) {

@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:rockit/apis/cache_first.dart';
+import 'package:rockit/apis/error_details.dart';
+import 'package:rockit/apis/paging.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
+import 'package:rockit/widgets/addons/refreshing_overlay.dart';
 import 'package:rockit/widgets/article.dart';
 
 class ArticleListingPage extends StatefulWidget {
@@ -15,7 +21,7 @@ class ArticleListingPage extends StatefulWidget {
   final service = SpaceFlightNewsAPI();
 
   @override
-  _ArticleListingPageState createState() => _ArticleListingPageState();
+  State<ArticleListingPage> createState() => _ArticleListingPageState();
 }
 
 class _ArticleListingPageState extends State<ArticleListingPage>
@@ -24,69 +30,74 @@ class _ArticleListingPageState extends State<ArticleListingPage>
   @override
   bool get wantKeepAlive => true;
 
-  late Future<List<Article>> articlesFuture = load(context, widget.service);
-
-  static Future<List<Article>> load(
-    BuildContext context,
-    SpaceFlightNewsAPI api, [
-    int? after,
-  ]) async {
-    try {
-      var res = await api.articles(after);
-
-      res.maybeShowSnack(context);
-
+  late final CacheFirstController<List<Article>> controller =
+      CacheFirstController(
+    loadCached: () => widget.service.cachedArticles(),
+    loadFresh: () async {
+      final res = await widget.service.articles();
+      controller.noteNotice(res.error);
       return res.data;
-    } catch (e) {
-      debugPrint("Error loading articles: $e");
+    },
+  );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.loadingFail),
-        ),
-      );
+  @override
+  void initState() {
+    super.initState();
 
-      return [];
+    controller.addListener(_onControllerUpdate);
+    unawaited(controller.start());
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_onControllerUpdate);
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onControllerUpdate() {
+    if (!mounted) {
+      return;
     }
+
+    final notice = controller.takeNotice();
+
+    setState(() {});
+
+    notice?.showSnack(context);
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Center(
-      child: FutureBuilder<List<Article>>(
-        future: articlesFuture,
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return const PlanetLoadingAnimation();
-            default:
-              if (snapshot.hasError) {
-                return GestureDetector(
-                  child: ErrorWidget(
-                      "${snapshot.error!}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
-                  onTap: () => setState(() {
-                    articlesFuture = load(context, widget.service);
-                  }),
-                );
-              } else {
-                final results = snapshot.data!;
-                if (results.isEmpty) {
-                  return Center(
-                    child: Text(AppLocalizations.of(context)!.noNews),
-                  );
-                } else {
-                  return NewsList(
-                    results,
-                    widget.service,
-                  );
-                }
-              }
-          }
-        },
-      ),
+    final articles = controller.data;
+
+    if (articles == null) {
+      if (controller.status == ListingStatus.failed) {
+        return Center(
+          child: GestureDetector(
+            child: ErrorWidget(
+                "${controller.fatalError}\n${AppLocalizations.of(context)!.tapToTryAgain}"),
+            onTap: () => unawaited(controller.refresh()),
+          ),
+        );
+      }
+
+      return const Center(child: PlanetLoadingAnimation());
+    }
+
+    // An empty cached page while the refresh is still running is not "nothing
+    // to show" yet, so keep waiting rather than flashing the empty text.
+    if (articles.isEmpty && !controller.isRefreshing) {
+      return Center(
+        child: Text(AppLocalizations.of(context)!.noNews),
+      );
+    }
+
+    return RefreshingOverlay(
+      refreshing: controller.isRefreshing,
+      child: NewsList(articles, widget.service),
     );
   }
 }
@@ -98,34 +109,73 @@ class NewsList extends StatefulWidget {
   final SpaceFlightNewsAPI service;
 
   @override
-  _NewsListState createState() => _NewsListState();
+  State<NewsList> createState() => _NewsListState();
 }
 
 class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   late List<Article> articles = widget.initialArticles;
   bool _finished = false;
 
+  /// Whether the user has paged past the first page.
+  bool _paged = false;
+
+  @override
+  void didUpdateWidget(NewsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (identical(widget.initialArticles, oldWidget.initialArticles)) {
+      return;
+    }
+
+    // See _ItemListState.didUpdateWidget: don't shrink the list under a user
+    // who has already paged further.
+    if (_paged) {
+      return;
+    }
+
+    articles = widget.initialArticles;
+    _finished = false;
+  }
+
   Future<bool> _updateArticles([bool? refresh]) async {
-    var newArticles = await _ArticleListingPageState.load(
-      context,
-      widget.service,
-      refresh == true ? null : articles.length,
-    );
+    final ErrorDetails<List<Article>> res;
+
+    try {
+      res = await widget.service.articles(
+        refresh == true ? null : articles.length,
+      );
+    } catch (e) {
+      debugPrint("Error loading articles: $e");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.loadingFail),
+          ),
+        );
+      }
+
+      // Keep whatever is on screen; a failed page load must not blank the list.
+      return articles.isNotEmpty;
+    }
+
+    if (!mounted) {
+      return true;
+    }
 
     setState(() {
       if (refresh == true) {
-        articles = newArticles;
+        articles = res.data;
+        _paged = false;
       } else {
-        // See upcoming_launches_listing.dart for more info, but in short:
-        // This makes sure that cached responses do not lead to duplicate display of content
-        newArticles.removeWhere((newArticle) =>
-            articles.any((article) => article.id == newArticle.id));
-
-        articles.addAll(newArticles);
+        articles = mergePages(articles, res.data, (article) => article.id);
+        _paged = true;
       }
 
-      _finished = newArticles.isEmpty;
+      _finished = res.data.isEmpty;
     });
+
+    res.maybeShowSnack(context);
 
     return articles.isNotEmpty;
   }

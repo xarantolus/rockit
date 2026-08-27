@@ -28,6 +28,45 @@ class APIClient {
     return null;
   }();
 
+  /// Reads a stored response without ever touching the network, returning null
+  /// when nothing has been cached for [url].
+  ///
+  /// This is what makes cache-first loading possible: [fetch] with
+  /// `preferCache` still goes online when the cache misses, which can block a
+  /// listing for ten seconds or more.
+  Future<String?> readCache(Uri url) async {
+    if (kIsWeb) {
+      return null;
+    }
+
+    try {
+      final file = await _cacheManager?.getFileFromCache(url.toString());
+      if (file == null) {
+        return null;
+      }
+
+      return utf8.decode(await File(file.file.path).readAsBytes());
+    } catch (err) {
+      debugPrint("Error reading $url from cache: $err");
+      return null;
+    }
+  }
+
+  /// Same as [readCache], but decodes the body as JSON.
+  Future<dynamic> readCacheJSON(Uri url) async {
+    final body = await readCache(url);
+    if (body == null) {
+      return null;
+    }
+
+    try {
+      return jsonDecode(body);
+    } catch (err) {
+      debugPrint("Cached response for $url is not valid JSON: $err");
+      return null;
+    }
+  }
+
   Future<ErrorDetails<dynamic>> fetchJSON(
     Uri url, [
     bool preferCache = false,
