@@ -23,8 +23,6 @@ class LaunchHero extends StatelessWidget with DateFormatter {
     this.date,
     this.precision,
     this.timezoneName,
-    this.heroTag,
-    this.heroId,
     super.key,
   });
 
@@ -37,9 +35,6 @@ class LaunchHero extends StatelessWidget with DateFormatter {
 
   /// IANA zone of the launch site, used for the "at the pad" line.
   final String? timezoneName;
-
-  final String? heroTag;
-  final String? heroId;
 
   static const _height = 300.0;
 
@@ -96,7 +91,12 @@ class LaunchHero extends StatelessWidget with DateFormatter {
               ),
             )
           else ...[
-            ImageWidget(image?.imageUrl, heroTag: heroTag, id: heroId),
+            // Deliberately not a Hero. A shared-element flight renders the
+            // image in an overlay *above* the destination route, which hid
+            // the scrim and text behind it for the whole flight and then
+            // popped them in when it landed. The page already flies up from
+            // the bottom, so a second competing motion bought nothing.
+            ImageWidget(image?.imageUrl),
             const Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(

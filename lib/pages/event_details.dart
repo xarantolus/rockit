@@ -181,8 +181,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               // precise to a time, so this always renders a window.
               date: widget.event.date,
               precision: widget.event.datePrecision,
-              heroTag: "${widget.heroPrefix}event-image",
-              heroId: "${widget.event.id}",
             ),
 
             _quickFacts(context, widget.event),

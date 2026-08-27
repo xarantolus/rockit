@@ -657,8 +657,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               date: widget.launch.net ?? widget.launch.windowStart,
               precision: widget.launch.netPrecision,
               timezoneName: widget.launch.pad?.location?.timezoneName,
-              heroTag: "${widget.heroPrefix}launch-image",
-              heroId: widget.launch.id,
             ),
 
             _quickFacts(context, widget.launch),
