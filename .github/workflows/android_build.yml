@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -66,7 +66,7 @@ jobs:
         run: find build/app/outputs -type f -name "*.apk" | xargs -L1 sha256sum
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rockit-apk-${{ env.APP_VERSION }}-${{ env.SAFE_REF }}-${{ github.sha }}
           path: build/app/outputs/flutter-apk/*.apk
@@ -84,7 +84,7 @@ jobs:
           git log $(git describe --tags --abbrev=0)..HEAD --oneline --decorate=no | sed "s/^[^ ]* /* /" >> out.md
 
       - name: Upload release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             build/app/outputs/flutter-apk/*-release.apk

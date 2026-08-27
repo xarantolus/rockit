@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Extract app variables to workflow env
         run: |
@@ -27,5 +27,5 @@ jobs:
         run: flutter test
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release') || startsWith(env.COMMIT_MESSAGE, '[Web]')) }}
 
-      - uses: bluefireteam/flutter-gh-pages@v7
+      - uses: bluefireteam/flutter-gh-pages@v9
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release') || startsWith(env.COMMIT_MESSAGE, '[Web]')) }}
