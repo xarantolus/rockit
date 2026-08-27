@@ -139,8 +139,6 @@
     }
   },
   "launchTimeUnknown": "Date not announced",
-  "liveNow": "LIVE",
-  "watchLive": "Watch live",
   "boosterFlight": "Flight {number}",
   "@boosterFlight": {
     "placeholders": {
@@ -151,7 +149,6 @@
   },
   "boosterReused": "Reused",
   "boosterNew": "New booster",
-  "turnaround": "Turnaround",
   "rocket": "Rocket",
   "launchSite": "Launch site",
   "boosters": "Boosters",
