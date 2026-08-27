@@ -14,6 +14,7 @@ mixin ProgramRenderer {
             imageUrl: program.image?.imageUrl,
             link: program.infoUrl ?? program.wikiUrl,
             fullImage: true,
+            flat: true,
           ),
         )
         .toList();

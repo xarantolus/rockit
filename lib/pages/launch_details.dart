@@ -31,8 +31,8 @@ class LaunchDetailsPage extends StatefulWidget {
 
   final String heroPrefix;
 
-  /// Set when the user arrived from an update notification, so the page opens
-  /// on the update they were told about instead of the top of the mission.
+  /// Set when the user arrived from an update notification. Nothing collapses
+  /// any more, so this scrolls to the updates rather than expanding them.
   final bool openUpdates;
 
   /// Patches that actually have artwork.
@@ -58,16 +58,37 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         UpdateRenderer,
         LinkCopier,
         ProgramRenderer {
+  /// Anchors the updates card so an update notification can scroll to it.
+  final _updatesKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.openUpdates) {
+      // After the first frame, so the card exists and its offset is known.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToUpdates());
+    }
+  }
+
+  void _scrollToUpdates() {
+    final target = _updatesKey.currentContext;
+    if (target == null || !mounted) {
+      return;
+    }
+
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.05,
+    );
+  }
+
   static const titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
   );
-
-  static const tableDescriptionStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-  );
-  static const tableTextStyle = TextStyle(fontSize: 16);
 
   static const textStyle = TextStyle(fontSize: 16);
 
@@ -94,6 +115,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       description: pad.location?.name,
       imageURL: pad.mapImage ?? pad.location?.mapImage,
       shrinkImage: false,
+      showTitle: false,
     );
   }
 
@@ -104,6 +126,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       title: provider.name,
       description: provider.description,
       imageURL: provider.logo?.imageUrl ?? provider.image?.imageUrl,
+      showTitle: false,
     );
   }
 
@@ -123,6 +146,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       description: cfg.description,
       clickURL: cfg.infoUrl,
       imageURL: cfg.image?.imageUrl,
+      showTitle: false,
     );
   }
 
@@ -133,6 +157,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     String? imageURL,
     String? clickURL,
     bool shrinkImage = true,
+    // The card label already names these, so repeating it as a heading inside
+    // would say the same thing twice.
+    bool showTitle = true,
   }) {
     void openClickURL() async {
       if ((clickURL ?? "").isNotEmpty) {
@@ -143,6 +170,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     final imageWidget = imageURL == null ? null : ImageWidget(imageURL);
 
     return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: (clickURL ?? "").isNotEmpty ? openClickURL : null,
         onLongPress: (clickURL ?? "").isEmpty
@@ -152,14 +180,15 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  title ?? AppLocalizations.of(context)!.unknown,
-                  style: titleStyle,
-                  textAlign: TextAlign.center,
+              if (showTitle)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    title ?? AppLocalizations.of(context)!.unknown,
+                    style: titleStyle,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
               if (imageURL != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -231,21 +260,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  TableRow _descriptionRow(String description, String? value) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(3),
-          child: Text(description, style: tableDescriptionStyle),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(3),
-          child: Text(
-            value ?? AppLocalizations.of(context)!.unknown,
-            style: tableTextStyle,
-          ),
-        ),
-      ],
+  Widget _descriptionRow(String description, String? value) {
+    return DetailRow(
+      label: description,
+      value: value ?? AppLocalizations.of(context)!.unknown,
     );
   }
 
@@ -258,91 +276,78 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     final landings = widget.launch.rocket?.launcherStage ?? const [];
     final landing = landings.isNotEmpty ? landings.first.landing : null;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Table(
-            border: TableBorder(
-              horizontalInside: BorderSide(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodyMedium!.color!.withValues(alpha: .5),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _descriptionRow(
+              AppLocalizations.of(context)!.status,
+              l.status?.name ?? AppLocalizations.of(context)!.unknown,
             ),
-            columnWidths: const {
-              0: IntrinsicColumnWidth(),
-              1: FlexColumnWidth(),
-            },
-            children: [
+            _descriptionRow(
+              AppLocalizations.of(context)!.statusDescription,
+              l.status?.description ?? AppLocalizations.of(context)!.unknown,
+            ),
+            if ((l.probability ?? -1) > 0)
               _descriptionRow(
-                AppLocalizations.of(context)!.status,
-                l.status?.name ?? AppLocalizations.of(context)!.unknown,
+                AppLocalizations.of(context)!.startProbability,
+                "${l.probability!}%",
               ),
+            if ((l.failreason ?? "").isNotEmpty)
               _descriptionRow(
-                AppLocalizations.of(context)!.statusDescription,
-                l.status?.description ?? AppLocalizations.of(context)!.unknown,
+                AppLocalizations.of(context)!.failReason,
+                l.failreason!,
               ),
-              if ((l.probability ?? -1) > 0)
+            if (l.mission?.orbit != null)
+              _descriptionRow(
+                AppLocalizations.of(context)!.targetOrbit,
+                l.mission!.orbit!.name ?? AppLocalizations.of(context)!.unknown,
+              ),
+            if (windowStart != null)
+              _descriptionRow(
+                AppLocalizations.of(context)!.windowStart,
+                formatDateTimeFriendlyText(context, windowStart),
+              ),
+            if (windowEnd != null)
+              _descriptionRow(
+                AppLocalizations.of(context)!.windowEnd,
+                formatDateTimeFriendlyText(context, windowEnd) +
+                    (windowStart == windowEnd
+                        ? " (${AppLocalizations.of(context)!.likeStartTime})"
+                        : ""),
+              ),
+            if (landing != null) ...[
+              if (landing.type != null)
                 _descriptionRow(
-                  AppLocalizations.of(context)!.startProbability,
-                  "${l.probability!}%",
+                  AppLocalizations.of(context)!.landingType,
+                  landing.type!,
                 ),
-              if ((l.failreason ?? "").isNotEmpty)
+              if (landing.landingLocation?.name != null)
                 _descriptionRow(
-                  AppLocalizations.of(context)!.failReason,
-                  l.failreason!,
+                  AppLocalizations.of(context)!.landingLocation,
+                  landing.landingLocation?.name,
                 ),
-              if (l.mission?.orbit != null)
+              if (landing.success == true)
                 _descriptionRow(
-                  AppLocalizations.of(context)!.targetOrbit,
-                  l.mission!.orbit!.name ??
-                      AppLocalizations.of(context)!.unknown,
-                ),
-              if (windowStart != null)
+                  AppLocalizations.of(context)!.landingSuccess,
+                  AppLocalizations.of(context)!.yes,
+                )
+              else if (landing.success == false)
                 _descriptionRow(
-                  AppLocalizations.of(context)!.windowStart,
-                  formatDateTimeFriendlyText(context, windowStart),
-                ),
-              if (windowEnd != null)
-                _descriptionRow(
-                  AppLocalizations.of(context)!.windowEnd,
-                  formatDateTimeFriendlyText(context, windowEnd) +
-                      (windowStart == windowEnd
-                          ? " (${AppLocalizations.of(context)!.likeStartTime})"
-                          : ""),
-                ),
-              if (landing != null) ...[
-                if (landing.type != null)
-                  _descriptionRow(
-                    AppLocalizations.of(context)!.landingType,
-                    landing.type!,
-                  ),
-                if (landing.landingLocation?.name != null)
-                  _descriptionRow(
-                    AppLocalizations.of(context)!.landingLocation,
-                    landing.landingLocation?.name,
-                  ),
-                if (landing.success == true)
-                  _descriptionRow(
-                    AppLocalizations.of(context)!.landingSuccess,
-                    AppLocalizations.of(context)!.yes,
-                  )
-                else if (landing.success == false)
-                  _descriptionRow(
-                    AppLocalizations.of(context)!.landingSuccess,
-                    AppLocalizations.of(context)!.no,
-                  ),
-              ],
-              if (lastUpdated != null)
-                _descriptionRow(
-                  AppLocalizations.of(context)!.lastUpdate,
-                  formatDateTimeFriendlyText(context, lastUpdated),
+                  AppLocalizations.of(context)!.landingSuccess,
+                  AppLocalizations.of(context)!.no,
                 ),
             ],
-          ),
-        ],
-      ),
+            if (lastUpdated != null)
+              _descriptionRow(
+                AppLocalizations.of(context)!.lastUpdate,
+                formatDateTimeFriendlyText(context, lastUpdated),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -427,13 +432,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
     final dpr = MediaQuery.of(context).devicePixelRatio;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -563,42 +563,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       return const SizedBox.shrink();
     }
 
-    final muted = Theme.of(
-      context,
-    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.65);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-      child: Column(
-        children: rows
-            .map(
-              (row) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 118,
-                      child: Text(
-                        row.$1,
-                        style: TextStyle(fontSize: 14, color: muted),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        row.$2,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: rows
+          .map((row) => DetailRow(label: row.$1, value: row.$2))
+          .toList(),
     );
   }
 
@@ -638,30 +607,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
       child: Wrap(spacing: 8, runSpacing: 8, children: chips),
     );
-  }
-
-  /// e.g. "B1072 - flight 35". Shown while the boosters section is collapsed,
-  /// because reuse is the part people actually want from it.
-  String? _boosterPreview(BuildContext context, Launch l) {
-    final stages = l.rocket?.launcherStage ?? const <LauncherStage>[];
-    if (stages.isEmpty) {
-      return null;
-    }
-
-    final parts = <String>[];
-    for (final stage in stages) {
-      final serial = stage.launcher?.serialNumber;
-      final flight = stage.launcherFlightNumber;
-
-      if (serial == null) continue;
-      parts.add(
-        flight == null
-            ? serial
-            : "$serial · ${AppLocalizations.of(context)!.boosterFlight(flight)}",
-      );
-    }
-
-    return parts.isEmpty ? null : parts.join(", ");
   }
 
   Widget _subscription(String launchId) {
@@ -726,22 +671,20 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             // Open by default: it is what the page is about. Dropped entirely
             // when there is no description, since the name is already the hero.
             if (widget.launch.mission?.description != null)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.mission,
-                initiallyExpanded: !widget.openUpdates,
                 child: _missionDetails(context, widget.launch.mission!),
               ),
 
-            DetailSection(
+            DetailCard(
               title: AppLocalizations.of(context)!.info,
-              preview: widget.launch.status?.description,
               child: _generalInfo(context, widget.launch),
             ),
 
             if (widget.launch.rocket?.configuration != null)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.rocket,
-                preview: widget.launch.rocketName,
+                trailing: widget.launch.rocketName,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -760,10 +703,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.boosters,
                 count: widget.launch.rocket!.launcherStage.length,
-                preview: _boosterPreview(context, widget.launch),
+
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.rocket!.launcherStage
@@ -774,14 +717,14 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
             if (widget.launch.pad != null &&
                 widget.launch.pad?.country != "Unknown")
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.launchSite,
-                preview: widget.launch.pad?.name,
+                trailing: widget.launch.pad?.name,
                 child: _launchPad(context, widget.launch.pad!),
               ),
 
             if (widget.launch.timeline.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.timeline,
                 count: widget.launch.timeline.length,
                 child: LaunchTimeline(
@@ -792,11 +735,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.updates.isNotEmpty)
-              DetailSection(
+              DetailCard(
+                key: _updatesKey,
                 title: AppLocalizations.of(context)!.updates,
-                initiallyExpanded: widget.openUpdates,
                 count: widget.launch.updates.length,
-                preview: widget.launch.updates.first.comment,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderUpdateList(context, widget.launch.updates),
@@ -804,10 +746,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.vidUrls.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.videos,
                 count: widget.launch.vidUrls.length,
-                preview: widget.launch.vidUrls.first.title,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.vidUrls
@@ -824,10 +765,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.infoUrls.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.moreInfo,
                 count: widget.launch.infoUrls.length,
-                preview: widget.launch.infoUrls.first.title,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.infoUrls
@@ -837,7 +777,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (patches.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: patches.length == 1
                     ? AppLocalizations.of(context)!.missionPatch
                     : AppLocalizations.of(context)!.missionPatches,
@@ -849,9 +789,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.launchServiceProvider?.description != null)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.source,
-                preview: widget.launch.providerName,
+                trailing: widget.launch.providerName,
                 child: _launchServiceProvider(
                   context,
                   widget.launch.launchServiceProvider!,
@@ -859,10 +799,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               ),
 
             if (widget.launch.program.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.programs,
                 count: widget.launch.program.length,
-                preview: widget.launch.program.first.name,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.launch.program),

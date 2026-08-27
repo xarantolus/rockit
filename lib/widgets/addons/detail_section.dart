@@ -1,117 +1,188 @@
 import 'package:flutter/material.dart';
 
-/// A collapsible block on a detail page.
+/// One topic on a detail page.
 ///
-/// The detail pages used to be a dozen sections stacked in one endless scroll,
-/// which made everything equally prominent and therefore nothing prominent.
-/// Collapsing them keeps every fact reachable while letting the page open on
-/// what matters — and [preview] means a closed section still says what is in
-/// it, so collapsing does not just hide things.
-class DetailSection extends StatefulWidget {
-  const DetailSection({
+/// These used to be collapsible, which made every section equally hidden and
+/// turned the page into a filing cabinet. Everything is visible now; the card
+/// edge is what gives a long scroll structure, using the same rounded-and-
+/// bordered language as the listings.
+class DetailCard extends StatelessWidget {
+  const DetailCard({
     required this.title,
     required this.child,
-    this.preview,
+    this.trailing,
     this.count,
-    this.initiallyExpanded = false,
+    this.padded = true,
     super.key,
   });
 
   final String title;
   final Widget child;
 
-  /// One line shown while collapsed, e.g. the booster serial or the pad name.
-  final String? preview;
+  /// Shown at the right of the label row, e.g. the rocket's name.
+  final String? trailing;
 
-  /// Shown next to the title, for sections that are really a list.
+  /// Shown next to the label, for sections that are really a list.
   final int? count;
 
-  final bool initiallyExpanded;
+  /// Set false when the child paints its own edge-to-edge content, such as a
+  /// full-width map or a nested list of cards.
+  final bool padded;
 
   @override
-  State<DetailSection> createState() => _DetailSectionState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.55);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Row(
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.9,
+                    color: muted,
+                  ),
+                ),
+                if (count != null) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    "$count",
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: muted?.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+                if (trailing != null) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      trailing!,
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: muted,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: padded
+                ? const EdgeInsets.fromLTRB(14, 0, 14, 14)
+                : const EdgeInsets.only(bottom: 10),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _DetailSectionState extends State<DetailSection> {
-  late bool _expanded = widget.initiallyExpanded;
+/// A bare section label, for content that is already a list of cards — putting
+/// those inside a [DetailCard] would nest a card in a card.
+class SectionLabel extends StatelessWidget {
+  const SectionLabel({required this.title, this.count, super.key});
+
+  final String title;
+  final int? count;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.55);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 14, 24, 2),
+      child: Row(
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.9,
+              color: muted,
+            ),
+          ),
+          if (count != null) ...[
+            const SizedBox(width: 6),
+            Text(
+              "$count",
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: muted?.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A label/value pair, used for the specification and info lists.
+///
+/// Replaces a bordered `Table`, which drew a grid around every fact and made
+/// the page look like a spreadsheet.
+class DetailRow extends StatelessWidget {
+  const DetailRow({required this.label, required this.value, super.key});
+
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Divider(height: 1),
-        InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          if (widget.count != null) ...[
-                            const SizedBox(width: 6),
-                            Text(
-                              "${widget.count}",
-                              style: TextStyle(fontSize: 15, color: muted),
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (!_expanded && (widget.preview ?? "").isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.preview!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13.5, color: muted),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                AnimatedRotation(
-                  turns: _expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(Icons.expand_more, color: muted),
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 132,
+            child: Text(label, style: TextStyle(fontSize: 13.5, color: muted)),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
           ),
-        ),
-        AnimatedCrossFade(
-          firstChild: const SizedBox(width: double.infinity, height: 0),
-          secondChild: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: widget.child,
-          ),
-          crossFadeState: _expanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 180),
-          sizeCurve: Curves.easeOutCubic,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 /// A compact fact, e.g. the rocket or the target orbit. Used in a wrapping row
-/// under the hero so the essentials are visible without opening anything.
+/// under the hero so the essentials are visible immediately.
 class InfoChip extends StatelessWidget {
   const InfoChip({required this.label, this.icon, super.key});
 

@@ -18,11 +18,16 @@ class ArticleCardWidget extends StatefulWidget {
     this.icon,
     this.customTab = true,
     this.fullImage,
+    this.flat = false,
     super.key,
   });
 
   final bool customTab;
   final bool? fullImage;
+
+  /// Drops the surrounding Card. Used inside a DetailCard, where a card within
+  /// a card just muddles the edges.
+  final bool flat;
 
   final String? title;
   final String? link;
@@ -106,93 +111,101 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(10.0);
     final hasImage = (widget.imageUrl ?? "").isNotEmpty;
+    final content = Material(
+      color: widget.flat
+          ? Colors.transparent
+          : Theme.of(context).cardTheme.color,
+      borderRadius: radius,
+      child: InkWell(
+        borderRadius: radius,
+        onLongPress: widget.link == null
+            ? null
+            : () => copyLink(context, widget.link),
+        onTap: () async {
+          setState(() {});
+          if (widget.link != null) {
+            if (widget.customTab) {
+              await openCustomTab(context, widget.link!);
+            } else {
+              await launchURL(context, widget.link!);
+            }
+          }
+        },
+        child: Container(
+          margin: (widget.summary ?? "").isEmpty
+              ? const EdgeInsets.only(bottom: 8)
+              : EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  widget.title ?? AppLocalizations.of(context)!.unknown,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (hasImage) _renderImage(),
+              if ((widget.summary ?? "").isNotEmpty)
+                Padding(
+                  padding: widget.imageUrl == null
+                      ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
+                      : const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                  child: Text(
+                    dottedText(widget.summary!),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+
+              // Show publish date and news site next to each other
+              // If we have an image, the newsSite is rendered on top of it (and thus not needed here).
+              // But if we don't have an image, we still want to display the newsSite
+              if (widget.publishDate != null ||
+                  !hasImage && widget.newsSite != null)
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    bottom: 4,
+                    top: (widget.summary ?? "").isNotEmpty ? 0 : 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (!hasImage && widget.newsSite != null)
+                        _newsSite()
+                      else
+                        // Put an empty box here to make sure the next widget will be right-aligned
+                        const SizedBox(),
+                      if (widget.publishDate != null)
+                        Text(
+                          formatDateTimeFriendlyText(
+                            context,
+                            widget.publishDate!,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (widget.flat) {
+      return content;
+    }
+
     return Center(
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: radius),
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-        child: Material(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: radius,
-          child: InkWell(
-            borderRadius: radius,
-            onLongPress: widget.link == null
-                ? null
-                : () => copyLink(context, widget.link),
-            onTap: () async {
-              setState(() {});
-              if (widget.link != null) {
-                if (widget.customTab) {
-                  await openCustomTab(context, widget.link!);
-                } else {
-                  await launchURL(context, widget.link!);
-                }
-              }
-            },
-            child: Container(
-              margin: (widget.summary ?? "").isEmpty
-                  ? const EdgeInsets.only(bottom: 8)
-                  : EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      widget.title ?? AppLocalizations.of(context)!.unknown,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  if (hasImage) _renderImage(),
-                  if ((widget.summary ?? "").isNotEmpty)
-                    Padding(
-                      padding: widget.imageUrl == null
-                          ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
-                          : const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                      child: Text(
-                        dottedText(widget.summary!),
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ),
-
-                  // Show publish date and news site next to each other
-                  // If we have an image, the newsSite is rendered on top of it (and thus not needed here).
-                  // But if we don't have an image, we still want to display the newsSite
-                  if (widget.publishDate != null ||
-                      !hasImage && widget.newsSite != null)
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: 8,
-                        right: 8,
-                        bottom: 4,
-                        top: (widget.summary ?? "").isNotEmpty ? 0 : 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (!hasImage && widget.newsSite != null)
-                            _newsSite()
-                          else
-                            // Put an empty box here to make sure the next widget will be right-aligned
-                            const SizedBox(),
-                          if (widget.publishDate != null)
-                            Text(
-                              formatDateTimeFriendlyText(
-                                context,
-                                widget.publishDate!,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        child: content,
       ),
     );
   }

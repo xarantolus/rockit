@@ -110,6 +110,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           title: station.name,
           summary: station.description,
           imageUrl: station.image?.imageUrl,
+          flat: true,
         );
       }),
     );
@@ -188,9 +189,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
             if (!kIsWeb) _subscription("${widget.event.id}"),
 
-            DetailSection(
+            DetailCard(
               title: AppLocalizations.of(context)!.info,
-              initiallyExpanded: !widget.openUpdates,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -216,21 +216,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
             // Events often hang off a launch; this is the way through to it.
             if (widget.event.launches.isNotEmpty)
-              DetailSection(
+              SectionLabel(
                 title: AppLocalizations.of(context)!.launches,
                 count: widget.event.launches.length,
-                preview: widget.event.launches.first.name,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _renderLaunches(widget.event.launches),
-                ),
               ),
+            ..._renderLaunches(widget.event.launches),
 
             if (widget.event.spacestations.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.stations,
                 count: widget.event.spacestations.length,
-                preview: widget.event.spacestations.first.name,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: _renderSpaceStations(widget.event.spacestations),
@@ -238,11 +233,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               ),
 
             if (widget.event.updates.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.updates,
-                initiallyExpanded: widget.openUpdates,
                 count: widget.event.updates.length,
-                preview: widget.event.updates.first.comment,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderUpdateList(context, widget.event.updates),
@@ -250,10 +243,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               ),
 
             if (widget.event.program.isNotEmpty)
-              DetailSection(
+              DetailCard(
                 title: AppLocalizations.of(context)!.programs,
                 count: widget.event.program.length,
-                preview: widget.event.program.first.name,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.event.program),
