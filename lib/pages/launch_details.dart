@@ -1,3 +1,5 @@
+import 'dart:ui' show FontFeature;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
@@ -10,11 +12,12 @@ import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/detail_section.dart';
+import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
-import 'package:rockit/widgets/launch_countdown.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
   const LaunchDetailsPage(this.launch, {this.heroPrefix = "", super.key});
@@ -47,24 +50,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
   static const tableTextStyle = TextStyle(fontSize: 16);
 
   static const textStyle = TextStyle(fontSize: 16);
-
-  Widget _zoomableImage() {
-    return InteractiveViewer(
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height / 2,
-          ),
-          child: ImageWidget(
-            widget.launch.image?.imageUrl,
-            heroTag: "${widget.heroPrefix}launch-image",
-            id: widget.launch.id,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _missionDetails(BuildContext context, Mission m) {
     return ListTile(
       title: Center(
@@ -266,37 +251,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
-  List<Widget> _urlInfoList(
-    BuildContext context,
-    List<ContentUrl> l,
-    String title,
-    Widget Function(BuildContext, ContentUrl) mapFunction,
-  ) {
-    final widgets = l
-        .map((info) {
-          if (info.title == null &&
-              (info.description == null || info.featureImage == null)) {
-            return null;
-          }
-          return mapFunction(context, info);
-        })
-        .where((element) => element != null)
-        .map((e) => e!);
-
-    if (widgets.isEmpty) {
-      return List.empty();
-    }
-
-    return [
-      const Divider(),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: Text(title, style: titleStyle),
-      ),
-      ...widgets,
-    ];
-  }
-
   Widget _urlInfoArticleWidget(
     BuildContext context,
     ContentUrl info, [
@@ -433,6 +387,101 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  /// The facts worth seeing without opening anything: what is flying, where to,
+  /// and from where.
+  Widget _quickFacts(BuildContext context, Launch l) {
+    final chips = <Widget>[
+      if (l.rocketName != null)
+        InfoChip(label: l.rocketName!, icon: Icons.rocket_launch),
+      if (l.mission?.orbit?.abbrev != null || l.mission?.orbit?.name != null)
+        InfoChip(
+          label: l.mission!.orbit!.abbrev ?? l.mission!.orbit!.name!,
+          icon: Icons.track_changes,
+        ),
+      if (l.mission?.type != null)
+        InfoChip(label: l.mission!.type!, icon: Icons.science_outlined),
+      if (l.pad?.name != null)
+        InfoChip(label: l.pad!.name!, icon: Icons.place_outlined),
+    ];
+
+    if (chips.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+    );
+  }
+
+  /// e.g. "B1072 - flight 35". Shown while the boosters section is collapsed,
+  /// because reuse is the part people actually want from it.
+  String? _boosterPreview(BuildContext context, Launch l) {
+    final stages = l.rocket?.launcherStage ?? const <LauncherStage>[];
+    if (stages.isEmpty) {
+      return null;
+    }
+
+    final parts = <String>[];
+    for (final stage in stages) {
+      final serial = stage.launcher?.serialNumber;
+      final flight = stage.launcherFlightNumber;
+
+      if (serial == null) continue;
+      parts.add(
+        flight == null
+            ? serial
+            : "$serial · ${AppLocalizations.of(context)!.boosterFlight(flight)}",
+      );
+    }
+
+    return parts.isEmpty ? null : parts.join(", ");
+  }
+
+  /// The countdown milestones, when the API has them — only about one launch in
+  /// eight does.
+  Widget _timeline(BuildContext context, List<TimelineEvent> events) {
+    String offset(Duration d) {
+      final abs = d.abs();
+      final sign = d.isNegative ? "T-" : "T+";
+      if (abs.inHours > 0) {
+        return "$sign${abs.inHours}h ${abs.inMinutes.remainder(60)}m";
+      }
+      if (abs.inMinutes > 0) {
+        return "$sign${abs.inMinutes}m ${abs.inSeconds.remainder(60)}s";
+      }
+      return "$sign${abs.inSeconds}s";
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: events.map((e) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 84,
+                  child: Text(
+                    e.relativeTime == null ? "" : offset(e.relativeTime!),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                Expanded(child: Text(e.type ?? e.description ?? "")),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _subscription(String launchId) {
     final subscriptionManager = BackgroundHandler();
 
@@ -464,124 +513,173 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // If we have an image, we show it at the top
-            if (widget.launch.image != null) ...[_zoomableImage()],
+            LaunchHero(
+              image: widget.launch.image,
+              title:
+                  widget.launch.mission?.name ??
+                  widget.launch.name ??
+                  AppLocalizations.of(context)!.unknownLaunch,
+              subtitle: widget.launch.providerName,
+              status: widget.launch.status,
+              date: widget.launch.net ?? widget.launch.windowStart,
+              precision: widget.launch.netPrecision,
+              timezoneName: widget.launch.pad?.location?.timezoneName,
+              heroTag: "${widget.heroPrefix}launch-image",
+              heroId: widget.launch.id,
+            ),
 
-            // Then a mission description
-            ...[
-              if (widget.launch.mission == null)
-                _reducedMissionDetails(context, widget.launch)
-              else
-                _missionDetails(context, widget.launch.mission!),
-            ],
+            _quickFacts(context, widget.launch),
 
-            if (widget.launch.id != null && !kIsWeb) ...[
-              const Divider(),
+            if (widget.launch.id != null && !kIsWeb)
               _subscription(widget.launch.id!),
-            ],
 
-            // The countdown should always be displayed
-            const Divider(),
-            LaunchCountDownWidget(widget.launch),
-
-            // Just like the general info table
-            const Divider(),
-            _generalInfo(context, widget.launch),
-
-            // Show mission patches
-            if (widget.launch.missionPatches.isNotEmpty) ...[
-              ...() {
-                // We only add the divider conditionally;
-                // the function might return zero widgets even if
-                // the mission patch list contains more than 0 items
-                final patches = _missionPatches(
-                  context,
-                  widget.launch.missionPatches,
-                );
-
-                if (patches.isNotEmpty) {
-                  patches.insert(0, const Divider());
-                }
-                return patches;
-              }(),
-            ],
-
-            // Render a list of articles/info URLs
-            ..._urlInfoList(
-              context,
-              widget.launch.infoUrls,
-              AppLocalizations.of(context)!.moreInfo,
-              (ctx, info) => _urlInfoArticleWidget(ctx, info),
+            // Open by default: it is what the page is about.
+            DetailSection(
+              title: AppLocalizations.of(context)!.mission,
+              initiallyExpanded: true,
+              child: widget.launch.mission == null
+                  ? _reducedMissionDetails(context, widget.launch)
+                  : _missionDetails(context, widget.launch.mission!),
             ),
 
-            // A list of videos with thumbnails
-            ..._urlInfoList(
-              context,
-              widget.launch.vidUrls,
-              widget.launch.vidUrls.length == 1
-                  ? AppLocalizations.of(context)!.video
-                  : AppLocalizations.of(context)!.videos,
-              (ctx, vid) => _urlInfoArticleWidget(
-                ctx,
-                vid,
-                false,
-                const Icon(Icons.play_arrow, size: 72),
-              ),
+            DetailSection(
+              title: AppLocalizations.of(context)!.info,
+              preview: widget.launch.status?.description,
+              child: _generalInfo(context, widget.launch),
             ),
 
-            // Now a list of updates to the data
-            if (widget.launch.updates.isNotEmpty) ...[
-              const Divider(),
-              ...renderUpdateList(context, titleStyle, widget.launch.updates),
-            ],
-
-            // An informative description of the rocket
-            if (widget.launch.rocket?.configuration?.description != null) ...[
-              const Divider(),
-              _rocketConfiguration(
-                context,
-                widget.launch.rocket!.configuration!,
+            if (widget.launch.rocket?.configuration != null)
+              DetailSection(
+                title: AppLocalizations.of(context)!.rocket,
+                preview: widget.launch.rocketName,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (widget.launch.rocket?.configuration?.description !=
+                        null)
+                      _rocketConfiguration(
+                        context,
+                        widget.launch.rocket!.configuration!,
+                      ),
+                    ...widget.launch.rocket!.spacecraftStage.map(
+                      (stage) => _spacecraftStage(context, stage),
+                    ),
+                  ],
+                ),
               ),
-            ],
 
-            // Info for the upper stage (e.g. Starship number)
-            if (widget.launch.rocket?.spacecraftStage.isNotEmpty ?? false) ...[
-              const Divider(),
-              ...widget.launch.rocket!.spacecraftStage.map(
-                (stage) => _spacecraftStage(context, stage),
+            if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false)
+              DetailSection(
+                title: AppLocalizations.of(context)!.boosters,
+                count: widget.launch.rocket!.launcherStage.length,
+                preview: _boosterPreview(context, widget.launch),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _launcherStages(
+                    context,
+                    widget.launch.rocket!.launcherStage,
+                  ),
+                ),
               ),
-            ],
 
-            // Info for the first stage (e.g. Starship/Falcon booster)
-            if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false) ...[
-              const Divider(),
-              ..._launcherStages(
-                context,
-                widget.launch.rocket?.launcherStage ?? const [],
-              ),
-            ],
-
-            // And a bunch of info about the launch provider
-            if (widget.launch.launchServiceProvider?.description != null) ...[
-              const Divider(),
-              _launchServiceProvider(
-                context,
-                widget.launch.launchServiceProvider!,
-              ),
-            ],
-
-            // There are some incomplete pads that we shouldn't render6
             if (widget.launch.pad != null &&
-                widget.launch.pad?.country != "Unknown") ...[
-              const Divider(),
-              _launchPad(context, widget.launch.pad!),
-            ],
+                widget.launch.pad?.country != "Unknown")
+              DetailSection(
+                title: AppLocalizations.of(context)!.launchSite,
+                preview: widget.launch.pad?.name,
+                child: _launchPad(context, widget.launch.pad!),
+              ),
 
-            if (widget.launch.program.isNotEmpty) ...[
-              const Divider(),
-              ...renderProgramInfo(context, widget.launch.program),
-            ],
+            if (widget.launch.timeline.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.timeline,
+                count: widget.launch.timeline.length,
+                child: _timeline(context, widget.launch.timeline),
+              ),
+
+            if (widget.launch.updates.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.updates,
+                count: widget.launch.updates.length,
+                preview: widget.launch.updates.first.comment,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: renderUpdateList(
+                    context,
+                    titleStyle,
+                    widget.launch.updates,
+                  ),
+                ),
+              ),
+
+            if (widget.launch.vidUrls.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.videos,
+                count: widget.launch.vidUrls.length,
+                preview: widget.launch.vidUrls.first.title,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: widget.launch.vidUrls
+                      .map(
+                        (vid) => _urlInfoArticleWidget(
+                          context,
+                          vid,
+                          false,
+                          const Icon(Icons.play_arrow, size: 72),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+
+            if (widget.launch.infoUrls.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.moreInfo,
+                count: widget.launch.infoUrls.length,
+                preview: widget.launch.infoUrls.first.title,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: widget.launch.infoUrls
+                      .map((info) => _urlInfoArticleWidget(context, info))
+                      .toList(),
+                ),
+              ),
+
+            if (widget.launch.missionPatches.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.missionPatches,
+                count: widget.launch.missionPatches.length,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _missionPatches(
+                    context,
+                    widget.launch.missionPatches,
+                  ),
+                ),
+              ),
+
+            if (widget.launch.launchServiceProvider?.description != null)
+              DetailSection(
+                title: AppLocalizations.of(context)!.source,
+                preview: widget.launch.providerName,
+                child: _launchServiceProvider(
+                  context,
+                  widget.launch.launchServiceProvider!,
+                ),
+              ),
+
+            if (widget.launch.program.isNotEmpty)
+              DetailSection(
+                title: AppLocalizations.of(context)!.programs,
+                count: widget.launch.program.length,
+                preview: widget.launch.program.first.name,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: renderProgramInfo(context, widget.launch.program),
+                ),
+              ),
           ],
         ),
       ),
