@@ -53,6 +53,31 @@ void main() {
     });
   });
 
+  group('model constructors', () {
+    // These used to take their named parameters and silently drop them, so
+    // building a response by hand produced an object with every field null.
+    test('UpcomingLaunchesResponse keeps what it is given', () {
+      final res = UpcomingLaunchesResponse(
+        count: 3,
+        next: 'https://example.invalid/next',
+        previous: null,
+        results: const <Launch>[],
+      );
+
+      expect(res.count, 3);
+      expect(res.next, 'https://example.invalid/next');
+      expect(res.results, isEmpty);
+    });
+
+    test('Launch keeps what it is given', () {
+      final launch = Launch(id: 'abc', name: 'Falcon 9');
+
+      expect(launch.id, 'abc');
+      expect(launch.name, 'Falcon 9');
+      expect(launch.status, isNull);
+    });
+  });
+
   group('UpcomingEventsResponse', () {
     test('parses a recorded response', () {
       final res = UpcomingEventsResponse.fromJson(fixture('events'));

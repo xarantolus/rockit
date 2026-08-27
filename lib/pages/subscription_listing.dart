@@ -51,7 +51,9 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
     // Now sort the list by the expected date
     list = sortLaunchesAndEvents(list);
 
-    if (hadErrors) {
+    // Every subscription is fetched in turn above, so the user may well have
+    // left before this finishes.
+    if (hadErrors && mounted) {
       await showDialog(
         context: context,
         builder: (context) {

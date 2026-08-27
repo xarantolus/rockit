@@ -24,7 +24,7 @@ class LaunchDetailsPage extends StatefulWidget {
   final String heroPrefix;
 
   @override
-  _LaunchDetailsPageState createState() => _LaunchDetailsPageState();
+  State<LaunchDetailsPage> createState() => _LaunchDetailsPageState();
 }
 
 class _LaunchDetailsPageState extends State<LaunchDetailsPage>
@@ -606,14 +606,14 @@ class LaunchSubscriptionWidget extends StatefulWidget {
   final BackgroundHandler subscriptionManager;
 
   @override
-  _LaunchSubscriptionWidgetState createState() =>
+  State<LaunchSubscriptionWidget> createState() =>
       _LaunchSubscriptionWidgetState();
 }
 
 class _LaunchSubscriptionWidgetState extends State<LaunchSubscriptionWidget> {
   bool? value;
 
-  void _onCheckChange(newValue) async {
+  void _onCheckChange(bool? newValue) async {
     if (newValue == true) {
       await widget.subscriptionManager.subscribeToLaunch(widget.launchId);
     } else if (newValue == false) {

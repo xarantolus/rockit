@@ -12,7 +12,7 @@ class LaunchCountDownWidget extends StatefulWidget {
   final Launch launch;
 
   @override
-  _LaunchCountDownWidgetState createState() => _LaunchCountDownWidgetState();
+  State<LaunchCountDownWidget> createState() => _LaunchCountDownWidgetState();
 }
 
 class _LaunchCountDownWidgetState extends State<LaunchCountDownWidget>

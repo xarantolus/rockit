@@ -6,7 +6,8 @@ class UpcomingLaunchesResponse {
   String? previous;
   List<Launch>? results;
 
-  UpcomingLaunchesResponse({count, next, previous, results});
+  UpcomingLaunchesResponse(
+      {this.count, this.next, this.previous, this.results});
 
   UpcomingLaunchesResponse.fromJson(Map<String, dynamic> json) {
     count = json["count"];
@@ -67,41 +68,41 @@ class Launch {
   List<MissionPatch>? missionPatches;
 
   Launch(
-      {id,
-      url,
-      slug,
-      flightclubUrl,
-      rSpacexApiId,
-      name,
-      status,
-      lastUpdated,
-      updates,
-      net,
-      windowEnd,
-      windowStart,
-      probability,
-      holdreason,
-      failreason,
-      hashtag,
-      launchServiceProvider,
-      rocket,
-      mission,
-      pad,
-      infoUrls,
-      vidUrls,
-      webcastLive,
-      image,
-      infographic,
-      program,
-      orbitalLaunchAttemptCount,
-      locationLaunchAttemptCount,
-      padLaunchAttemptCount,
-      agencyLaunchAttemptCount,
-      orbitalLaunchAttemptCountYear,
-      locationLaunchAttemptCountYear,
-      padLaunchAttemptCountYear,
-      agencyLaunchAttemptCountYear,
-      missionPatches});
+      {this.id,
+      this.url,
+      this.slug,
+      this.flightclubUrl,
+      this.rSpacexApiId,
+      this.name,
+      this.status,
+      this.lastUpdated,
+      this.updates,
+      this.net,
+      this.windowEnd,
+      this.windowStart,
+      this.probability,
+      this.holdreason,
+      this.failreason,
+      this.hashtag,
+      this.launchServiceProvider,
+      this.rocket,
+      this.mission,
+      this.pad,
+      this.infoUrls,
+      this.vidUrls,
+      this.webcastLive,
+      this.image,
+      this.infographic,
+      this.program,
+      this.orbitalLaunchAttemptCount,
+      this.locationLaunchAttemptCount,
+      this.padLaunchAttemptCount,
+      this.agencyLaunchAttemptCount,
+      this.orbitalLaunchAttemptCountYear,
+      this.locationLaunchAttemptCountYear,
+      this.padLaunchAttemptCountYear,
+      this.agencyLaunchAttemptCountYear,
+      this.missionPatches});
 
   Launch.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -212,7 +213,7 @@ class MissionPatch {
   String? imageUrl;
   Agency? agency;
 
-  MissionPatch({id, name, priority, imageUrl, agency});
+  MissionPatch({this.id, this.name, this.priority, this.imageUrl, this.agency});
 
   MissionPatch.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -239,7 +240,7 @@ class Agency {
   String? name;
   String? type;
 
-  Agency({id, url, name, type});
+  Agency({this.id, this.url, this.name, this.type});
 
   Agency.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -273,18 +274,18 @@ class Pad {
   int? totalLaunchCount;
 
   Pad(
-      {id,
-      url,
-      agencyId,
-      name,
-      infoUrl,
-      wikiUrl,
-      mapUrl,
-      latitude,
-      longitude,
-      location,
-      mapImage,
-      totalLaunchCount});
+      {this.id,
+      this.url,
+      this.agencyId,
+      this.name,
+      this.infoUrl,
+      this.wikiUrl,
+      this.mapUrl,
+      this.latitude,
+      this.longitude,
+      this.location,
+      this.mapImage,
+      this.totalLaunchCount});
 
   Pad.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -330,13 +331,13 @@ class Location {
   int? totalLandingCount;
 
   Location(
-      {id,
-      url,
-      name,
-      countryCode,
-      mapImage,
-      totalLaunchCount,
-      totalLandingCount});
+      {this.id,
+      this.url,
+      this.name,
+      this.countryCode,
+      this.mapImage,
+      this.totalLaunchCount,
+      this.totalLandingCount});
 
   Location.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -369,7 +370,13 @@ class Mission {
   String? type;
   Orbit? orbit;
 
-  Mission({id, name, description, launchDesignator, type, orbit});
+  Mission(
+      {this.id,
+      this.name,
+      this.description,
+      this.launchDesignator,
+      this.type,
+      this.orbit});
 
   Mission.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -397,7 +404,7 @@ class Orbit {
   String? name;
   String? abbrev;
 
-  Orbit({id, name, abbrev});
+  Orbit({this.id, this.name, this.abbrev});
 
   Orbit.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -420,7 +427,11 @@ class Rocket {
   List<LauncherStage>? launcherStage;
   SpaceCraft? spacecraftStage;
 
-  Rocket({id, configuration, required this.launcherStage, spacecraftStage});
+  Rocket(
+      {this.id,
+      this.configuration,
+      required this.launcherStage,
+      this.spacecraftStage});
 
   Rocket.fromJson(Map<String, dynamic> json) {
     launcherStage = json["launcher_stage"] == null
@@ -479,36 +490,36 @@ class Configuration {
   int? pendingLaunches;
 
   Configuration(
-      {id,
-      url,
-      name,
-      description,
-      family,
-      fullName,
-      manufacturer,
-      program,
-      variant,
-      alias,
-      minStage,
-      maxStage,
-      length,
-      diameter,
-      maidenFlight,
-      launchCost,
-      launchMass,
-      leoCapacity,
-      gtoCapacity,
-      toThrust,
-      apogee,
-      vehicleRange,
-      imageUrl,
-      infoUrl,
-      wikiUrl,
-      totalLaunchCount,
-      consecutiveSuccessfulLaunches,
-      successfulLaunches,
-      failedLaunches,
-      pendingLaunches});
+      {this.id,
+      this.url,
+      this.name,
+      this.description,
+      this.family,
+      this.fullName,
+      this.manufacturer,
+      this.program,
+      this.variant,
+      this.alias,
+      this.minStage,
+      this.maxStage,
+      this.length,
+      this.diameter,
+      this.maidenFlight,
+      this.launchCost,
+      this.launchMass,
+      this.leoCapacity,
+      this.gtoCapacity,
+      this.toThrust,
+      this.apogee,
+      this.vehicleRange,
+      this.imageUrl,
+      this.infoUrl,
+      this.wikiUrl,
+      this.totalLaunchCount,
+      this.consecutiveSuccessfulLaunches,
+      this.successfulLaunches,
+      this.failedLaunches,
+      this.pendingLaunches});
 
   Configuration.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -611,33 +622,33 @@ class Manufacturer {
   String? nationUrl;
 
   Manufacturer(
-      {id,
-      url,
-      name,
-      featured,
-      type,
-      countryCode,
-      abbrev,
-      description,
-      administrator,
-      foundingYear,
-      launchers,
-      spacecraft,
-      launchLibraryUrl,
-      totalLaunchCount,
-      consecutiveSuccessfulLaunches,
-      successfulLaunches,
-      failedLaunches,
-      pendingLaunches,
-      consecutiveSuccessfulLandings,
-      successfulLandings,
-      failedLandings,
-      attemptedLandings,
-      infoUrl,
-      wikiUrl,
-      logoUrl,
-      imageUrl,
-      nationUrl});
+      {this.id,
+      this.url,
+      this.name,
+      this.featured,
+      this.type,
+      this.countryCode,
+      this.abbrev,
+      this.description,
+      this.administrator,
+      this.foundingYear,
+      this.launchers,
+      this.spacecraft,
+      this.launchLibraryUrl,
+      this.totalLaunchCount,
+      this.consecutiveSuccessfulLaunches,
+      this.successfulLaunches,
+      this.failedLaunches,
+      this.pendingLaunches,
+      this.consecutiveSuccessfulLandings,
+      this.successfulLandings,
+      this.failedLandings,
+      this.attemptedLandings,
+      this.infoUrl,
+      this.wikiUrl,
+      this.logoUrl,
+      this.imageUrl,
+      this.nationUrl});
 
   Manufacturer.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -732,33 +743,33 @@ class LaunchServiceProvider {
   String? nationUrl;
 
   LaunchServiceProvider(
-      {id,
-      url,
-      name,
-      featured,
-      type,
-      countryCode,
-      abbrev,
-      description,
-      administrator,
-      foundingYear,
-      launchers,
-      spacecraft,
-      launchLibraryUrl,
-      totalLaunchCount,
-      consecutiveSuccessfulLaunches,
-      successfulLaunches,
-      failedLaunches,
-      pendingLaunches,
-      consecutiveSuccessfulLandings,
-      successfulLandings,
-      failedLandings,
-      attemptedLandings,
-      infoUrl,
-      wikiUrl,
-      logoUrl,
-      imageUrl,
-      nationUrl});
+      {this.id,
+      this.url,
+      this.name,
+      this.featured,
+      this.type,
+      this.countryCode,
+      this.abbrev,
+      this.description,
+      this.administrator,
+      this.foundingYear,
+      this.launchers,
+      this.spacecraft,
+      this.launchLibraryUrl,
+      this.totalLaunchCount,
+      this.consecutiveSuccessfulLaunches,
+      this.successfulLaunches,
+      this.failedLaunches,
+      this.pendingLaunches,
+      this.consecutiveSuccessfulLandings,
+      this.successfulLandings,
+      this.failedLandings,
+      this.attemptedLandings,
+      this.infoUrl,
+      this.wikiUrl,
+      this.logoUrl,
+      this.imageUrl,
+      this.nationUrl});
 
   LaunchServiceProvider.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -831,7 +842,13 @@ class Update {
   String? createdBy;
   DateTime? createdOn;
 
-  Update({id, profileImage, comment, infoUrl, createdBy, createdOn});
+  Update(
+      {this.id,
+      this.profileImage,
+      this.comment,
+      this.infoUrl,
+      this.createdBy,
+      this.createdOn});
 
   Update.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -861,7 +878,7 @@ class Status {
   String? abbrev;
   String? description;
 
-  Status({id, name, abbrev, description});
+  Status({this.id, this.name, this.abbrev, this.description});
 
   Status.fromJson(Map<String, dynamic> json) {
     id = json["id"];

@@ -12,7 +12,7 @@ class EventCountDownWidget extends StatefulWidget {
   final Event event;
 
   @override
-  _EventCountDownWidgetState createState() => _EventCountDownWidgetState();
+  State<EventCountDownWidget> createState() => _EventCountDownWidgetState();
 }
 
 class _EventCountDownWidgetState extends State<EventCountDownWidget>

@@ -33,7 +33,7 @@ class ArticleCardWidget extends StatefulWidget {
   final Icon? icon;
 
   @override
-  _ArticleCardWidgetState createState() => _ArticleCardWidgetState();
+  State<ArticleCardWidget> createState() => _ArticleCardWidgetState();
 }
 
 class _ArticleCardWidgetState extends State<ArticleCardWidget>

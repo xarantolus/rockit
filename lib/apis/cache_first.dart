@@ -55,12 +55,12 @@ class CacheFirstController<T> extends ChangeNotifier {
   /// screen is reported through [takeNotice] instead, and the data stays.
   Object? get fatalError => _fatalError;
 
-  error_type? _notice;
+  ErrorType? _notice;
 
   /// A one-shot notice about the last load — a failed refresh, or a response
   /// that itself fell back to the cache. Reading it clears it, so the UI shows
   /// each notice exactly once.
-  error_type? takeNotice() {
+  ErrorType? takeNotice() {
     final notice = _notice;
     _notice = null;
     return notice;
@@ -68,7 +68,7 @@ class CacheFirstController<T> extends ChangeNotifier {
 
   /// Records a notice raised inside [loadFresh], which succeeded but only
   /// partially.
-  void noteNotice(error_type? notice) {
+  void noteNotice(ErrorType? notice) {
     if (notice != null) {
       _notice = notice;
     }
@@ -148,7 +148,7 @@ class CacheFirstController<T> extends ChangeNotifier {
         _status = ListingStatus.failed;
       } else {
         // Never blank a list because a refresh failed.
-        _notice = error_type.cachedFallback;
+        _notice = ErrorType.cachedFallback;
         _status = ListingStatus.ready;
       }
     }

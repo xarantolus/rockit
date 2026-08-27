@@ -11,7 +11,7 @@ class ImageWidget extends StatefulWidget {
   final String? id;
 
   @override
-  _ImageWidgetState createState() => _ImageWidgetState();
+  State<ImageWidget> createState() => _ImageWidgetState();
 }
 
 class _ImageWidgetState extends State<ImageWidget>

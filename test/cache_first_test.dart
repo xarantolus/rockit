@@ -94,7 +94,7 @@ void main() {
       expect(controller.status, ListingStatus.ready);
       expect(controller.fatalError, isNull);
       // The user is told once that this is not the latest data.
-      expect(controller.takeNotice(), error_type.cachedFallback);
+      expect(controller.takeNotice(), ErrorType.cachedFallback);
       expect(controller.takeNotice(), isNull);
     });
 
@@ -181,9 +181,9 @@ void main() {
         loadFresh: () async => 'fresh',
       );
 
-      controller.noteNotice(error_type.incompleteData);
+      controller.noteNotice(ErrorType.incompleteData);
 
-      expect(controller.takeNotice(), error_type.incompleteData);
+      expect(controller.takeNotice(), ErrorType.incompleteData);
       expect(controller.takeNotice(), isNull);
     });
 

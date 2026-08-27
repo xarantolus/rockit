@@ -27,7 +27,7 @@ class EventDetailsPage extends StatefulWidget {
   final String heroPrefix;
 
   @override
-  _EventDetailsPageState createState() => _EventDetailsPageState();
+  State<EventDetailsPage> createState() => _EventDetailsPageState();
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage>
@@ -260,14 +260,14 @@ class EventSubscriptionWidget extends StatefulWidget {
   final BackgroundHandler subscriptionManager;
 
   @override
-  _EventSubscriptionWidgetState createState() =>
+  State<EventSubscriptionWidget> createState() =>
       _EventSubscriptionWidgetState();
 }
 
 class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {
   bool? value;
 
-  void _onCheckChange(newValue) async {
+  void _onCheckChange(bool? newValue) async {
     if (newValue == true) {
       await widget.subscriptionManager.subscribeToEvent(widget.eventId);
     } else if (newValue == false) {

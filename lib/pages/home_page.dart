@@ -57,6 +57,9 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
         case BackgroundHandler.actionLaunchDetails:
           // If we received a notification about a launch, we 99% sure have that launch cached
           final launch = await LaunchLibraryAPI().launch(data, true);
+          if (!mounted) {
+            return;
+          }
 
           await Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => LaunchDetailsPage(launch.data),
@@ -64,6 +67,9 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           break;
         case BackgroundHandler.actionEventDetails:
           final event = await LaunchLibraryAPI().event(data, true);
+          if (!mounted) {
+            return;
+          }
 
           await Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => EventDetailsPage(event.data),
@@ -97,7 +103,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
         ],
       ),
     );
-    if (ok != true) {
+    if (ok != true || !mounted) {
       return;
     }
 
@@ -116,6 +122,12 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
     final delegate =
         await LaunchEventSearchDelegate.searchLaunchesAndEvents(context);
+
+    // Loading the search index walks every cached page, which is slow enough
+    // that the user can leave before it finishes.
+    if (!mounted) {
+      return;
+    }
 
     delegate.maybeShowSnack(context);
 

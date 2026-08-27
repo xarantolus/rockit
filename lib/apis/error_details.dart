@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 
-enum error_type {
-  // cachedFallback means that the returned value was found by falling back to a cached response
+/// Why a response is not entirely what was asked for, even though it succeeded.
+enum ErrorType {
+  /// The value came from falling back to a cached response.
   cachedFallback,
 
-  // incompleteData means that not all data could be loaded
-  incompleteData,
-}
+  /// Not all of the data could be loaded.
+  incompleteData;
 
-extension ErrorType on error_type {
   String text(BuildContext context) {
     switch (this) {
-      case error_type.cachedFallback:
+      case ErrorType.cachedFallback:
         return AppLocalizations.of(context)!.showingCachedFallback;
-      case error_type.incompleteData:
+      case ErrorType.incompleteData:
         return AppLocalizations.of(context)!.showingIncompleteData;
     }
   }
@@ -31,7 +30,7 @@ extension ErrorType on error_type {
 class ErrorDetails<T> {
   ErrorDetails(this.data, [this.error]);
 
-  error_type? error;
+  ErrorType? error;
   T data;
 
   ErrorDetails<K> bubble<K>(K newData) {

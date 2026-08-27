@@ -44,7 +44,7 @@ class LaunchEventWidget extends StatefulWidget {
   }
 
   @override
-  _LaunchEventWidgetState createState() => _LaunchEventWidgetState();
+  State<LaunchEventWidget> createState() => _LaunchEventWidgetState();
 }
 
 class _LaunchEventWidgetState extends State<LaunchEventWidget>

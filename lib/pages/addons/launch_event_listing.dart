@@ -25,7 +25,7 @@ class NextFuncResult<I, S> {
 
   /// Set when the load succeeded only partially, e.g. it fell back to the
   /// cache. Surfaced as a snackbar once.
-  final error_type? notice;
+  final ErrorType? notice;
 
   NextFuncResult(this.items, this.nextArg, {this.notice});
 }

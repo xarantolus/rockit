@@ -10,7 +10,7 @@ class LaunchWidget extends StatefulWidget {
   final String heroPrefix;
 
   @override
-  _LaunchWidgetState createState() => _LaunchWidgetState();
+  State<LaunchWidget> createState() => _LaunchWidgetState();
 }
 
 class _LaunchWidgetState extends State<LaunchWidget> {

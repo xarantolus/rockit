@@ -10,7 +10,7 @@ class EventWidget extends StatefulWidget {
   final String heroPrefix;
 
   @override
-  _EventWidgetState createState() => _EventWidgetState();
+  State<EventWidget> createState() => _EventWidgetState();
 }
 
 class _EventWidgetState extends State<EventWidget> {

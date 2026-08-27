@@ -104,7 +104,7 @@ class APIClient {
 
     debugPrint("Fetching URL ${url.toString()}");
 
-    error_type? etype;
+    ErrorType? etype;
 
     try {
       // At first, we try to get the response by fetching it from the web server
@@ -155,7 +155,7 @@ class APIClient {
         debugPrint("Serving $url from cache because the request didn't work");
         responseBytes = await File(file.file.path).readAsBytes();
 
-        etype = error_type.cachedFallback;
+        etype = ErrorType.cachedFallback;
       } catch (ec) {
         throw Exception(
             "Cannot load data from ${url.toString()}: $e.\nCache was also unavailable (reason: $ec)");

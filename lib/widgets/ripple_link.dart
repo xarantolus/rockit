@@ -12,7 +12,7 @@ class RippleLinkWidget extends StatefulWidget {
   final String? url;
 
   @override
-  _RippleLinkWidgetState createState() => _RippleLinkWidgetState();
+  State<RippleLinkWidget> createState() => _RippleLinkWidgetState();
 }
 
 class _RippleLinkWidgetState extends State<RippleLinkWidget>

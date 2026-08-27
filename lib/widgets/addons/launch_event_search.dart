@@ -9,18 +9,26 @@ import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class LaunchEventSearchDelegate extends SearchDelegate {
-  LaunchEventSearchDelegate(
-      BuildContext context, List<dynamic> launchesAndEvents)
-      : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
+  /// Takes the resolved label and colour rather than a [BuildContext]: the
+  /// delegate is built after a long series of awaits, by which point the
+  /// context that started the search may be gone.
+  LaunchEventSearchDelegate({
+    required String searchLabel,
+    required Color? searchTextColor,
+    required List<dynamic> launchesAndEvents,
+  })  : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
         super(
-          searchFieldLabel: AppLocalizations.of(context)!.search,
-          searchFieldStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-          ),
+          searchFieldLabel: searchLabel,
+          searchFieldStyle: TextStyle(color: searchTextColor),
         );
 
   static Future<ErrorDetails<LaunchEventSearchDelegate>>
       searchLaunchesAndEvents(BuildContext context) async {
+    // Read what the delegate needs from the context before any of the paging
+    // below, which can run for a while.
+    final searchLabel = AppLocalizations.of(context)!.search;
+    final searchTextColor = Theme.of(context).textTheme.bodyLarge?.color;
+
     List<dynamic> items = [];
 
     final api = LaunchLibraryAPI();
@@ -65,8 +73,12 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     } while (eventNext != null);
 
     return ErrorDetails(
-      LaunchEventSearchDelegate(context, items),
-      hadError ? error_type.incompleteData : null,
+      LaunchEventSearchDelegate(
+        searchLabel: searchLabel,
+        searchTextColor: searchTextColor,
+        launchesAndEvents: items,
+      ),
+      hadError ? ErrorType.incompleteData : null,
     );
   }
 
