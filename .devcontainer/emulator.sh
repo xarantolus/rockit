@@ -4,6 +4,7 @@
 # already running.
 #
 #   emulator.sh start [avd]   boot headless and wait for it to come up
+#   emulator.sh wait-idle     block until the device stops pulling data
 #   emulator.sh stop
 #   emulator.sh status
 set -uo pipefail
@@ -11,6 +12,7 @@ set -uo pipefail
 cmd=${1:-status}
 avd=${2:-${AVD_NAME:-rockit}}
 BOOT_TIMEOUT=${BOOT_TIMEOUT:-300}
+IDLE_TIMEOUT=${IDLE_TIMEOUT:-120}
 
 case "$cmd" in
 start)
@@ -23,7 +25,8 @@ start)
         exit 0
     fi
 
-    nohup emulator -avd "$avd" \
+    # -read-only so a second container can boot the same AVD.
+    nohup emulator -avd "$avd" -read-only \
         -no-window -no-audio -no-boot-anim -no-snapshot \
         -gpu swiftshader_indirect -netdelay none -netspeed full \
         > /tmp/emulator.log 2>&1 &
@@ -40,6 +43,27 @@ start)
     done
     adb devices | grep emulator
     echo "emulator: booted in ${waited}s"
+    ;;
+wait-idle)
+    # Screenshots need loaded content, and this API is slow. Poll the device's
+    # received-bytes counter instead of guessing a sleep: when it stops growing,
+    # the fetches are done. Immune to the ticking countdowns on screen.
+    stable=0
+    waited=0
+    last=-1
+    while [ "$waited" -lt "$IDLE_TIMEOUT" ]; do
+        now=$(adb shell cat /proc/net/dev 2>/dev/null | awk '/eth0|radio0|wlan0/ {sum += $2} END {print sum+0}')
+        if [ "$now" = "$last" ]; then
+            stable=$((stable + 1))
+            [ "$stable" -ge 3 ] && break
+        else
+            stable=0
+        fi
+        last=$now
+        sleep 2
+        waited=$((waited + 2))
+    done
+    echo "emulator: network idle after ${waited}s"
     ;;
 stop)
     adb emu kill 2>/dev/null && echo "emulator: stopped" || echo "emulator: not running"
