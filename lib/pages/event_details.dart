@@ -214,16 +214,12 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
             // Events often hang off a launch; this is the way through to it.
             if (widget.event.launches.isNotEmpty)
-              SectionLabel(
-                title: AppLocalizations.of(context)!.launches,
-                count: widget.event.launches.length,
-              ),
+              SectionLabel(title: AppLocalizations.of(context)!.launches),
             ..._renderLaunches(widget.event.launches),
 
             if (widget.event.spacestations.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.stations,
-                count: widget.event.spacestations.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: _renderSpaceStations(widget.event.spacestations),
@@ -233,7 +229,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if (widget.event.updates.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.updates,
-                count: widget.event.updates.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderUpdateList(context, widget.event.updates),
@@ -243,7 +238,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if (widget.event.program.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.programs,
-                count: widget.event.program.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.event.program),

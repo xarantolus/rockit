@@ -257,6 +257,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       summary: info.description,
       customTab: customTab,
       icon: icon,
+      // Flat: these sit inside a DetailCard already, and a card inside a
+      // card just draws two edges around the same thing.
+      flat: true,
     );
   }
 
@@ -703,7 +706,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false)
               DetailCard(
                 title: AppLocalizations.of(context)!.boosters,
-                count: widget.launch.rocket!.launcherStage.length,
 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -724,7 +726,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.timeline.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.timeline,
-                count: widget.launch.timeline.length,
                 child: LaunchTimeline(
                   events: widget.launch.timeline,
                   net: widget.launch.net,
@@ -736,7 +737,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               DetailCard(
                 key: _updatesKey,
                 title: AppLocalizations.of(context)!.updates,
-                count: widget.launch.updates.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderUpdateList(context, widget.launch.updates),
@@ -746,7 +746,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.vidUrls.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.videos,
-                count: widget.launch.vidUrls.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.vidUrls
@@ -765,7 +764,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.infoUrls.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.moreInfo,
-                count: widget.launch.infoUrls.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.infoUrls
@@ -779,7 +777,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 title: patches.length == 1
                     ? AppLocalizations.of(context)!.missionPatch
                     : AppLocalizations.of(context)!.missionPatches,
-                count: patches.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: _missionPatchCards(context, patches),
@@ -799,7 +796,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.program.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.programs,
-                count: widget.launch.program.length,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.launch.program),

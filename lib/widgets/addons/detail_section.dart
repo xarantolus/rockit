@@ -11,7 +11,6 @@ class DetailCard extends StatelessWidget {
     required this.title,
     required this.child,
     this.trailing,
-    this.count,
     this.padded = true,
     super.key,
   });
@@ -21,9 +20,6 @@ class DetailCard extends StatelessWidget {
 
   /// Shown at the right of the label row, e.g. the rocket's name.
   final String? trailing;
-
-  /// Shown next to the label, for sections that are really a list.
-  final int? count;
 
   /// Set false when the child paints its own edge-to-edge content, such as a
   /// full-width map or a nested list of cards.
@@ -59,17 +55,6 @@ class DetailCard extends StatelessWidget {
                     color: muted,
                   ),
                 ),
-                if (count != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    "$count",
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: muted?.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
                 if (trailing != null) ...[
                   const SizedBox(width: 10),
                   Expanded(
@@ -104,10 +89,9 @@ class DetailCard extends StatelessWidget {
 /// A bare section label, for content that is already a list of cards — putting
 /// those inside a [DetailCard] would nest a card in a card.
 class SectionLabel extends StatelessWidget {
-  const SectionLabel({required this.title, this.count, super.key});
+  const SectionLabel({required this.title, super.key});
 
   final String title;
-  final int? count;
 
   @override
   Widget build(BuildContext context) {
@@ -128,17 +112,6 @@ class SectionLabel extends StatelessWidget {
               color: muted,
             ),
           ),
-          if (count != null) ...[
-            const SizedBox(width: 6),
-            Text(
-              "$count",
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: muted?.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
         ],
       ),
     );

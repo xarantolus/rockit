@@ -25,6 +25,10 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget>
   @override
   Widget build(BuildContext context) {
     return Material(
+      // Transparent, not the default: a bare Material is MaterialType.canvas,
+      // which paints ThemeData.canvasColor — the *page* background. Inside a
+      // DetailCard that drew a slab of the wrong colour behind every update.
+      color: Colors.transparent,
       // This adds the ripple effect when holding the item
       child: InkWell(
         onTap: () async {
@@ -44,15 +48,20 @@ class _RippleLinkWidgetState extends State<RippleLinkWidget>
               if (widget.bottomLeft == null)
                 const SizedBox.shrink()
               else
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(widget.bottomLeft!),
+                // Expanded, so a long source name ("NASASpaceflight Forum") next
+                // to a full timestamp is the half that gives (the date has a
+                // bounded width and is the more useful of the two).
+                Expanded(
+                  child: Text(
+                    widget.bottomLeft!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              if (widget.bottomRight != null)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(widget.bottomRight!),
-                ),
+              if (widget.bottomRight != null) ...[
+                const SizedBox(width: 8),
+                Text(widget.bottomRight!, maxLines: 1),
+              ],
             ],
           ),
           visualDensity: VisualDensity.comfortable,
