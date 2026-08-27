@@ -43,31 +43,22 @@ jobs:
             echo "CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
 
       - name: Set up signing config
-        id: signing
         env:
           SIGNING_KEYSTORE_CONTENT: ${{ secrets.SIGNING_KEYSTORE_CONTENT }}
           SIGNING_PROPERTIES_CONTENT: ${{ secrets.SIGNING_PROPERTIES_CONTENT }}
         run: |
-          # Forks/PRs have no signing secrets; build a debug APK there instead.
-          if [ -n "$SIGNING_KEYSTORE_CONTENT" ]; then
-            echo "$SIGNING_KEYSTORE_CONTENT" | base64 -d - > upload-keystore.jks
-            echo "X_KEYSTORE_PATH=$(pwd)/upload-keystore.jks" >> $GITHUB_ENV
-            echo "$SIGNING_PROPERTIES_CONTENT" > android/key.properties
-            echo "signed=true" >> $GITHUB_OUTPUT
-          else
-            echo "No signing secrets available - building a debug APK instead"
-            echo "signed=false" >> $GITHUB_OUTPUT
+          if [ -z "$SIGNING_KEYSTORE_CONTENT" ] || [ -z "$SIGNING_PROPERTIES_CONTENT" ]; then
+            echo "::error::Signing secrets are missing; a release build cannot be signed."
+            exit 1
           fi
+          echo "$SIGNING_KEYSTORE_CONTENT" | base64 -d - > upload-keystore.jks
+          echo "X_KEYSTORE_PATH=$(pwd)/upload-keystore.jks" >> $GITHUB_ENV
+          echo "$SIGNING_PROPERTIES_CONTENT" > android/key.properties
 
       - name: Build signed APK
-        if: steps.signing.outputs.signed == 'true'
         run: flutter build apk --release
         env:
           X_KEYSTORE_PATH: ${{ env.X_KEYSTORE_PATH }}
-
-      - name: Build debug APK (unsigned builds)
-        if: steps.signing.outputs.signed != 'true'
-        run: flutter build apk --debug
 
       - name: Show APK hashes
         run: find build/app/outputs -type f -name "*.apk" | xargs -L1 sha256sum
