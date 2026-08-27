@@ -108,6 +108,9 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
       case TimeDisplay.day:
         return Text(formatDate(context, local), style: widget.style);
 
+      case TimeDisplay.pastDateTime:
+        return Text(formatDateTime(context, local), style: widget.style);
+
       case TimeDisplay.month:
         return Text(
           "${localizations.netPrefix} ${_monthYear(context, local)}",

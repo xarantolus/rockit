@@ -7,11 +7,14 @@ DatePrecision precision(String abbrev) => DatePrecision(abbrev: abbrev);
 void main() {
   final someDate = DateTime.utc(2026, 8, 30, 11, 26);
 
+  // Pinned, so these do not start failing once the wall clock passes someDate.
+  final beforeIt = DateTime.utc(2026, 8, 27, 9, 0);
+
   group('timeDisplayFor', () {
     test('counts down only when the API knows the time', () {
       for (final abbrev in ['SEC', 'MIN', 'HR']) {
         expect(
-          timeDisplayFor(someDate, precision(abbrev)),
+          timeDisplayFor(someDate, precision(abbrev), now: beforeIt),
           TimeDisplay.countdown,
           reason: abbrev,
         );
@@ -19,41 +22,129 @@ void main() {
     });
 
     test('shows a plain day for day and week precision', () {
-      expect(timeDisplayFor(someDate, precision('DAY')), TimeDisplay.day);
-      expect(timeDisplayFor(someDate, precision('WEEK')), TimeDisplay.day);
+      expect(
+        timeDisplayFor(someDate, precision('DAY'), now: beforeIt),
+        TimeDisplay.day,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('WEEK'), now: beforeIt),
+        TimeDisplay.day,
+      );
     });
 
     test('shows a window for month, quarter and year', () {
-      expect(timeDisplayFor(someDate, precision('M')), TimeDisplay.month);
-      expect(timeDisplayFor(someDate, precision('Q3')), TimeDisplay.quarter);
-      expect(timeDisplayFor(someDate, precision('Y')), TimeDisplay.year);
+      expect(
+        timeDisplayFor(someDate, precision('M'), now: beforeIt),
+        TimeDisplay.month,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('Q3'), now: beforeIt),
+        TimeDisplay.quarter,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('Y'), now: beforeIt),
+        TimeDisplay.year,
+      );
     });
 
     test('treats half-years like quarters', () {
       // Both mean "some months this year".
-      expect(timeDisplayFor(someDate, precision('H1')), TimeDisplay.quarter);
-      expect(timeDisplayFor(someDate, precision('H2')), TimeDisplay.quarter);
+      expect(
+        timeDisplayFor(someDate, precision('H1'), now: beforeIt),
+        TimeDisplay.quarter,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('H2'), now: beforeIt),
+        TimeDisplay.quarter,
+      );
     });
 
     test('matching is case insensitive', () {
-      expect(timeDisplayFor(someDate, precision('min')), TimeDisplay.countdown);
-      expect(timeDisplayFor(someDate, precision('q3')), TimeDisplay.quarter);
+      expect(
+        timeDisplayFor(someDate, precision('min'), now: beforeIt),
+        TimeDisplay.countdown,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('q3'), now: beforeIt),
+        TimeDisplay.quarter,
+      );
     });
 
     test('an unrecognised precision degrades to a day, never a countdown', () {
       // If the API adds a vocabulary entry, claiming less precision is the
       // safe way to be wrong.
-      expect(timeDisplayFor(someDate, precision('FORTNIGHT')), TimeDisplay.day);
+      expect(
+        timeDisplayFor(someDate, precision('FORTNIGHT'), now: beforeIt),
+        TimeDisplay.day,
+      );
     });
 
     test('no date at all is unknown', () {
-      expect(timeDisplayFor(null, precision('MIN')), TimeDisplay.unknown);
-      expect(timeDisplayFor(null, null), TimeDisplay.unknown);
+      expect(
+        timeDisplayFor(null, precision('MIN'), now: beforeIt),
+        TimeDisplay.unknown,
+      );
+      expect(timeDisplayFor(null, null, now: beforeIt), TimeDisplay.unknown);
     });
 
     test('a response with no precision keeps the old countdown behaviour', () {
       // Cached 2.2.0 responses predate the field entirely.
-      expect(timeDisplayFor(someDate, null), TimeDisplay.countdown);
+      expect(
+        timeDisplayFor(someDate, null, now: beforeIt),
+        TimeDisplay.countdown,
+      );
+    });
+
+    group('once a launch is history', () {
+      final justAfter = someDate.add(const Duration(minutes: 1));
+      final almostStale = someDate.add(staleAfterLaunch);
+      final stale = someDate.add(staleAfterLaunch + const Duration(seconds: 1));
+
+      test('it counts up for the first week', () {
+        // "T+3h" is how you tell something launched this morning.
+        expect(
+          timeDisplayFor(someDate, precision('SEC'), now: justAfter),
+          TimeDisplay.countdown,
+        );
+        expect(
+          timeDisplayFor(someDate, precision('SEC'), now: almostStale),
+          TimeDisplay.countdown,
+        );
+      });
+
+      test('and then becomes a date', () {
+        expect(
+          timeDisplayFor(someDate, precision('SEC'), now: stale),
+          TimeDisplay.pastDateTime,
+        );
+      });
+
+      test('a precision-less cached response ages the same way', () {
+        expect(
+          timeDisplayFor(someDate, null, now: stale),
+          TimeDisplay.pastDateTime,
+        );
+      });
+
+      test('a vaguer precision keeps its own form, however old', () {
+        // A month-precision launch never showed a clock, so there is nothing
+        // to stop showing.
+        expect(
+          timeDisplayFor(someDate, precision('M'), now: stale),
+          TimeDisplay.month,
+        );
+        expect(
+          timeDisplayFor(someDate, precision('DAY'), now: stale),
+          TimeDisplay.day,
+        );
+      });
+
+      test('a future launch is never stale', () {
+        expect(
+          timeDisplayFor(someDate, precision('SEC'), now: beforeIt),
+          TimeDisplay.countdown,
+        );
+      });
     });
   });
 

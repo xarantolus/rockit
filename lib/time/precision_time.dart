@@ -23,6 +23,10 @@ enum TimeDisplay {
   /// A specific calendar day, with no clock time.
   day,
 
+  /// A past launch's exact date and time. Once something is well behind us,
+  /// "T+41d 07:12:03" is a number nobody wants; the date it happened is.
+  pastDateTime,
+
   /// A named month, e.g. "NET September 2026".
   month,
 
@@ -36,21 +40,35 @@ enum TimeDisplay {
   unknown,
 }
 
+/// How long a launch keeps counting up before it is simply history.
+///
+/// A day or two of "T+" is useful — it is how you tell a launch happened this
+/// morning. Six weeks of it is not.
+const staleAfterLaunch = Duration(days: 7);
+
 /// Picks the presentation for [date] at [precision].
 ///
 /// An unknown precision degrades to [TimeDisplay.day] rather than a countdown:
 /// if the API adds a vocabulary entry we do not recognise, showing a date
 /// without a clock is the safe way to be wrong.
-TimeDisplay timeDisplayFor(DateTime? date, DatePrecision? precision) {
+///
+/// [now] is a parameter so the rules can be tested without waiting.
+TimeDisplay timeDisplayFor(
+  DateTime? date,
+  DatePrecision? precision, {
+  DateTime? now,
+}) {
   if (date == null) {
     return TimeDisplay.unknown;
   }
+
+  bool isStale() => (now ?? DateTime.now()).difference(date) > staleAfterLaunch;
 
   switch (precision?.kind) {
     case DatePrecisionKind.second:
     case DatePrecisionKind.minute:
     case DatePrecisionKind.hour:
-      return TimeDisplay.countdown;
+      return isStale() ? TimeDisplay.pastDateTime : TimeDisplay.countdown;
 
     case DatePrecisionKind.day:
     case DatePrecisionKind.week:
@@ -71,13 +89,19 @@ TimeDisplay timeDisplayFor(DateTime? date, DatePrecision? precision) {
     // Older cached responses have no precision field at all. They predate the
     // 2.3.0 migration, so assume the old behaviour of a usable time.
     case null:
-      return TimeDisplay.countdown;
+      return isStale() ? TimeDisplay.pastDateTime : TimeDisplay.countdown;
   }
 }
 
 /// True when the time component is meaningful and may be shown to the user.
-bool hasUsableTime(DatePrecision? precision) =>
-    timeDisplayFor(DateTime.now(), precision) == TimeDisplay.countdown;
+///
+/// Asks about *now* deliberately: this is about whether the API knows a clock
+/// time at all, not about whether the launch has already happened.
+bool hasUsableTime(DatePrecision? precision) {
+  final now = DateTime.now();
+
+  return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
+}
 
 /// The calendar quarter (1-4) that [date] falls in.
 int quarterOf(DateTime date) => ((date.month - 1) ~/ 3) + 1;
