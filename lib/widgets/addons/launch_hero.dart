@@ -23,6 +23,8 @@ class LaunchHero extends StatelessWidget with DateFormatter {
     this.date,
     this.precision,
     this.timezoneName,
+    this.heroTag,
+    this.heroId,
     super.key,
   });
 
@@ -35,6 +37,10 @@ class LaunchHero extends StatelessWidget with DateFormatter {
 
   /// IANA zone of the launch site, used for the "at the pad" line.
   final String? timezoneName;
+
+  /// Matches the listing card's image, so it flies from the card to here.
+  final String? heroTag;
+  final String? heroId;
 
   static const _height = 300.0;
 
@@ -91,24 +97,22 @@ class LaunchHero extends StatelessWidget with DateFormatter {
               ),
             )
           else ...[
-            // Deliberately not a Hero. A shared-element flight renders the
-            // image in an overlay *above* the destination route, which hid
-            // the scrim and text behind it for the whole flight and then
-            // popped them in when it landed. The page already flies up from
-            // the bottom, so a second competing motion bought nothing.
-            ImageWidget(image?.imageUrl),
-            const Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    stops: [0.0, 0.6, 1.0],
-                    colors: [
-                      Color(0xF2000000),
-                      Color(0x59000000),
-                      Color(0x1A000000),
-                    ],
+            ImageWidget(image?.imageUrl, heroTag: heroTag, id: heroId),
+            Positioned.fill(
+              child: _afterTheImageLands(
+                context,
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      stops: [0.0, 0.6, 1.0],
+                      colors: [
+                        Color(0xF2000000),
+                        Color(0x59000000),
+                        Color(0x1A000000),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -116,83 +120,109 @@ class LaunchHero extends StatelessWidget with DateFormatter {
           ],
           Align(
             alignment: Alignment.bottomLeft,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  StatusPill(status),
-                  const SizedBox(height: 10),
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      height: 1.15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if ((subtitle ?? "").isNotEmpty) ...[
-                    const SizedBox(height: 2),
+            child: _afterTheImageLands(
+              context,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StatusPill(status),
+                    const SizedBox(height: 10),
                     Text(
-                      subtitle!,
-                      maxLines: 1,
+                      title,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 10),
-                  PrecisionTimeText(
-                    date: date,
-                    precision: precision,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    countdownStyle: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  // The viewer's own timezone is the one that matters, so it
-                  // gets the brighter, larger line...
-                  if (showsCountdown && date != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      formatDateTimeLocal(context, date!),
-                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 22,
+                        height: 1.15,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
-                  // ...and the launch site's is a quieter footnote under it.
-                  if (siteTime != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: Text(
-                        localizations.localSiteTime(siteTime),
+                    if ((subtitle ?? "").isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12.5,
+                          color: Colors.white70,
+                          fontSize: 14,
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 10),
+                    PrecisionTimeText(
+                      date: date,
+                      precision: precision,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      countdownStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                ],
+                    // The viewer's own timezone is the one that matters, so it
+                    // gets the brighter, larger line...
+                    if (showsCountdown && date != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        formatDateTimeLocal(context, date!),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    // ...and the launch site's is a quieter footnote under it.
+                    if (siteTime != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: Text(
+                          localizations.localSiteTime(siteTime),
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Fades [child] in over the tail of the page transition.
+  ///
+  /// The hero image flies in an overlay *above* this route, so everything
+  /// stacked on top of it is invisible until the flight lands — which is why
+  /// the scrim and the text used to snap into place all at once at the end.
+  /// Fading them in over the last stretch of the push means they arrive
+  /// deliberately instead of appearing from nowhere.
+  Widget _afterTheImageLands(BuildContext context, Widget child) {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || heroId == null) {
+      return child;
+    }
+
+    // drive() rather than a CurvedAnimation: this widget is stateless and a
+    // CurvedAnimation would need disposing.
+    return FadeTransition(
+      opacity: animation.drive(
+        CurveTween(curve: const Interval(0.6, 1.0, curve: Curves.easeIn)),
+      ),
+      child: child,
     );
   }
 }

@@ -153,7 +153,10 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                // Horizontal inset lives here rather than on the enclosing
+                // DetailCard, so the image can run to the card's edges the
+                // way a listing card's does.
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 child: Text(
                   widget.title ?? AppLocalizations.of(context)!.unknown,
                   style: const TextStyle(
@@ -167,8 +170,8 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
               if ((widget.summary ?? "").isNotEmpty)
                 Padding(
                   padding: widget.imageUrl == null
-                      ? const EdgeInsets.fromLTRB(8, 2, 8, 8)
-                      : const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                      ? const EdgeInsets.fromLTRB(14, 2, 14, 8)
+                      : const EdgeInsets.fromLTRB(14, 10, 14, 4),
                   child: Text(
                     dottedText(widget.summary!),
                     style: const TextStyle(fontSize: 15),
@@ -182,8 +185,8 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
                   !hasImage && widget.newsSite != null)
                 Padding(
                   padding: EdgeInsets.only(
-                    left: 8,
-                    right: 8,
+                    left: 14,
+                    right: 14,
                     bottom: 4,
                     top: (widget.summary ?? "").isNotEmpty ? 0 : 8,
                   ),

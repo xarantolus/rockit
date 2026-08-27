@@ -209,6 +209,22 @@ class Orbit {
   final String? name;
   final String? abbrev;
 
+  /// The API says an unknown orbit with values rather than by leaving the
+  /// object out: `{"abbrev": "N/A", "name": "Unknown"}`. Printing that back at
+  /// the user is worse than saying nothing, so callers get null instead.
+  static const _placeholders = {"n/a", "unknown", "tbd", ""};
+
+  String? get label {
+    for (final value in [abbrev, name]) {
+      final text = value?.trim();
+      if (text != null && !_placeholders.contains(text.toLowerCase())) {
+        return text;
+      }
+    }
+
+    return null;
+  }
+
   factory Orbit.fromJson(Map<String, dynamic> json) => _$OrbitFromJson(json);
 }
 

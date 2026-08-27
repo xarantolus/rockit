@@ -310,10 +310,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 AppLocalizations.of(context)!.failReason,
                 l.failreason!,
               ),
-            if (l.mission?.orbit != null)
+            if (l.mission?.orbit?.label != null)
               _descriptionRow(
                 AppLocalizations.of(context)!.targetOrbit,
-                l.mission!.orbit!.name ?? AppLocalizations.of(context)!.unknown,
+                l.mission!.orbit!.name ?? l.mission!.orbit!.label!,
               ),
             if (windowStart != null)
               _descriptionRow(
@@ -598,11 +598,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     final chips = <Widget>[
       if (l.rocketName != null)
         InfoChip(label: l.rocketName!, icon: Icons.rocket_launch),
-      if (l.mission?.orbit?.abbrev != null || l.mission?.orbit?.name != null)
-        InfoChip(
-          label: l.mission!.orbit!.abbrev ?? l.mission!.orbit!.name!,
-          icon: Icons.track_changes,
-        ),
+      if (l.mission?.orbit?.label != null)
+        InfoChip(label: l.mission!.orbit!.label!, icon: Icons.track_changes),
       if (l.mission?.type != null)
         InfoChip(label: l.mission!.type!, icon: Icons.science_outlined),
       if (l.pad?.name != null)
@@ -667,6 +664,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               date: widget.launch.net ?? widget.launch.windowStart,
               precision: widget.launch.netPrecision,
               timezoneName: widget.launch.pad?.location?.timezoneName,
+              heroTag: "${widget.heroPrefix}launch-image",
+              heroId: widget.launch.id,
             ),
 
             _quickFacts(context, widget.launch),
@@ -753,6 +752,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.vidUrls.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.videos,
+                // The article pads its own text; letting it reach the card's
+                // edges gives the image the same full-bleed width a listing
+                // card's photo has.
+                padded: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.vidUrls
@@ -771,6 +774,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.infoUrls.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.moreInfo,
+                // The article pads its own text; letting it reach the card's
+                // edges gives the image the same full-bleed width a listing
+                // card's photo has.
+                padded: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: widget.launch.infoUrls
@@ -803,6 +810,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
             if (widget.launch.program.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.programs,
+                padded: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.launch.program),

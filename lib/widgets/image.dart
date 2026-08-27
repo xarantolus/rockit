@@ -52,11 +52,28 @@ class _ImageWidgetState extends State<ImageWidget>
     return _defaultImage();
   }
 
+  /// Bounded and dimmed, because this is a placeholder rather than content.
+  ///
+  /// Left to itself the asset fills whatever box it is given, which in a
+  /// launch-pad card with no map meant a rocket the height of the card, and in
+  /// a listing card meant a huge glyph competing with the title.
   Widget _defaultImage() {
-    if (Theme.of(context).brightness == Brightness.light) {
-      return Image.asset("assets/rocket-black.png");
-    }
-    return Image.asset("assets/rocket-white.png");
+    final light = Theme.of(context).brightness == Brightness.light;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Opacity(
+          opacity: 0.3,
+          child: Image.asset(
+            light ? "assets/rocket-black.png" : "assets/rocket-white.png",
+            width: 88,
+            height: 88,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
   }
 
   @override

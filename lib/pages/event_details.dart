@@ -181,6 +181,8 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               // precise to a time, so this always renders a window.
               date: widget.event.date,
               precision: widget.event.datePrecision,
+              heroTag: "${widget.heroPrefix}event-image",
+              heroId: "${widget.event.id}",
             ),
 
             _quickFacts(context, widget.event),
@@ -220,6 +222,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if (widget.event.spacestations.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.stations,
+                padded: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: _renderSpaceStations(widget.event.spacestations),
@@ -238,6 +241,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
             if (widget.event.program.isNotEmpty)
               DetailCard(
                 title: AppLocalizations.of(context)!.programs,
+                padded: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: renderProgramInfo(context, widget.event.program),
