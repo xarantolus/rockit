@@ -53,6 +53,28 @@ class APIClient {
     }
   }
 
+  /// Files [body] under [url] without any request, so a later cache-first read
+  /// finds it.
+  ///
+  /// Used to seed the per-item endpoints from a listing: a listing is fetched
+  /// with `mode=detailed`, so each entry in it is exactly what that item's own
+  /// endpoint would return, and the cache is keyed by URL alone.
+  Future<void> writeCache(Uri url, String body) async {
+    if (kIsWeb) {
+      return;
+    }
+
+    try {
+      await _cacheManager?.putFile(
+        url.toString(),
+        Uint8List.fromList(utf8.encode(body)),
+        key: url.toString(),
+      );
+    } catch (err) {
+      debugPrint("Error writing $url to cache: $err");
+    }
+  }
+
   /// Decodes a JSON body into the object every endpoint in this API returns.
   ///
   /// Typed as [Object] rather than `dynamic` so the cast is checked: `dynamic`

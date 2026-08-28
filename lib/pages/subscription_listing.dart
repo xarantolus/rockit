@@ -28,31 +28,41 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
 
     final api = LaunchLibraryAPI();
 
-    var list = [];
     bool hadErrors = false;
 
-    for (var launchID in launchIDs) {
+    // In parallel, not in turn. Anything seen in a recent listing is already
+    // filed under its own URL and answers from the cache immediately; whatever
+    // is left is a real request against an API that regularly takes ten
+    // seconds, and adding those up was most of the wait here.
+    Future<Object?> load(String what, Future<Object?> Function() fetch) async {
       try {
-        list.add((await api.launch(launchID, true)).data);
+        return await fetch();
       } catch (err) {
-        debugPrint("Error loading launch with id $launchID: $err");
+        debugPrint("Error loading $what: $err");
         hadErrors = true;
+
+        return null;
       }
     }
-    for (var eventID in eventIDs) {
-      try {
-        list.add((await api.event(int.parse(eventID), true)).data);
-      } catch (err) {
-        debugPrint("Error loading event with id $eventID: $err");
-        hadErrors = true;
-      }
-    }
+
+    List<dynamic> list = (await Future.wait([
+      ...launchIDs.map(
+        (id) =>
+            load("launch $id", () async => (await api.launch(id, true)).data),
+      ),
+      ...eventIDs.map(
+        (id) => load(
+          "event $id",
+          () async => (await api.event(int.parse(id), true)).data,
+        ),
+      ),
+    ])).where((item) => item != null).toList();
 
     // Now sort the list by the expected date
     list = sortLaunchesAndEvents(list);
 
-    // Every subscription is fetched in turn above, so the user may well have
-    // left before this finishes.
+    // Loading can still take a while when nothing was cached, so the user may
+    // well have left before this finishes.
     if (hadErrors && mounted) {
       await showDialog(
         context: context,

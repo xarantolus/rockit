@@ -1,4 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
@@ -84,6 +87,8 @@ class LaunchLibraryAPI extends APIClient {
   }) async {
     var res = await fetchJSON(upcomingLaunchesUri(next: next), preferCache);
 
+    unawaited(_seedDetailCache(res.data, "launches", (r) => r["id"]));
+
     return res.bubble(
       UpcomingLaunchesResponse.fromJson(APIClient.asJsonObject(res.data)),
     );
@@ -106,9 +111,51 @@ class LaunchLibraryAPI extends APIClient {
   }) async {
     var res = await fetchJSON(upcomingEventsUri(next: next), preferCache);
 
+    unawaited(_seedDetailCache(res.data, "events", (r) => r["id"]));
+
     return res.bubble(
       UpcomingEventsResponse.fromJson(APIClient.asJsonObject(res.data)),
     );
+  }
+
+  /// Files every entry of a listing under the URL its own endpoint would use.
+  ///
+  /// Listings are fetched with `mode=detailed`, so each entry already *is* what
+  /// `/launches/<id>/` returns — but the cache is keyed by URL, so nothing was
+  /// ever finding it there. Every reader that asks for a single item by id was
+  /// paying a request for data it already had: the subscriptions page did it
+  /// once per subscription, in turn, on an API that answers in ten seconds and
+  /// allows fifteen requests an hour, and the notification deep link did it
+  /// too, despite the comment claiming the launch was surely cached.
+  ///
+  /// Deliberately not awaited by the caller: nothing is waiting on it, and a
+  /// listing that renders should not be held up by cache writes.
+  Future<void> _seedDetailCache(
+    Object? listing,
+    String path,
+    Object? Function(Map<String, dynamic>) idOf,
+  ) async {
+    try {
+      final results = APIClient.asJsonObject(listing)["results"];
+      if (results is! List) {
+        return;
+      }
+
+      for (final entry in results) {
+        if (entry is! Map<String, dynamic>) {
+          continue;
+        }
+
+        final id = idOf(entry);
+        if (id == null) {
+          continue;
+        }
+
+        await writeCache(_endpoint("/$path/$id/", {}), jsonEncode(entry));
+      }
+    } catch (err) {
+      debugPrint("Could not seed the detail cache from a $path listing: $err");
+    }
   }
 
   /// The stored page of events, without touching the network.
