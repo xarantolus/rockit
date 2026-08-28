@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ImageWidget extends StatefulWidget {
-  const ImageWidget(this.imageURL, {this.heroTag, this.id, super.key});
+  const ImageWidget(this.imageURL, {super.key});
 
   final String? imageURL;
-  final String? heroTag;
-  final String? id;
 
   @override
   State<ImageWidget> createState() => _ImageWidgetState();
@@ -76,20 +74,13 @@ class _ImageWidgetState extends State<ImageWidget>
     );
   }
 
+  // Deliberately no Hero here. The shared-element flight carries the whole
+  // image-and-overlay block instead (SharedImageHero); flying only the image
+  // hid everything drawn over it for the length of the flight.
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final launchImage = _image(context, widget.imageURL);
-
-    // This prevents having multiple "unknown-unknown" hero tags, which crash the app
-    if (widget.heroTag == null || widget.id == null) {
-      return launchImage;
-    }
-
-    return Hero(
-      tag: "${widget.heroTag ?? "unknown"}-${widget.id ?? "unknown"}",
-      child: launchImage,
-    );
+    return _image(context, widget.imageURL);
   }
 }

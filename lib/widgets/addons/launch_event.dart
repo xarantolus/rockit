@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/widgets/addons/precision_time_text.dart';
+import 'package:rockit/widgets/addons/shared_image_hero.dart';
 import 'package:rockit/widgets/addons/status_pill.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -50,6 +51,9 @@ class LaunchEventWidget extends StatefulWidget {
   static const maxHeight = 360.0;
 
   static const margin = EdgeInsets.fromLTRB(10, 6, 10, 6);
+
+  /// Shared with the flight, which lerps it out to square as the card opens.
+  static const radius = BorderRadius.all(Radius.circular(14.0));
 
   static double _getWidth(BuildContext context) {
     try {
@@ -172,26 +176,30 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
   Widget _card(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.0)),
+      shape: RoundedRectangleBorder(borderRadius: LaunchEventWidget.radius),
       elevation: 2,
       margin: LaunchEventWidget.margin,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ImageWidget(
-            _imageUrl(context),
-            heroTag: widget.heroTag,
-            id: widget.heroId,
-          ),
-          Positioned.fill(child: _scrim()),
-          Align(alignment: Alignment.bottomLeft, child: _info(context)),
-          if (widget.status != null)
-            Positioned(
-              top: 10,
-              right: 10,
-              child: StatusPill(widget.status, compact: true),
-            ),
-        ],
+      // The whole block flies to the detail page, image and overlay together,
+      // so nothing on either end is hidden behind it on the way.
+      child: SharedImageHero(
+        tag: widget.heroTag == null || widget.heroId == null
+            ? null
+            : "${widget.heroTag}-${widget.heroId}",
+        borderRadius: LaunchEventWidget.radius,
+        image: ImageWidget(_imageUrl(context)),
+        overlay: Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned.fill(child: _scrim()),
+            Align(alignment: Alignment.bottomLeft, child: _info(context)),
+            if (widget.status != null)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: StatusPill(widget.status, compact: true),
+              ),
+          ],
+        ),
       ),
     );
   }

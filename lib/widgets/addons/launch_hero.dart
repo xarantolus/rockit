@@ -5,6 +5,7 @@ import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/time/precision_time.dart';
 import 'package:rockit/widgets/addons/precision_time_text.dart';
+import 'package:rockit/widgets/addons/shared_image_hero.dart';
 import 'package:rockit/widgets/addons/status_pill.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -77,31 +78,17 @@ class LaunchHero extends StatelessWidget with DateFormatter {
 
     return SizedBox(
       height: _height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Without a photo the placeholder is a rocket glyph on a plain
-          // background — a dark scrim and white text over that is illegible in
-          // the light theme, so fall back to a solid colour panel instead.
-          if (image?.imageUrl == null)
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    const Color(0xFF11151C),
-                  ],
-                ),
-              ),
-            )
-          else ...[
-            ImageWidget(image?.imageUrl, heroTag: heroTag, id: heroId),
-            Positioned.fill(
-              child: _afterTheImageLands(
-                context,
-                const DecoratedBox(
+      child: SharedImageHero(
+        tag: heroTag == null || heroId == null ? null : "$heroTag-$heroId",
+        image: _backdrop(context),
+        overlay: Stack(
+          fit: StackFit.expand,
+          children: [
+            // The scrim only belongs over a photo: on the colour panel below
+            // it would just muddy an already dark background.
+            if (image?.imageUrl != null)
+              const Positioned.fill(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
@@ -116,13 +103,9 @@ class LaunchHero extends StatelessWidget with DateFormatter {
                   ),
                 ),
               ),
-            ),
-          ],
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: _afterTheImageLands(
-              context,
-              Padding(
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -197,32 +180,33 @@ class LaunchHero extends StatelessWidget with DateFormatter {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Fades [child] in over the tail of the page transition.
+  /// What the flight actually carries: the photo, or a colour panel when there
+  /// is none.
   ///
-  /// The hero image flies in an overlay *above* this route, so everything
-  /// stacked on top of it is invisible until the flight lands — which is why
-  /// the scrim and the text used to snap into place all at once at the end.
-  /// Fading them in over the last stretch of the push means they arrive
-  /// deliberately instead of appearing from nowhere.
-  Widget _afterTheImageLands(BuildContext context, Widget child) {
-    final animation = ModalRoute.of(context)?.animation;
-    if (animation == null || heroId == null) {
-      return child;
+  /// The placeholder rocket glyph would leave white text on a pale background
+  /// in the light theme, so a saturated gradient stands in for it instead.
+  Widget _backdrop(BuildContext context) {
+    if (image?.imageUrl == null) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              const Color(0xFF11151C),
+            ],
+          ),
+        ),
+      );
     }
 
-    // drive() rather than a CurvedAnimation: this widget is stateless and a
-    // CurvedAnimation would need disposing.
-    return FadeTransition(
-      opacity: animation.drive(
-        CurveTween(curve: const Interval(0.6, 1.0, curve: Curves.easeIn)),
-      ),
-      child: child,
-    );
+    return ImageWidget(image?.imageUrl);
   }
 }
