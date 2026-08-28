@@ -15,6 +15,7 @@ import 'package:rockit/pages/subscription_listing.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/floating_nav_bar.dart';
 import 'package:rockit/widgets/addons/launch_event_search.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -209,36 +210,19 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   /// their way and paint the surface behind, otherwise the labels sit under the
   /// pill.
   Widget _buildNavigationBar(BuildContext context, ImageIcon appIcon) {
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(top: false, child: _buildTabBar(context, appIcon)),
-    );
-  }
-
-  TabBar _buildTabBar(BuildContext context, ImageIcon appIcon) {
-    return TabBar(
-      labelColor: Theme.of(context).textTheme.bodyMedium!.color,
-      unselectedLabelColor: Colors.grey[500],
-      dividerColor: Colors.transparent,
-      indicatorColor: Colors.white,
-      automaticIndicatorColorAdjustment: true,
-      indicator: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 3.0,
-          ),
+    return FloatingNavBar(
+      destinations: [
+        NavDestination(
+          icon: appIcon,
+          label: AppLocalizations.of(context)!.launches,
         ),
-      ),
-      tabs: [
-        Tab(icon: appIcon, text: AppLocalizations.of(context)!.launches),
-        Tab(
+        NavDestination(
           icon: const Icon(Icons.event),
-          text: AppLocalizations.of(context)!.events,
+          label: AppLocalizations.of(context)!.events,
         ),
-        Tab(
+        NavDestination(
           icon: const Icon(Icons.article_outlined),
-          text: AppLocalizations.of(context)!.news,
+          label: AppLocalizations.of(context)!.news,
         ),
       ],
     );
@@ -270,13 +254,30 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
                 child: const Icon(Icons.search, color: Colors.white),
               ),
         appBar: _buildAppBar(context, appIcon),
+        // The bar floats, so the body runs underneath it and every scrollable
+        // inside has to clear it. Adding the allowance to the inset here means
+        // `bottomSystemBarPadding` keeps working unchanged further down.
+        extendBody: true,
         bottomNavigationBar: _buildNavigationBar(context, menuRocketIcon),
-        body: TabBarView(
-          children: [
-            UpcomingLaunchesPage(),
-            UpcomingEventsPage(),
-            ArticleListingPage(),
-          ],
+        body: Builder(
+          builder: (context) {
+            final media = MediaQuery.of(context);
+
+            return MediaQuery(
+              data: media.copyWith(
+                padding: media.padding.copyWith(
+                  bottom: media.padding.bottom + FloatingNavBar.allowance,
+                ),
+              ),
+              child: TabBarView(
+                children: [
+                  UpcomingLaunchesPage(),
+                  UpcomingEventsPage(),
+                  ArticleListingPage(),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
