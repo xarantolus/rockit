@@ -178,6 +178,13 @@ class LaunchLibraryAPI extends APIClient {
     return res.bubble(Launch.fromJson(APIClient.asJsonObject(res.data)));
   }
 
+  /// The stored launch, without touching the network.
+  Future<Launch?> cachedLaunch(String id) async {
+    final json = await readCacheJSON(_endpoint("/launches/$id/", {}));
+
+    return json == null ? null : Launch.fromJson(APIClient.asJsonObject(json));
+  }
+
   Future<ErrorDetails<Event>> event(int id, [bool preferCache = false]) async {
     var uri = _endpoint("/events/$id/", {});
 

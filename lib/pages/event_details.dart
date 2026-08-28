@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
@@ -92,14 +93,31 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         .map(
           (l) => GestureDetector(
             child: LaunchWidget(l),
-            onTap: () async {
-              await Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(l)));
-            },
+            onTap: () => _openLaunch(l),
           ),
         )
         .toList();
+  }
+
+  /// Opens a launch attached to this event, preferring the cached copy.
+  ///
+  /// The one embedded in an event is abbreviated — no timeline, no boosters,
+  /// no updates — while the same launch from a listing is `mode=detailed` and
+  /// filed under its own URL. Cache only: a fuller page is not worth one of
+  /// fifteen requests an hour, and the embedded copy is a fine fallback.
+  Future<void> _openLaunch(Launch launch) async {
+    final id = launch.id;
+    final cached = id == null
+        ? null
+        : await LaunchLibraryAPI().cachedLaunch(id);
+
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(cached ?? launch)),
+    );
   }
 
   List<Widget> _renderSpaceStations(List<SpaceStation> stations) {
