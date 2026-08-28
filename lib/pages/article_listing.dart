@@ -218,6 +218,26 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
     return await _updateArticles(false);
   }
 
+  bool _loadingMore = false;
+
+  /// Fetches the next page once the list is built out past its middle, rather
+  /// than waiting for the bottom.
+  ///
+  /// `LoadMore` only asks when its footer appears, which on a ten-second API
+  /// means staring at a spinner at the end of every page.
+  void _loadMoreEarly(int index) {
+    if (_finished || _loadingMore || index < articles.length ~/ 2) {
+      return;
+    }
+
+    _loadingMore = true;
+
+    // Not during the build that asked for it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMore().whenComplete(() => _loadingMore = false);
+    });
+  }
+
   String _buildLoadingText(LoadMoreStatus status) {
     switch (status) {
       case LoadMoreStatus.fail:
@@ -251,6 +271,8 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
           padding: bottomSystemBarPadding(context),
           itemCount: articles.length,
           itemBuilder: (BuildContext context, int index) {
+            _loadMoreEarly(index);
+
             final a = articles[index];
             return ArticleRow(
               title: a.title,
