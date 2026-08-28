@@ -477,8 +477,69 @@ class BackgroundHandler {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
-    if (await Permission.scheduleExactAlarm.isDenied) {
+
+    // Asked once, ever. Requesting this shows no dialog: it drops the user on
+    // a system settings screen with the toggle off, so asking on every
+    // subscribe walks them out of the app again and again for a permission
+    // they have already declined. The subscription card offers it instead,
+    // where it is visible whenever it actually matters.
+    if (await exactAlarmsAllowed() || await _hasAskedForExactAlarms()) {
+      return;
+    }
+
+    await _rememberAskedForExactAlarms();
+    await requestExactAlarms();
+  }
+
+  static const _askedExactAlarmsKey = "asked-exact-alarms";
+
+  /// Whether reminders can be scheduled to the minute.
+  ///
+  /// Without this the alarms are inexact, which on API 36 means a one-hour
+  /// window (`window=+1h0m0s0ms` in `dumpsys alarm`). An hour is wider than the
+  /// gap between all three reminders, so the fifteen- and five-minute ones can
+  /// land after the launch has already happened.
+  Future<bool> exactAlarmsAllowed() async {
+    try {
+      return await Permission.scheduleExactAlarm.isGranted;
+    } catch (err) {
+      debugPrint("Could not check the exact alarm permission: $err");
+
+      return false;
+    }
+  }
+
+  /// Opens the system screen where exact alarms are turned on.
+  Future<void> requestExactAlarms() async {
+    try {
       await Permission.scheduleExactAlarm.request();
+    } catch (err) {
+      debugPrint("Could not request the exact alarm permission: $err");
+    }
+  }
+
+  Future<bool> _hasAskedForExactAlarms() async {
+    try {
+      final instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      return instance.getBool(_askedExactAlarmsKey) ?? false;
+    } catch (err) {
+      debugPrint("Could not read the exact alarm prompt flag: $err");
+
+      // Better to skip the prompt than to show it on every subscribe.
+      return true;
+    }
+  }
+
+  Future<void> _rememberAskedForExactAlarms() async {
+    try {
+      final instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      await instance.setBool(_askedExactAlarmsKey, true);
+    } catch (err) {
+      debugPrint("Could not store the exact alarm prompt flag: $err");
     }
   }
 
@@ -497,14 +558,7 @@ class BackgroundHandler {
   }
 
   Future<AndroidScheduleMode> _scheduleMode() async {
-    try {
-      return scheduleModeFor(
-        exactAllowed: await Permission.scheduleExactAlarm.isGranted,
-      );
-    } catch (err) {
-      debugPrint("Could not check the exact alarm permission: $err");
-      return AndroidScheduleMode.inexactAllowWhileIdle;
-    }
+    return scheduleModeFor(exactAllowed: await exactAlarmsAllowed());
   }
 
   /// Schedules one notification, degrading to an inexact alarm rather than

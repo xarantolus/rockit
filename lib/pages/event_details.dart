@@ -12,6 +12,7 @@ import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/notification_note.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
@@ -295,9 +296,10 @@ class _EventSubscriptionWidgetState extends State<EventSubscriptionWidget> {
           onChanged: _onCheckChange,
           value: value ?? widget.initialValue,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(AppLocalizations.of(context)!.notificationDescription),
+        NotificationNote(
+          description: AppLocalizations.of(
+            context,
+          )!.notificationDescriptionEvent,
         ),
       ],
     );
