@@ -1,8 +1,9 @@
 name: Build for Android
 
 on:
+  # Push only. A pull request from a branch in this repo fires both events, so
+  # keeping pull_request would build every commit twice.
   push:
-  pull_request:
   workflow_dispatch:
 
 jobs:
