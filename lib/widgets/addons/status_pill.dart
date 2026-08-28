@@ -3,10 +3,8 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 
 /// A small colour-coded badge for a launch status.
 ///
-/// Status used to be a table row halfway down the detail page, which buried the
-/// single most useful fact about a launch: most of the schedule is "To Be
-/// Determined" — 23 of 30 in a sample — and that is exactly what tells you
-/// whether a date is worth planning around.
+/// Prominent because most of the schedule is "To Be Determined", and that is
+/// what tells you whether a date is worth planning around.
 class StatusPill extends StatelessWidget {
   const StatusPill(this.status, {this.compact = false, super.key});
 

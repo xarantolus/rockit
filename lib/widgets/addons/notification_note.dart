@@ -5,10 +5,9 @@ import 'package:rockit/l10n/app_localizations.dart';
 /// The explanation under a subscription checkbox, plus a way back to the exact
 /// alarm setting when it is off.
 ///
-/// The app used to send the user out to that system screen on every single
-/// subscribe, because requesting `SCHEDULE_EXACT_ALARM` shows no dialog — it
-/// opens Settings with the toggle already off. Asking once is enough; this is
-/// where it stays reachable afterwards, next to the reminders it affects.
+/// Requesting `SCHEDULE_EXACT_ALARM` shows no dialog — it opens Settings with
+/// the toggle off — so it is asked once and offered here afterwards, next to
+/// the reminders it affects.
 class NotificationNote extends StatefulWidget {
   const NotificationNote({required this.description, super.key});
 

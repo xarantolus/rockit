@@ -10,10 +10,8 @@ import 'package:rockit/widgets/image.dart';
 
 /// One article in the news feed.
 ///
-/// A compact row rather than a card: the feed used to fit about one and a half
-/// articles on screen, which made it impossible to scan for what was new. The
-/// summary is dropped because it is almost always a truncated lede that says
-/// little the headline does not.
+/// A compact row rather than a card, so the feed can be scanned. No summary:
+/// it is almost always a truncated lede that adds nothing to the headline.
 class ArticleRow extends StatelessWidget
     with DateFormatter, UrlLauncher, LinkCopier {
   const ArticleRow({

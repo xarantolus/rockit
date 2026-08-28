@@ -11,11 +11,9 @@ import 'package:rockit/widgets/image.dart';
 
 /// The card used for both launches and events in the listings.
 ///
-/// The image runs to the edges and the text sits on a gradient scrim rather
-/// than a flat grey bar, so the photo is not cut in half by a slab of chrome.
-/// Two things were added to what the card used to say — the status and a date
-/// that respects [precision] — because between them they answer "is this
-/// actually happening, and when", which the old card could not.
+/// The image runs to the edges under a gradient scrim rather than a flat bar,
+/// and the status and a [precision]-aware date together answer "is this
+/// happening, and when".
 class LaunchEventWidget extends StatefulWidget {
   const LaunchEventWidget({
     required this.title,

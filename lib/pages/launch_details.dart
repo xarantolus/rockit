@@ -406,32 +406,19 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     if (turnaround != null && turnaround.inDays >= 1) {
       final days = localizations.daysUnit(turnaround.inDays);
 
-      // The API gives a bare gap and never says which launch it was: the pad
-      // object carries no reference to its last use, so naming it would mean a
-      // query per pad against a budget of fifteen an hour. The date itself is
-      // free though — the gap is measured from this launch, so subtracting it
-      // lands exactly on the previous one.
-      //
-      // Only when this launch's own time is real. Taking 122 days off a date
-      // that is itself only known to the month invents a precision that is not
-      // there.
+      // The gap is measured from this launch, so subtracting it lands on the
+      // previous one. Only worth doing when this launch's own time is real:
+      // taking 122 days off a date known to the month invents precision.
       final net = l.net;
-      final display = timeDisplayFor(net, l.netPrecision);
-      final knownToTheDay =
-          net != null &&
-          const {
-            TimeDisplay.countdown,
-            TimeDisplay.pastDateTime,
-            TimeDisplay.day,
-          }.contains(display);
+      final lastUsed =
+          net != null && showsExactDay(timeDisplayFor(net, l.netPrecision))
+          ? formatDate(context, net.subtract(turnaround).toLocal())
+          : null;
 
       lines.add(
-        knownToTheDay
-            ? localizations.padLastUsedOn(
-                days,
-                formatDate(context, net.subtract(turnaround).toLocal()),
-              )
-            : localizations.padLastUsed(days),
+        lastUsed == null
+            ? localizations.padLastUsed(days)
+            : localizations.padLastUsedOn(days, lastUsed),
       );
     }
 

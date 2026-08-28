@@ -8,6 +8,8 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/image.dart';
 
+final _letter = RegExp(r'\p{Letter}', unicode: true);
+
 class ArticleCardWidget extends StatefulWidget {
   const ArticleCardWidget({
     this.title,
@@ -44,17 +46,9 @@ class ArticleCardWidget extends StatefulWidget {
 
 class _ArticleCardWidgetState extends State<ArticleCardWidget>
     with UrlLauncher, DateFormatter, LinkCopier {
-  bool _isLetter(String letter) {
-    final RegExp alpha = RegExp(r'\p{Letter}', unicode: true);
-    return alpha.hasMatch(letter);
-  }
-
+  /// Adds an ellipsis, but only where a sentence was actually cut off.
   String dottedText(String text) {
-    var lastLetter = text[text.length - 1];
-    if (_isLetter(lastLetter)) {
-      return "$text...";
-    }
-    return text;
+    return _letter.hasMatch(text[text.length - 1]) ? "$text..." : text;
   }
 
   Widget _newsSite({bool? background}) {

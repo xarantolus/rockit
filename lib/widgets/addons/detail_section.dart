@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// One topic on a detail page.
-///
-/// These used to be collapsible, which made every section equally hidden and
-/// turned the page into a filing cabinet. Everything is visible now; the card
-/// edge is what gives a long scroll structure, using the same rounded-and-
-/// bordered language as the listings.
+/// One topic on a detail page. Nothing collapses; the card edge is what gives
+/// a long scroll its structure, in the same language as the listings.
 class DetailCard extends StatelessWidget {
   const DetailCard({
     required this.title,

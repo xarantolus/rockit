@@ -15,20 +15,12 @@ class SubscriptionListingPage extends StatefulWidget {
       _SubscriptionListingPageState();
 }
 
-class LaunchEventList {
-  List<dynamic> list;
-  LaunchEventList(this.list);
-}
-
 class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
   final _reporter = FailureReporter();
 
   /// Mentions failures the user has not been told about yet, and stays quiet
-  /// about the ones they have.
-  ///
-  /// A snackbar rather than a dialog: whatever did load is already on screen,
-  /// which is the same "kept what we had" story the other listings tell when a
-  /// refresh fails.
+  /// about the ones they have. A snackbar, not a dialog — whatever did load is
+  /// already on screen.
   void _reportFailures(Set<String> failed) {
     if (_reporter.take(failed).isEmpty || !mounted) {
       return;
@@ -41,7 +33,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
     );
   }
 
-  Future<LaunchEventList> loadLaunchesAndEvents() async {
+  Future<List<dynamic>> loadLaunchesAndEvents() async {
     final subscriptionManager = BackgroundHandler();
 
     final launchIDs = await subscriptionManager.loadSubscribedLaunchIDs();
@@ -51,10 +43,8 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
 
     final failed = <String>{};
 
-    // In parallel, not in turn. Anything seen in a recent listing is already
-    // filed under its own URL and answers from the cache immediately; whatever
-    // is left is a real request against an API that regularly takes ten
-    // seconds, and adding those up was most of the wait here.
+    // In parallel, not in turn: anything from a recent listing answers from
+    // the cache at once, and the rest is a ten-second request each.
     Future<Object?> load(String id, Future<Object?> Function() fetch) async {
       try {
         return await fetch();
@@ -79,12 +69,9 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
       ),
     ])).where((item) => item != null).toList();
 
-    // Now sort the list by the expected date
-    list = sortLaunchesAndEvents(list);
-
     _reportFailures(failed);
 
-    return LaunchEventList(list);
+    return sortLaunchesAndEvents(list);
   }
 
   @override
@@ -99,9 +86,7 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
         heroPrefix: "subscription-",
         emptyText: AppLocalizations.of(context)!.noSubscriptions,
         nextFunc: (nextItemArg, current) async {
-          var items = await loadLaunchesAndEvents();
-
-          return NextFuncResult(items.list, null);
+          return NextFuncResult(await loadLaunchesAndEvents(), null);
         },
       ),
     );

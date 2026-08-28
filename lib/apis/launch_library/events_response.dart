@@ -38,7 +38,6 @@ class Event {
     this.duration,
     this.location,
     this.image,
-    this.newsUrl,
     this.webcastLive,
     this.lastUpdated,
     this.agencies = const [],
@@ -78,7 +77,6 @@ class Event {
   @JsonKey(readValue: _readImage, fromJson: ApiImage.fromJsonOrUrl)
   final ApiImage? image;
 
-  final String? newsUrl;
   final bool? webcastLive;
   final DateTime? lastUpdated;
 

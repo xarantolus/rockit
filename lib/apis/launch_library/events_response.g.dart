@@ -26,7 +26,6 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
   duration: durationFromJson(json['duration']),
   location: json['location'] as String?,
   image: ApiImage.fromJsonOrUrl(Event._readImage(json, 'image')),
-  newsUrl: json['news_url'] as String?,
   webcastLive: json['webcast_live'] as bool?,
   lastUpdated: json['last_updated'] == null
       ? null

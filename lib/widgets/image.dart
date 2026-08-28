@@ -19,31 +19,12 @@ class _ImageWidgetState extends State<ImageWidget>
   @override
   bool get wantKeepAlive => true;
 
-  /// How large the image is allowed to be decoded, in physical pixels, or null
-  /// when the box is unbounded and there is nothing to go on.
+  /// How large this may be decoded, in physical pixels, or null for an
+  /// unbounded box.
   ///
-  /// Decoding is what makes a *cached* image sit on the loading spinner: a
-  /// 1920x1280 photo costs about 9.8 MB of RGBA however small it is drawn, and
-  /// the news list decoded one per row because SpaceFlightNews articles have no
-  /// thumbnail variant to fall back to. Bounding the decode fixes that without
-  /// touching what is stored.
-  ///
-  /// Twice the longest edge of the box. The bound is a square that the image is
-  /// scaled to fit *inside*, so the headroom is what guarantees it still covers
-  /// the box afterwards — at 2x that holds for anything between roughly 1:2 and
-  /// 2:1, whichever way round it is. Nothing here assumes an orientation.
-  ///
-  /// Rounded up to [_bucket] because the size is part of the image cache key,
-  /// and the box this is measured from is not always still. A hero flight
-  /// interpolates it on every frame, so an exact bound would mint a new key
-  /// sixty times a second and decode the picture again for each one — the one
-  /// way this could genuinely cause jank. Buckets also collapse the listing
-  /// card and the detail page, which are both full width, into a single decode
-  /// rather than two.
-  ///
-  /// [_maxBound] sits above anything either API serves (1920x1280 at the
-  /// largest), so full-width boxes land there and are never resized at all;
-  /// `allowUpscaling: false` leaves them at their natural size.
+  /// Decoding is why a *cached* image can still sit on the spinner: a 1920x1280
+  /// photo is 9.8 MB of RGBA however small it is drawn, and the news list did
+  /// that once a row.
   int? _decodeBound(BoxConstraints constraints, double devicePixelRatio) {
     final longest = max(
       constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0,
@@ -59,18 +40,10 @@ class _ImageWidgetState extends State<ImageWidget>
 
   /// The image, decoded no larger than [bound] square.
   ///
-  /// Assembled by hand rather than with [CachedNetworkImage], which only
-  /// forwards `memCacheWidth`/`memCacheHeight` to [ResizeImage] under its
-  /// default [ResizeImagePolicy.exact]: passing both distorts the picture, and
-  /// passing one is only correct if you already know which way round the source
-  /// is. [ResizeImagePolicy.fit] treats the pair as a bounding box and keeps the
-  /// aspect ratio, so it needs to be built here.
-  ///
-  /// Resizing on *disk* instead (`maxWidthDiskCache`) was the other candidate
-  /// and is worse on every count: it keeps the original alongside a second copy
-  /// under its own key and re-encodes that copy as PNG, which for photographs
-  /// is larger than the JPEG it came from. Measured over the same run of the
-  /// news feed it took the image cache from 73.9 MB to 81.0 MB.
+  /// Built by hand because [CachedNetworkImage] only forwards its
+  /// `memCache*` sizes under [ResizeImagePolicy.exact], which distorts when
+  /// both are given and needs a known orientation when only one is.
+  /// [ResizeImagePolicy.fit] takes the pair as a bounding box instead.
   Widget _image(BuildContext context, String? imageURL, int? bound) {
     if (imageURL == null) {
       return _defaultImage();
@@ -131,11 +104,8 @@ class _ImageWidgetState extends State<ImageWidget>
     }
   }
 
-  /// Bounded and dimmed, because this is a placeholder rather than content.
-  ///
-  /// Left to itself the asset fills whatever box it is given, which in a
-  /// launch-pad card with no map meant a rocket the height of the card, and in
-  /// a listing card meant a huge glyph competing with the title.
+  /// Bounded and dimmed: a placeholder, not content. Left alone the asset
+  /// fills whatever box it is given.
   Widget _defaultImage() {
     final light = Theme.of(context).brightness == Brightness.light;
 
@@ -155,9 +125,7 @@ class _ImageWidgetState extends State<ImageWidget>
     );
   }
 
-  // Deliberately no Hero here. The shared-element flight carries the whole
-  // image-and-overlay block instead (SharedImageHero); flying only the image
-  // hid everything drawn over it for the length of the flight.
+  // No Hero here: SharedImageHero flies the whole image-and-overlay block.
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -177,9 +145,9 @@ const _maxBound = 2048;
 
 /// The decode bound for a box whose longest edge is [physicalPixels].
 ///
-/// Twice the box, rounded up to a bucket. Doubling is the headroom that keeps a
-/// fit-inside resize large enough to still cover the box; bucketing is what
-/// keeps the number stable while the box moves.
+/// Doubled so a fit-inside resize still covers the box at any orientation, and
+/// bucketed so the number holds still while the box moves — it is part of the
+/// image cache key, and a hero flight resizes its box every frame.
 int decodeBucketFor(double physicalPixels) {
   final wanted = physicalPixels * 2;
   final rounded = (wanted / _bucket).ceil() * _bucket;
@@ -196,15 +164,11 @@ final BaseCacheManager? _imageCache = () {
   return null;
 }();
 
-/// Downloads pictures into the same store [ImageWidget] reads from.
+/// Downloads pictures into the same store [ImageWidget] reads from, for a tab
+/// the user has not opened yet.
 ///
-/// For a tab the user has not opened yet: its list can render from cached data
-/// the moment they switch to it, but every picture in it would still be
-/// starting from nothing. Bytes are the cheap resource here — it is *requests*
-/// the Launch Library rations — and these are kept for a week.
-///
-/// One at a time and only the first few, so warming a tab nobody is looking at
-/// cannot crowd out the one they are.
+/// One at a time and only the first few, so a tab nobody is looking at cannot
+/// crowd out the one they are.
 Future<void> warmImages(Iterable<String?> urls, {int limit = 4}) async {
   final cache = _imageCache;
   if (cache == null || kIsWeb) {

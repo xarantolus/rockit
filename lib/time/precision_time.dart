@@ -1,15 +1,9 @@
 /// Deciding *how* to show a launch or event time, given how precisely the API
-/// claims to know it.
+/// claims to know it. Most of the schedule is known only to a month or a
+/// quarter, and a ticking clock down to one of those claims what the data does
+/// not say.
 ///
-/// The app used to render a ticking second-by-second countdown for everything.
-/// That is wrong for most of the schedule: in a 30-launch sample only 7 launches
-/// were known to the minute, 14 only to the month and 9 only to a *quarter*,
-/// and events are never known to a time at all. A clock counting down to a date
-/// that is really "sometime in Q3" is not a small inaccuracy, it is a claim the
-/// data does not support.
-///
-/// This file is deliberately pure — no widgets, no localisation — so the rules
-/// can be tested directly.
+/// Pure — no widgets, no localisation — so the rules can be tested directly.
 library;
 
 import 'package:rockit/apis/launch_library/common.dart';
@@ -102,6 +96,12 @@ bool hasUsableTime(DatePrecision? precision) {
 
   return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
 }
+
+/// Whether [display] names an actual calendar day, rather than a window.
+bool showsExactDay(TimeDisplay display) => switch (display) {
+  TimeDisplay.countdown || TimeDisplay.pastDateTime || TimeDisplay.day => true,
+  _ => false,
+};
 
 /// The calendar quarter (1-4) that [date] falls in.
 int quarterOf(DateTime date) => ((date.month - 1) ~/ 3) + 1;

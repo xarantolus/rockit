@@ -10,11 +10,8 @@ import 'package:rockit/widgets/addons/status_pill.dart';
 import 'package:rockit/widgets/image.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-/// The top of a detail page: the image, the status, and the time.
-///
-/// These three answer "what is this, is it happening, and when" in one glance,
-/// which the old layout could not — it opened on an image, then a mission
-/// description, and only mentioned status in a table several screens down.
+/// The top of a detail page: the image, the status, and the time — what it is,
+/// whether it is happening, and when, in one glance.
 class LaunchHero extends StatelessWidget with DateFormatter {
   const LaunchHero({
     required this.image,
