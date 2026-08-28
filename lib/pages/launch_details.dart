@@ -14,6 +14,7 @@ import 'package:rockit/widgets/addons/notification_note.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/launch_timeline.dart';
+import 'package:rockit/time/precision_time.dart';
 import 'package:rockit/util/ordinal.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
@@ -403,8 +404,34 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
     final turnaround = l.padTurnaround;
     if (turnaround != null && turnaround.inDays >= 1) {
+      final days = localizations.daysUnit(turnaround.inDays);
+
+      // The API gives a bare gap and never says which launch it was: the pad
+      // object carries no reference to its last use, so naming it would mean a
+      // query per pad against a budget of fifteen an hour. The date itself is
+      // free though — the gap is measured from this launch, so subtracting it
+      // lands exactly on the previous one.
+      //
+      // Only when this launch's own time is real. Taking 122 days off a date
+      // that is itself only known to the month invents a precision that is not
+      // there.
+      final net = l.net;
+      final display = timeDisplayFor(net, l.netPrecision);
+      final knownToTheDay =
+          net != null &&
+          const {
+            TimeDisplay.countdown,
+            TimeDisplay.pastDateTime,
+            TimeDisplay.day,
+          }.contains(display);
+
       lines.add(
-        localizations.padLastUsed(localizations.daysUnit(turnaround.inDays)),
+        knownToTheDay
+            ? localizations.padLastUsedOn(
+                days,
+                formatDate(context, net.subtract(turnaround).toLocal()),
+              )
+            : localizations.padLastUsed(days),
       );
     }
 
