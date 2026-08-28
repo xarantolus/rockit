@@ -21,6 +21,12 @@ class LaunchLibraryAPI extends APIClient {
   /// happened does not vanish the moment it lifts off.
   static const recentPastWindow = Duration(days: 1);
 
+  /// The most either listing endpoint will return; asking for more is silently
+  /// capped. Worth taking in full — a page is one request either way, and
+  /// requests are the scarce resource here, not bytes (100 detailed launches
+  /// gzip to ~320 KB against ~175 KB for 50).
+  static const pageSize = 100;
+
   /// The lower bound for a listing query, rounded down to midnight UTC.
   ///
   /// The rounding is not cosmetic. This value goes into the query string, and
@@ -65,7 +71,7 @@ class LaunchLibraryAPI extends APIClient {
             "net__gte": _cutoffParam(now ?? DateTime.now()),
             "ordering": "net",
             "include_suborbital": "true",
-            "limit": "50",
+            "limit": "$pageSize",
             "mode": "detailed",
           });
   }
@@ -76,7 +82,7 @@ class LaunchLibraryAPI extends APIClient {
         : _endpoint("/events/", {
             "date__gte": _cutoffParam(now ?? DateTime.now()),
             "ordering": "date",
-            "limit": "50",
+            "limit": "$pageSize",
             "mode": "detailed",
           });
   }
