@@ -42,24 +42,15 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
   /// Loads the tabs the user is not looking at yet.
   ///
-  /// A `TabBarView` only builds the tab on screen, so events sat untouched
-  /// until the first time they were opened and then made the user wait out a
-  /// ten-second request. This gets the data in place beforehand.
-  ///
-  /// Two things keep it out of the way. It starts late, so the visible tab has
-  /// the network to itself while it is doing the load the user is actually
-  /// waiting on, and the tabs are warmed one after another rather than at once.
-  ///
-  /// `preferCache` matters for the budget: the Launch Library allows fifteen
-  /// requests an hour, and a warm that already has an answer on disk spends
-  /// nothing. Only a genuine miss costs a request, and that is one the user
-  /// would have paid anyway the moment they opened the tab. Whatever is stale
-  /// still gets refreshed by the tab itself when it opens.
+  /// A `TabBarView` only builds the tab on screen, so these sat untouched until
+  /// first opened and then made the user wait out a ten-second request. Late
+  /// and one at a time, so the visible tab gets the network first. Costs a
+  /// second Launch Library request per start, out of fifteen an hour.
   Future<void> _warmOtherTabs() async {
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
-      final events = await LaunchLibraryAPI().upcomingEvents(preferCache: true);
+      final events = await LaunchLibraryAPI().upcomingEvents();
       await warmImages(events.data.results.map((e) => e.image?.imageUrl));
     } catch (e) {
       debugPrint("Could not warm the events tab: $e");
