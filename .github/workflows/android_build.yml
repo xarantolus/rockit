@@ -19,6 +19,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          # setup-java's own Gradle cache, not a hand-rolled one: it keys on a
+          # hash of **/*.gradle*, **/gradle-wrapper.properties and buildSrc/**,
+          # so touching a build file invalidates it, and a partial hit still
+          # saves a fresh entry. Worst case if it ever went stale is a normal
+          # dependency resolve.
+          cache: 'gradle'
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
