@@ -24,6 +24,7 @@ class EventDetailsPage extends StatefulWidget {
   const EventDetailsPage(
     this.event, {
     this.heroPrefix = "",
+    this.heroEnabled = true,
     this.openUpdates = false,
     super.key,
   });
@@ -31,6 +32,9 @@ class EventDetailsPage extends StatefulWidget {
   final Event event;
 
   final String heroPrefix;
+
+  /// See [LaunchDetailsPage.heroEnabled].
+  final bool heroEnabled;
 
   /// See [LaunchDetailsPage.openUpdates].
   final bool openUpdates;
@@ -182,7 +186,9 @@ class _EventDetailsPageState extends State<EventDetailsPage>
               // precise to a time, so this always renders a window.
               date: widget.event.date,
               precision: widget.event.datePrecision,
-              heroTag: "${widget.heroPrefix}event-image",
+              heroTag: widget.heroEnabled
+                  ? "${widget.heroPrefix}event-image"
+                  : null,
               heroId: "${widget.event.id}",
             ),
 

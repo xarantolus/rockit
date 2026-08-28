@@ -24,6 +24,7 @@ class LaunchDetailsPage extends StatefulWidget {
   const LaunchDetailsPage(
     this.launch, {
     this.heroPrefix = "",
+    this.heroEnabled = true,
     this.openUpdates = false,
     super.key,
   });
@@ -31,6 +32,14 @@ class LaunchDetailsPage extends StatefulWidget {
   final Launch launch;
 
   final String heroPrefix;
+
+  /// False for a page that is built but not the one being looked at.
+  ///
+  /// The detail pages live in a horizontal PageView, which builds its
+  /// neighbours. Every one of them carrying a hero meant a pop flew several
+  /// images back to the list at once — most visible when the system back
+  /// gesture also nudged the PageView, so two pages were partly on screen.
+  final bool heroEnabled;
 
   /// Set when the user arrived from an update notification. Nothing collapses
   /// any more, so this scrolls to the updates rather than expanding them.
@@ -665,7 +674,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
               date: widget.launch.net ?? widget.launch.windowStart,
               precision: widget.launch.netPrecision,
               timezoneName: widget.launch.pad?.location?.timezoneName,
-              heroTag: "${widget.heroPrefix}launch-image",
+              heroTag: widget.heroEnabled
+                  ? "${widget.heroPrefix}launch-image"
+                  : null,
               heroId: widget.launch.id,
             ),
 

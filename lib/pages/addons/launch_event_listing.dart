@@ -343,49 +343,61 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          var pc = PageController(
-            initialPage: index,
-            // Prevent pages from being cached, else we would sometimes have
-            // two hero animations going back to the list, which is really ugly
-            keepPage: false,
-          );
+          // Only the page being looked at carries a hero. A PageView builds its
+          // neighbours, and on a pop Flutter flies *every* hero whose tag
+          // matches something in the list — so several images used to sail back
+          // at once. The system back gesture makes it obvious, because it also
+          // drags the PageView a little, leaving two pages partly on screen.
+          var current = index;
 
-          var pv = PageView.custom(
-            physics: const BouncingScrollPhysics(),
-            childrenDelegate: SliverChildBuilderDelegate((context, idx) {
-              if (idx >= items.length) {
-                return null;
-              }
-              if (items[idx] is Launch) {
-                return LaunchDetailsPage(
-                  items[idx] as Launch,
-                  heroPrefix: widget.heroPrefix,
-                );
-              } else if (items[idx] is Event) {
-                return EventDetailsPage(
-                  items[idx] as Event,
-                  heroPrefix: widget.heroPrefix,
-                );
-              } else {
-                throw Exception(
-                  "Invalid data type ${items[idx].runtimeType} in launch/event pageview",
-                );
-              }
-            }),
-            controller: pc,
-            onPageChanged: (idx) async {
-              // Always adjust the current scroll position of the list
+          // Built once, outside the StatefulBuilder: rebuilding it on every
+          // page change would hand the PageView a fresh controller and snap it
+          // back to the page it started on.
+          final pageController = PageController(initialPage: index);
 
-              scrollToIndex(idx);
+          return StatefulBuilder(
+            builder: (context, setPagerState) {
+              return PageView.custom(
+                physics: const BouncingScrollPhysics(),
+                childrenDelegate: SliverChildBuilderDelegate((context, idx) {
+                  if (idx >= items.length) {
+                    return null;
+                  }
+                  if (items[idx] is Launch) {
+                    return LaunchDetailsPage(
+                      items[idx] as Launch,
+                      heroPrefix: widget.heroPrefix,
+                      heroEnabled: idx == current,
+                    );
+                  } else if (items[idx] is Event) {
+                    return EventDetailsPage(
+                      items[idx] as Event,
+                      heroPrefix: widget.heroPrefix,
+                      heroEnabled: idx == current,
+                    );
+                  } else {
+                    throw Exception(
+                      "Invalid data type ${items[idx].runtimeType} in launch/event pageview",
+                    );
+                  }
+                }),
+                controller: pageController,
+                onPageChanged: (idx) async {
+                  // Settles only once a swipe finishes, so a back gesture that
+                  // merely nudges the PageView leaves the hero where it was.
+                  setPagerState(() => current = idx);
 
-              // If we are close to the end of currently loaded events, we load the next ones
-              if (nextItemArg != null && idx > items.length - 10) {
-                await _loadMore();
-              }
+                  // Always adjust the current scroll position of the list
+                  scrollToIndex(idx);
+
+                  // If we are close to the end of currently loaded events, we load the next ones
+                  if (nextItemArg != null && idx > items.length - 10) {
+                    await _loadMore();
+                  }
+                },
+              );
             },
           );
-
-          return pv;
         },
       ),
     );
