@@ -152,33 +152,15 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     launchURL(context, "https://github.com/xarantolus/rockit/releases/latest");
   }
 
-  bool isLoadingSearch = false;
-
-  Future<void> _showSearch(void Function(void Function()) setState) async {
-    if (isLoadingSearch) {
-      return;
-    }
-    setState(() {
-      isLoadingSearch = true;
-    });
-
-    final delegate = await LaunchEventSearchDelegate.searchLaunchesAndEvents(
-      context,
+  /// Opens search at once, and fills its index from the cache behind it.
+  void _showSearch() {
+    final delegate = LaunchEventSearchDelegate(
+      searchLabel: AppLocalizations.of(context)!.search,
+      searchTextColor: Theme.of(context).textTheme.bodyLarge?.color,
     );
 
-    // Loading the search index walks every cached page, which is slow enough
-    // that the user can leave before it finishes.
-    if (!mounted) {
-      return;
-    }
-
-    delegate.maybeShowSnack(context);
-
-    await showSearch(context: context, delegate: delegate.data, query: '');
-
-    setState(() {
-      isLoadingSearch = false;
-    });
+    unawaited(delegate.indexCachedPages());
+    unawaited(showSearch(context: context, delegate: delegate, query: ''));
   }
 
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
@@ -281,17 +263,11 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       child: Scaffold(
         floatingActionButton: kIsWeb
             ? null
-            : StatefulBuilder(
-                builder: (context, state) {
-                  return FloatingActionButton(
-                    onPressed: () => _showSearch(state),
-                    tooltip: AppLocalizations.of(context)!.search,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: isLoadingSearch
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Icon(Icons.search, color: Colors.white),
-                  );
-                },
+            : FloatingActionButton(
+                onPressed: _showSearch,
+                tooltip: AppLocalizations.of(context)!.search,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: const Icon(Icons.search, color: Colors.white),
               ),
         appBar: _buildAppBar(context, appIcon),
         bottomNavigationBar: _buildNavigationBar(context, menuRocketIcon),

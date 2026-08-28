@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
-import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
@@ -9,84 +8,52 @@ import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class LaunchEventSearchDelegate extends SearchDelegate {
-  /// Takes the resolved label and colour rather than a [BuildContext]: the
-  /// delegate is built after a long series of awaits, by which point the
-  /// context that started the search may be gone.
   LaunchEventSearchDelegate({
     required String searchLabel,
     required Color? searchTextColor,
-    required List<dynamic> launchesAndEvents,
-  }) : launchesAndEvents = sortLaunchesAndEvents(launchesAndEvents),
-       super(
+  }) : super(
          searchFieldLabel: searchLabel,
          searchFieldStyle: TextStyle(color: searchTextColor),
        );
 
-  static Future<ErrorDetails<LaunchEventSearchDelegate>>
-  searchLaunchesAndEvents(BuildContext context) async {
-    // Read what the delegate needs from the context before any of the paging
-    // below, which can run for a while.
-    final searchLabel = AppLocalizations.of(context)!.search;
-    final searchTextColor = Theme.of(context).textTheme.bodyLarge?.color;
+  /// Everything searchable, rebuilt as cached pages arrive.
+  final entries = ValueNotifier<List<_Entry>>([]);
 
-    List<dynamic> items = [];
-
+  /// Walks the *cached* listing pages and indexes what it finds.
+  ///
+  /// Cache only. This used to page with `preferCache: true`, which falls
+  /// through to the network on a miss, so opening search could spend most of
+  /// the fifteen hourly requests before the field even appeared — measured at
+  /// three requests and 21 seconds against the dev API, and it is capped at
+  /// ten. Now an uncached page simply is not searched.
+  Future<void> indexCachedPages() async {
     final api = LaunchLibraryAPI();
+    final found = <dynamic>[];
 
-    bool hadError = false;
-    int numRequests = 0;
+    Future<void> walk(Future<dynamic> Function(String? next) page) async {
+      String? next;
+      do {
+        final resp = await page(next);
+        if (resp == null) {
+          return;
+        }
 
-    String? launchNext;
-    do {
-      try {
-        final resp = await api.upcomingLaunches(
-          next: launchNext,
-          preferCache: true,
-        );
-        items.addAll(resp.data.results);
-        launchNext = resp.data.next;
-      } catch (e) {
-        debugPrint("Error while loading launches for search: $e");
-        hadError = true;
-      }
-      if (++numRequests > 10) {
-        debugPrint("Used too many requests while loading launches");
-        hadError = true;
-        break;
-      }
-    } while (launchNext != null);
+        found.addAll(resp.results as List<dynamic>);
+        next = resp.next as String?;
 
-    String? eventNext;
-    do {
-      try {
-        final resp = await api.upcomingEvents(
-          next: eventNext,
-          preferCache: true,
-        );
-        items.addAll(resp.data.results);
-        eventNext = resp.data.next;
-      } catch (e) {
-        debugPrint("Error while loading events for search: $e");
-        hadError = true;
-      }
-      if (++numRequests > 10) {
-        debugPrint("Used too many requests while loading events");
-        hadError = true;
-        break;
-      }
-    } while (eventNext != null);
+        entries.value = sortLaunchesAndEvents(
+          List.of(found),
+        ).map(_Entry.new).toList();
+      } while (next != null);
+    }
 
-    return ErrorDetails(
-      LaunchEventSearchDelegate(
-        searchLabel: searchLabel,
-        searchTextColor: searchTextColor,
-        launchesAndEvents: items,
-      ),
-      hadError ? ErrorType.incompleteData : null,
-    );
+    try {
+      await walk((next) => api.cachedUpcomingLaunches(next: next));
+      await walk((next) => api.cachedUpcomingEvents(next: next));
+    } catch (e) {
+      debugPrint("Error building the search index: $e");
+    }
   }
-
-  List<dynamic> launchesAndEvents;
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -138,7 +105,132 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
-  List<String> _keyTexts(dynamic item) {
+  static final _bySpace = RegExp(r'\s+');
+
+  List<_Entry> _matches(List<_Entry> all) {
+    final term = query.toLowerCase().trim();
+    if (term.isEmpty) {
+      return all;
+    }
+
+    final terms = term.split(_bySpace);
+
+    // Every term has to appear somewhere in the entry.
+    return all
+        .where((e) => terms.every((t) => e.haystack.contains(t)))
+        .toList();
+  }
+
+  String lastTerm = "";
+
+  late ValueNotifier<double> scrollOffset = ValueNotifier(0);
+
+  @override
+  Widget buildResults(BuildContext context) {
+    if (lastTerm != query) {
+      scrollOffset.value = 0;
+    }
+    lastTerm = query;
+
+    return ValueListenableBuilder(
+      valueListenable: entries,
+      builder: (context, all, _) => LaunchEventListing<dynamic, String>(
+        emptyText: AppLocalizations.of(context)!.emptyResults,
+        initialItems: _matches(all).map((e) => e.item).toList(),
+        scrollOffset: scrollOffset,
+        heroPrefix: "search-",
+      ),
+    );
+  }
+
+  List<String> _searchSuggestions(List<_Entry> matches) {
+    List<String?> launchFunction(Launch item) {
+      return [
+        if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
+          item.launchServiceProvider?.name,
+        if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
+          item.rocket?.configuration?.fullName,
+      ];
+    }
+
+    return matches
+        .map((e) => e.item)
+        .map((item) {
+          // Check if it's a launch or an event
+          if (item is Launch) {
+            return [
+              if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
+                item.launchServiceProvider?.name,
+              if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
+                item.rocket?.configuration?.fullName,
+            ];
+          } else if (item is Event) {
+            return [
+              ...item.program.map((p) => p.name),
+              ...item.launches.expand(launchFunction),
+            ];
+          } else {
+            return [];
+          }
+        })
+        .whereType<List<String?>>()
+        .expand((e) => e)
+        .whereType<String>()
+        .where((e) => !e.toLowerCase().contains("unknown"))
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: entries,
+      builder: (context, all, _) => _suggestionList(context, all),
+    );
+  }
+
+  Widget _suggestionList(BuildContext context, List<_Entry> all) {
+    final suggestions = _searchSuggestions(_matches(all));
+
+    if (suggestions.isEmpty) {
+      return Center(child: Text(AppLocalizations.of(context)!.emptyResults));
+    }
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(
+            suggestions[index],
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          onTap: () {
+            query = suggestions[index];
+            showResults(context);
+          },
+          onLongPress: () {
+            query = suggestions[index];
+            showSuggestions(context);
+          },
+        );
+      },
+    );
+  }
+}
+
+/// One searchable item, with its text flattened once.
+///
+/// The fields used to be gathered and lowercased for every item on every
+/// keystroke, and again for the suggestion list.
+class _Entry {
+  _Entry(this.item) : haystack = _textOf(item).join("\n").toLowerCase();
+
+  final dynamic item;
+  final String haystack;
+
+  static List<String> _textOf(dynamic item) {
     List<String?> texts = [];
 
     if (item is Launch) {
@@ -171,114 +263,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         ...item.spacestations.expand((e) => [e.name, e.description]),
       ]);
     }
+
     return texts.whereType<String>().toList();
-  }
-
-  final _splitBySpaceRegex = RegExp('\\s+');
-  List<dynamic> _searchEntries() {
-    final searchTerm = query.toLowerCase().trim();
-    if (searchTerm.isEmpty) {
-      return launchesAndEvents;
-    }
-
-    final searchSplit = searchTerm.split(_splitBySpaceRegex);
-
-    return launchesAndEvents.where((item) {
-      final list = _keyTexts(item).map((e) => e.toLowerCase());
-
-      // Every search term should be mentioned in any of these texts
-      return searchSplit.every((term) {
-        return list.any((tl) => tl.contains(term));
-      });
-    }).toList();
-  }
-
-  String lastTerm = "";
-
-  late ValueNotifier<double> scrollOffset = ValueNotifier(0);
-
-  @override
-  Widget buildResults(BuildContext context) {
-    if (lastTerm != query) {
-      scrollOffset.value = 0;
-    }
-
-    final items = _searchEntries();
-    lastTerm = query;
-
-    return LaunchEventListing<dynamic, String>(
-      emptyText: AppLocalizations.of(context)!.emptyResults,
-      initialItems: items,
-      scrollOffset: scrollOffset,
-      heroPrefix: "search-",
-    );
-  }
-
-  List<String> _searchSuggestions() {
-    List<String?> launchFunction(Launch item) {
-      return [
-        if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
-          item.launchServiceProvider?.name,
-        if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
-          item.rocket?.configuration?.fullName,
-      ];
-    }
-
-    return _searchEntries()
-        .map((item) {
-          // Check if it's a launch or an event
-          if (item is Launch) {
-            return [
-              if (item.launchServiceProvider?.name?.isNotEmpty ?? false)
-                item.launchServiceProvider?.name,
-              if (item.rocket?.configuration?.fullName?.isNotEmpty ?? false)
-                item.rocket?.configuration?.fullName,
-            ];
-          } else if (item is Event) {
-            return [
-              ...item.program.map((p) => p.name),
-              ...item.launches.expand(launchFunction),
-            ];
-          } else {
-            return [];
-          }
-        })
-        .whereType<List<String?>>()
-        .expand((e) => e)
-        .whereType<String>()
-        .where((e) => !e.toLowerCase().contains("unknown"))
-        .where((e) => e.isNotEmpty)
-        .toSet()
-        .toList();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    final suggestions = _searchSuggestions();
-
-    if (suggestions.isEmpty) {
-      return Center(child: Text(AppLocalizations.of(context)!.emptyResults));
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(
-            suggestions[index],
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          onTap: () {
-            query = suggestions[index];
-            showResults(context);
-          },
-          onLongPress: () {
-            query = suggestions[index];
-            showSuggestions(context);
-          },
-        );
-      },
-    );
   }
 }
