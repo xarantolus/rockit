@@ -19,17 +19,6 @@ class _ImageWidgetState extends State<ImageWidget>
   @override
   bool get wantKeepAlive => true;
 
-  static final BaseCacheManager? _cacheManager = () {
-    try {
-      return CacheManager(
-        Config('images', stalePeriod: const Duration(days: 7)),
-      );
-    } catch (e) {
-      debugPrint("Could not initialize cache manager: $e");
-    }
-    return null;
-  }();
-
   /// How large the image is allowed to be decoded, in physical pixels, or null
   /// when the box is unbounded and there is nothing to go on.
   ///
@@ -90,7 +79,7 @@ class _ImageWidgetState extends State<ImageWidget>
     try {
       final ImageProvider source = CachedNetworkImageProvider(
         kIsWeb ? "https://fuckcors.app/$imageURL" : imageURL,
-        cacheManager: _cacheManager,
+        cacheManager: _imageCache,
       );
 
       return Image(
@@ -196,4 +185,38 @@ int decodeBucketFor(double physicalPixels) {
   final rounded = (wanted / _bucket).ceil() * _bucket;
 
   return rounded.clamp(_bucket, _maxBound);
+}
+
+final BaseCacheManager? _imageCache = () {
+  try {
+    return CacheManager(Config('images', stalePeriod: const Duration(days: 7)));
+  } catch (e) {
+    debugPrint("Could not initialize cache manager: $e");
+  }
+  return null;
+}();
+
+/// Downloads pictures into the same store [ImageWidget] reads from.
+///
+/// For a tab the user has not opened yet: its list can render from cached data
+/// the moment they switch to it, but every picture in it would still be
+/// starting from nothing. Bytes are the cheap resource here — it is *requests*
+/// the Launch Library rations — and these are kept for a week.
+///
+/// One at a time and only the first few, so warming a tab nobody is looking at
+/// cannot crowd out the one they are.
+Future<void> warmImages(Iterable<String?> urls, {int limit = 4}) async {
+  final cache = _imageCache;
+  if (cache == null || kIsWeb) {
+    return;
+  }
+
+  for (final url
+      in urls.whereType<String>().where((u) => u.isNotEmpty).take(limit)) {
+    try {
+      await cache.downloadFile(url);
+    } catch (e) {
+      debugPrint("Could not warm image $url: $e");
+    }
+  }
 }

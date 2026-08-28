@@ -16,6 +16,7 @@ import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/launch_event_search.dart';
+import 'package:rockit/widgets/image.dart';
 
 class RockItHomePage extends StatefulWidget {
   const RockItHomePage(this.appPayload, {super.key, required this.title});
@@ -36,9 +37,40 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     unawaited(pushPayloadPage());
     widget.appPayload.addListener(pushPayloadPage);
 
-    // News only: the Launch Library allows fifteen requests an hour, so the
-    // launches and events tabs stay strictly on demand.
-    unawaited(SpaceFlightNewsAPI().prefetchArticles());
+    unawaited(_warmOtherTabs());
+  }
+
+  /// Loads the tabs the user is not looking at yet.
+  ///
+  /// A `TabBarView` only builds the tab on screen, so events sat untouched
+  /// until the first time they were opened and then made the user wait out a
+  /// ten-second request. This gets the data in place beforehand.
+  ///
+  /// Two things keep it out of the way. It starts late, so the visible tab has
+  /// the network to itself while it is doing the load the user is actually
+  /// waiting on, and the tabs are warmed one after another rather than at once.
+  ///
+  /// `preferCache` matters for the budget: the Launch Library allows fifteen
+  /// requests an hour, and a warm that already has an answer on disk spends
+  /// nothing. Only a genuine miss costs a request, and that is one the user
+  /// would have paid anyway the moment they opened the tab. Whatever is stale
+  /// still gets refreshed by the tab itself when it opens.
+  Future<void> _warmOtherTabs() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      final events = await LaunchLibraryAPI().upcomingEvents(preferCache: true);
+      await warmImages(events.data.results.map((e) => e.image?.imageUrl));
+    } catch (e) {
+      debugPrint("Could not warm the events tab: $e");
+    }
+
+    try {
+      final articles = await SpaceFlightNewsAPI().articles();
+      await warmImages(articles.data.map((a) => a.imageUrl));
+    } catch (e) {
+      debugPrint("Could not warm the news tab: $e");
+    }
   }
 
   // pushPayloadPage is called when the app is opened via a notification.

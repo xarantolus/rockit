@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
@@ -50,19 +48,5 @@ class SpaceFlightNewsAPI extends APIClient {
     var json = await readCacheJSON(articlesUri(after));
 
     return json == null ? null : parseArticles(json);
-  }
-
-  /// Fetches the first page purely to fill the HTTP cache.
-  ///
-  /// The news tab is the third one, so its page is not built — and does not
-  /// start loading — until the user swipes to it. Warming the cache at startup
-  /// means it has something to show the moment it opens. Errors are swallowed:
-  /// nothing is waiting on this, and the tab retries on its own.
-  Future<void> prefetchArticles() async {
-    try {
-      await articles();
-    } catch (e) {
-      debugPrint("Could not prefetch articles: $e");
-    }
   }
 }
