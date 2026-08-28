@@ -271,7 +271,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       link: info.url,
       imageUrl: info.featureImage,
       newsSite: urlHost(info.url),
-      summary: info.description,
+      // The API often repeats the title as the description, and a card that
+      // says the same thing twice just looks broken.
+      summary: info.description?.trim() == info.title?.trim()
+          ? null
+          : info.description,
       customTab: customTab,
       icon: icon,
       // Flat: these sit inside a DetailCard already, and a card inside a

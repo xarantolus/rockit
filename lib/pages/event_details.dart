@@ -121,23 +121,25 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  Widget _openURLButton(
-    IconData icon,
-    String text,
-    bool customTab,
-    String url,
-  ) {
-    return OutlinedButton.icon(
-      onPressed: () async {
-        if (customTab) {
-          await openCustomTab(context, url);
-        } else {
-          await launchURL(context, url);
-        }
-      },
-      onLongPress: () => copyLink(context, url),
-      icon: Icon(icon),
-      label: Text(text),
+  Widget _urlInfoArticleWidget(
+    BuildContext context,
+    ContentUrl info, [
+    bool customTab = true,
+    Icon? icon,
+  ]) {
+    return ArticleCardWidget(
+      title: info.title,
+      link: info.url,
+      imageUrl: info.featureImage,
+      newsSite: urlHost(info.url),
+      // The API often repeats the title as the description, and a card that
+      // says the same thing twice just looks broken.
+      summary: info.description?.trim() == info.title?.trim()
+          ? null
+          : info.description,
+      customTab: customTab,
+      icon: icon,
+      flat: true,
     );
   }
 
@@ -151,6 +153,15 @@ class _EventDetailsPageState extends State<EventDetailsPage>
           label: AppLocalizations.of(context)!.daysUnit(e.duration!.inDays),
           icon: Icons.schedule,
         ),
+      // Who is running it. The one field every upcoming event has that the page
+      // was dropping. Listings return agencies in `list` mode, so there is a
+      // name and an abbreviation and nothing else — a chip is all it supports.
+      for (final agency in e.agencies)
+        if ((agency.abbrev ?? agency.name) != null)
+          InfoChip(
+            label: agency.abbrev ?? agency.name!,
+            icon: Icons.apartment_outlined,
+          ),
     ];
 
     if (chips.isEmpty) {
@@ -203,23 +214,51 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                 children: [
                   if (widget.event.description != null)
                     _eventDetails(context, widget.event),
-                  if (widget.event.vidUrls.isNotEmpty)
-                    _openURLButton(
-                      Icons.play_arrow,
-                      AppLocalizations.of(context)!.watchVideo,
-                      false,
-                      widget.event.vidUrls.first.url!,
-                    ),
-                  if (widget.event.newsUrl != null)
-                    _openURLButton(
-                      Icons.open_in_browser,
-                      AppLocalizations.of(context)!.moreInfo,
-                      true,
-                      widget.event.newsUrl!,
+                  if (widget.event.lastUpdated != null)
+                    DetailRow(
+                      label: AppLocalizations.of(context)!.lastUpdate,
+                      value: formatDateTime(
+                        context,
+                        widget.event.lastUpdated!.toLocal(),
+                      ),
                     ),
                 ],
               ),
             ),
+
+            // These were being dropped. The page rendered `news_url`, which
+            // 2.3.0 does not have — it moved to the `info_urls` list — so that
+            // button never appeared, and only the first video was ever offered.
+            if (widget.event.vidUrls.isNotEmpty)
+              DetailCard(
+                title: AppLocalizations.of(context)!.videos,
+                padded: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: widget.event.vidUrls
+                      .map(
+                        (vid) => _urlInfoArticleWidget(
+                          context,
+                          vid,
+                          false,
+                          const Icon(Icons.play_arrow, size: 72),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+
+            if (widget.event.infoUrls.isNotEmpty)
+              DetailCard(
+                title: AppLocalizations.of(context)!.moreInfo,
+                padded: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: widget.event.infoUrls
+                      .map((info) => _urlInfoArticleWidget(context, info))
+                      .toList(),
+                ),
+              ),
 
             // Events often hang off a launch; this is the way through to it.
             if (widget.event.launches.isNotEmpty)
