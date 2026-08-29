@@ -75,7 +75,11 @@ class CacheJanitor {
   ///
   /// Age is the file's own modification time, which is when it was written —
   /// so this measures how long ago the response was *fetched*, not how
-  /// recently someone looked at it.
+  /// recently someone looked at it. That is the right question for a response,
+  /// and it is the only one available anyway: Android mounts `/data` with
+  /// `noatime`, so `FileStat.accessed` never moves off the write time. Ordering
+  /// by last use is left to the stores themselves, which track it in their own
+  /// index.
   @visibleForTesting
   static Future<int> trim(Directory dir, int budget, {Duration? maxAge}) async {
     if (!await dir.exists()) {

@@ -161,11 +161,23 @@ final BaseCacheManager? _imageCache = () {
     return CacheManager(
       Config(
         'images',
-        stalePeriod: const Duration(days: 7),
-        // Both limits are explicit because the defaults are the problem: the
-        // package counts objects and never bytes, so 200 news originals is
-        // gigabytes. CacheJanitor enforces the size; this only caps how many.
-        maxNrOfCacheObjects: 200,
+        // Both of these are measured from the last *read*: the package
+        // refreshes `touched` on every lookup that reaches its database, and
+        // both `getOldObjects` and `getObjectsOverCapacity` key off that. So
+        // this is a genuine least-recently-used bound, and it is the one that
+        // should normally do the work.
+        //
+        // Long, because an image at a URL does not change — expiring one only
+        // means downloading it again — and short of that nothing here goes
+        // out of date the way a response does.
+        stalePeriod: const Duration(days: 60),
+        // Sized so this, and not CacheJanitor's byte budget, is what usually
+        // bites: images average ~350 KB once bounded, so 300 of them is about
+        // 105 MB against a 128 MB budget. The janitor cannot order by last
+        // use — Android mounts /data `noatime`, so the filesystem never
+        // records a read — and falling back to write time would evict a photo
+        // that is looked at daily just for being old.
+        maxNrOfCacheObjects: 300,
         fileService: BoundedImageFileService(),
       ),
     );
