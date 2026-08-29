@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -44,30 +45,52 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
       return;
     }
 
-    _controller?.removeListener(_onTabChanged);
-    _controller = controller..addListener(_onTabChanged);
+    _detach();
+    _controller = controller
+      ..animation?.addListener(_onMoved)
+      ..addListener(_onMoved);
+  }
+
+  void _detach() {
+    _controller?.animation?.removeListener(_onMoved);
+    _controller?.removeListener(_onMoved);
   }
 
   @override
   void dispose() {
-    _controller?.removeListener(_onTabChanged);
+    _detach();
     super.dispose();
   }
 
-  void _onTabChanged() {
+  void _onMoved() {
     if (mounted) {
       setState(() {});
     }
   }
 
+  /// Where the selection is right now, as a fraction between destinations.
+  ///
+  /// The controller's `index` only moves once a swipe has committed, which made
+  /// the bar look like it was lagging a page behind the content. Its
+  /// `animation` tracks the drag itself, so the label can grow and the tint can
+  /// cross over while the finger is still down.
+  double get _position =>
+      _controller?.animation?.value ?? _controller?.index.toDouble() ?? 0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selected = _controller?.index ?? 0;
+    final position = _position;
 
     final items = [
       for (var i = 0; i < widget.destinations.length; i++)
-        _item(context, widget.destinations[i], i, i == selected),
+        _item(
+          context,
+          widget.destinations[i],
+          i,
+          // 1 on this destination, 0 once a whole page away.
+          (1 - (position - i).abs()).clamp(0.0, 1.0),
+        ),
     ];
 
     return SafeArea(
@@ -114,15 +137,25 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
     );
   }
 
+  /// [selectedness] is 1 on the destination being shown and 0 a page away, so
+  /// everything about the item can be interpolated rather than switched.
   Widget _item(
     BuildContext context,
     NavDestination destination,
     int index,
-    bool isSelected,
+    double selectedness,
   ) {
     final theme = Theme.of(context);
-    final active = theme.colorScheme.primary;
-    final idle = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.55);
+    final text = theme.textTheme.bodyMedium?.color ?? Colors.black;
+
+    // Only the icon takes the accent. The label stays in the normal text
+    // colour: accent-on-translucent was hard to read, especially in the dark
+    // theme where the blue sits close to the background it is blurring.
+    final iconColour = Color.lerp(
+      text.withValues(alpha: 0.55),
+      theme.colorScheme.primary,
+      selectedness,
+    )!;
 
     return InkWell(
       onTap: () => _controller?.animateTo(index),
@@ -132,22 +165,35 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconTheme(
-              data: IconThemeData(color: isSelected ? active : idle, size: 24),
+              data: IconThemeData(color: iconColour, size: 24),
               child: destination.icon,
             ),
-            // Only the selected destination is named, which is what lets the
-            // bar stay as narrow as it is.
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                destination.label,
-                style: TextStyle(
-                  color: active,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+            // The label grows in rather than appearing, so tapping an icon
+            // does not make the bar jump to a new shape in one frame.
+            ClipRect(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: selectedness,
+                child: Opacity(
+                  // Fades on the back half of the growth, so the text is never
+                  // squeezed and faint at the same time.
+                  opacity: max(0, selectedness * 2 - 1),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      destination.label,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: text,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),
