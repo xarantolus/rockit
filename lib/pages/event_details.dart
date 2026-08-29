@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
@@ -56,6 +58,51 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         LinkCopier {
   static const textStyle = TextStyle(fontSize: 16);
 
+  /// The fuller copy of each attached launch, where the cache has one.
+  ///
+  /// A launch embedded in an event comes back in `list` mode — it carries a
+  /// name, an image and a status, and *no* `launch_service_provider` at all —
+  /// so its card read "Unknown" where the same launch in the feed says
+  /// "SpaceX". The listing seeding files every launch under its own URL, so
+  /// the better copy is usually a cache read away.
+  Map<String, Launch> _fuller = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadFullerLaunches());
+  }
+
+  Future<void> _loadFullerLaunches() async {
+    final api = LaunchLibraryAPI();
+    final found = <String, Launch>{};
+
+    for (final launch in widget.event.launches) {
+      final id = launch.id;
+      if (id == null) {
+        continue;
+      }
+
+      try {
+        // Cache only, never a request: a fuller card is not worth one of
+        // fifteen an hour, and the embedded copy is a fine fallback.
+        final cached = await api.cachedLaunch(id);
+        if (cached != null) {
+          found[id] = cached;
+        }
+      } catch (e) {
+        debugPrint("Could not read the cached launch $id: $e");
+      }
+    }
+
+    if (mounted && found.isNotEmpty) {
+      setState(() => _fuller = found);
+    }
+  }
+
+  /// The best copy of [launch] we have.
+  Launch _best(Launch launch) => _fuller[launch.id] ?? launch;
+
   /// Just the description — the event name is already the hero title.
   Widget _eventDetails(BuildContext context, Event e) {
     return Padding(
@@ -94,31 +141,16 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     return launches
         .map(
           (l) => GestureDetector(
-            child: LaunchWidget(l),
+            child: LaunchWidget(_best(l)),
             onTap: () => _openLaunch(l),
           ),
         )
         .toList();
   }
 
-  /// Opens a launch attached to this event, preferring the cached copy.
-  ///
-  /// The one embedded in an event is abbreviated — no timeline, no boosters,
-  /// no updates — while the same launch from a listing is `mode=detailed` and
-  /// filed under its own URL. Cache only: a fuller page is not worth one of
-  /// fifteen requests an hour, and the embedded copy is a fine fallback.
   Future<void> _openLaunch(Launch launch) async {
-    final id = launch.id;
-    final cached = id == null
-        ? null
-        : await LaunchLibraryAPI().cachedLaunch(id);
-
-    if (!mounted) {
-      return;
-    }
-
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(cached ?? launch)),
+      MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(_best(launch))),
     );
   }
 

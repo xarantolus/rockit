@@ -560,8 +560,13 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       if (value != null) rows.add((label, value));
     }
 
-    String? number(num? value) =>
-        value == null ? null : value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
+    String? number(num? value) {
+      if (value == null) {
+        return null;
+      }
+
+      return value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
+    }
 
     add(
       localizations.specHeight,

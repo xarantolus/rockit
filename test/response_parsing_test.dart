@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rockit/apis/launch_library/api.dart';
-import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';

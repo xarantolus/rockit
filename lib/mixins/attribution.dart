@@ -24,50 +24,50 @@ mixin SourceAttribution {
       }
       return null;
     },
-    "facebook.com": (_, __) => "Facebook",
+    "facebook.com": (_, _) => "Facebook",
 
-    "youtube.com": (_, __) => "YouTube",
-    "youtu.be": (_, __) => "YouTube",
-    "m.youtube.com": (_, __) => "YouTube",
+    "youtube.com": (_, _) => "YouTube",
+    "youtu.be": (_, _) => "YouTube",
+    "m.youtube.com": (_, _) => "YouTube",
 
     // News sites
-    "spacenews.com": (_, __) => "SpaceNews",
-    "spaceflightnow.com": (_, __) => "Spaceflight Now",
-    "nasaspaceflight.com": (_, __) => "NASASpaceFlight",
-    "spaceref.com": (_, __) => "SpaceRef",
+    "spacenews.com": (_, _) => "SpaceNews",
+    "spaceflightnow.com": (_, _) => "Spaceflight Now",
+    "nasaspaceflight.com": (_, _) => "NASASpaceFlight",
+    "spaceref.com": (_, _) => "SpaceRef",
 
     // Other
-    "fcc.report": (_, __) => "FCC Report",
+    "fcc.report": (_, _) => "FCC Report",
 
     // Forums
-    "forum.nasaspaceflight.com": (_, __) => "NASASpaceFlight Forum",
+    "forum.nasaspaceflight.com": (_, _) => "NASASpaceFlight Forum",
 
     // Sites from https://en.wikipedia.org/wiki/List_of_government_space_agencies#Budgets
-    "nasa.gov": (_, __) => "NASA",
-    "blogs.nasa.gov": (_, __) => "NASA",
-    "cnsa.gov.cn": (_, __) => "CNSA",
-    "esa.int": (_, __) => "ESA",
-    "dlr.de": (_, __) => "DLR",
-    "cnes.fr": (_, __) => "CNES",
-    "roscosmos.ru": (_, __) => "Roscosmos",
-    "isro.gov.in": (_, __) => "ISRO",
-    "asi.it": (_, __) => "ASI",
-    "jaxa.jp": (_, __) => "JAXA",
-    "kari.re.kr": (_, __) => "KARI",
-    "gov.uk": (_, __) => "UKSA",
+    "nasa.gov": (_, _) => "NASA",
+    "blogs.nasa.gov": (_, _) => "NASA",
+    "cnsa.gov.cn": (_, _) => "CNSA",
+    "esa.int": (_, _) => "ESA",
+    "dlr.de": (_, _) => "DLR",
+    "cnes.fr": (_, _) => "CNES",
+    "roscosmos.ru": (_, _) => "Roscosmos",
+    "isro.gov.in": (_, _) => "ISRO",
+    "asi.it": (_, _) => "ASI",
+    "jaxa.jp": (_, _) => "JAXA",
+    "kari.re.kr": (_, _) => "KARI",
+    "gov.uk": (_, _) => "UKSA",
 
     // Private space companies, from https://en.wikipedia.org/wiki/List_of_private_spaceflight_companies
-    "spacex.com": (_, __) => "SpaceX",
-    "rocketlabusa.com": (_, __) => "Rocket Lab",
-    "blueorigin.com": (_, __) => "Blue Origin",
-    "boeing.com": (_, __) => "Boeing",
-    "astra.com": (_, __) => "Astra",
-    "virginorbit.com": (_, __) => "Virgin Orbit",
-    "virgingalactic.com": (_, __) => "Virgin Galactic",
-    "mhi.com": (_, __) => "Mitsubishi Heavy Industries",
-    "northropgrumman.com": (_, __) => "Northrop Grumman",
-    "scaled.com": (_, __) => "Scaled Composites",
-    "sncorp.com": (_, __) => "Sierra Nevada Corporation",
+    "spacex.com": (_, _) => "SpaceX",
+    "rocketlabusa.com": (_, _) => "Rocket Lab",
+    "blueorigin.com": (_, _) => "Blue Origin",
+    "boeing.com": (_, _) => "Boeing",
+    "astra.com": (_, _) => "Astra",
+    "virginorbit.com": (_, _) => "Virgin Orbit",
+    "virgingalactic.com": (_, _) => "Virgin Galactic",
+    "mhi.com": (_, _) => "Mitsubishi Heavy Industries",
+    "northropgrumman.com": (_, _) => "Northrop Grumman",
+    "scaled.com": (_, _) => "Scaled Composites",
+    "sncorp.com": (_, _) => "Sierra Nevada Corporation",
   };
 
   String? sourceAttributionText(BuildContext context, String? infoURL) {

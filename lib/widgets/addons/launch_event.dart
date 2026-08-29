@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/widgets/addons/precision_time_text.dart';
 import 'package:rockit/widgets/addons/shared_image_hero.dart';
