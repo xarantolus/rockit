@@ -43,6 +43,30 @@ class SpaceFlightNewsAPI extends APIClient {
     return res.bubble(parseArticles(res.data));
   }
 
+  Uri searchArticlesUri(String query, [int? after]) {
+    final params = <String, dynamic>{
+      "limit": "$pageSize",
+      "search": query,
+      if (after != null) "offset": "$after",
+    };
+
+    return _endpoint("/articles/", params);
+  }
+
+  /// Full-text search over titles and summaries.
+  ///
+  /// Server-side, unlike the launches and events search: this API has no
+  /// advertised rate limit and answered twenty-five rapid requests without
+  /// complaint, so a query per keystroke pause is affordable here.
+  Future<ErrorDetails<List<Article>>> searchArticles(
+    String query, {
+    int? after,
+  }) async {
+    var res = await fetchJSON(searchArticlesUri(query, after));
+
+    return res.bubble(parseArticles(res.data));
+  }
+
   /// The stored page of articles, without touching the network.
   Future<List<Article>?> cachedArticles([int? after]) async {
     var json = await readCacheJSON(articlesUri(after));

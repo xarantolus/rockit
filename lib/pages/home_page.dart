@@ -9,6 +9,7 @@ import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
+import 'package:rockit/pages/news_search.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/pages/subscription_listing.dart';
@@ -153,16 +154,43 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     launchURL(context, "https://github.com/xarantolus/rockit/releases/latest");
   }
 
-  /// Opens search at once, and fills its index from the cache behind it.
-  void _showSearch() {
+  /// Opens whichever search belongs to the tab being looked at.
+  ///
+  /// News gets its own, because the two are nothing alike underneath: the
+  /// launches one filters what is already cached and must not spend a Launch
+  /// Library request, while the news API can simply be asked.
+  void _showSearch(BuildContext context) {
+    final label = AppLocalizations.of(context)!.search;
+    final colour = Theme.of(context).textTheme.bodyLarge?.color;
+
+    if (DefaultTabController.of(context).index == _newsTab) {
+      final news = NewsSearchDelegate(
+        searchLabel: label,
+        searchTextColor: colour,
+      );
+
+      unawaited(news.loadCachedLinks());
+      unawaited(
+        showSearch(
+          context: context,
+          delegate: news,
+          query: '',
+        ).whenComplete(news.dispose),
+      );
+
+      return;
+    }
+
     final delegate = LaunchEventSearchDelegate(
-      searchLabel: AppLocalizations.of(context)!.search,
-      searchTextColor: Theme.of(context).textTheme.bodyLarge?.color,
+      searchLabel: label,
+      searchTextColor: colour,
     );
 
     unawaited(delegate.indexCachedPages());
     unawaited(showSearch(context: context, delegate: delegate, query: ''));
   }
+
+  static const _newsTab = 2;
 
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
     return CustomAppBar.create(
@@ -247,11 +275,16 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       child: Scaffold(
         floatingActionButton: kIsWeb
             ? null
-            : FloatingActionButton(
-                onPressed: _showSearch,
-                tooltip: AppLocalizations.of(context)!.search,
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: const Icon(Icons.search, color: Colors.white),
+            // Builder, so the callback gets a context *below* the
+            // DefaultTabController and can read which tab is showing. The
+            // state's own context sits above it.
+            : Builder(
+                builder: (context) => FloatingActionButton(
+                  onPressed: () => _showSearch(context),
+                  tooltip: AppLocalizations.of(context)!.search,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.search, color: Colors.white),
+                ),
               ),
         appBar: _buildAppBar(context, appIcon),
         // The bar floats, so the body runs underneath it and every scrollable
