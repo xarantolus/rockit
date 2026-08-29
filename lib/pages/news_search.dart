@@ -233,36 +233,45 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
 
     return Stack(
       children: [
-        ListView.builder(
-          controller: _scroll,
-          physics: const BouncingScrollPhysics(),
-          padding: bottomSystemBarPadding(context),
-          itemCount: _articles.length,
-          itemBuilder: (context, index) {
-            if (!_finished && !_loading && index >= _articles.length ~/ 2) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => unawaited(_run(_running, more: true)),
-              );
-            }
-
-            final a = _articles[index];
-
-            return ArticleRow(
-              title: a.title,
-              link: a.url,
-              imageUrl: a.imageUrl,
-              newsSite: a.newsSite,
-              publishDate: a.publishedAt,
-              relatedLaunch: a.launchIds
-                  .map((id) => _launches[id])
-                  .whereType<Launch>()
-                  .firstOrNull,
-              relatedEvent: a.eventIds
-                  .map((id) => _events[id])
-                  .whereType<Event>()
-                  .firstOrNull,
-            );
+        // Scrolling means the user is reading rather than typing, so the
+        // keyboard should be out of the way — and once focus is gone, coming
+        // back from an article does not bring it up again either.
+        NotificationListener<ScrollStartNotification>(
+          onNotification: (_) {
+            _focus.unfocus();
+            return false;
           },
+          child: ListView.builder(
+            controller: _scroll,
+            physics: const BouncingScrollPhysics(),
+            padding: bottomSystemBarPadding(context),
+            itemCount: _articles.length,
+            itemBuilder: (context, index) {
+              if (!_finished && !_loading && index >= _articles.length ~/ 2) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => unawaited(_run(_running, more: true)),
+                );
+              }
+
+              final a = _articles[index];
+
+              return ArticleRow(
+                title: a.title,
+                link: a.url,
+                imageUrl: a.imageUrl,
+                newsSite: a.newsSite,
+                publishDate: a.publishedAt,
+                relatedLaunch: a.launchIds
+                    .map((id) => _launches[id])
+                    .whereType<Launch>()
+                    .firstOrNull,
+                relatedEvent: a.eventIds
+                    .map((id) => _events[id])
+                    .whereType<Event>()
+                    .firstOrNull,
+              );
+            },
+          ),
         ),
         // Kept over the old results rather than replacing them, so typing does
         // not blank the screen between queries.
