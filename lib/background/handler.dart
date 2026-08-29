@@ -90,6 +90,13 @@ class BackgroundHandler {
   static const periodicCacheWarmTaskName = "cache:warm:periodic";
   static const _cacheWarmTaskId = "cache-warm";
 
+  /// Reading *further* into the listings than the first page. Split from the
+  /// warm above because it wants a different constraint: this is bulk data
+  /// nobody asked for, so it waits for an unmetered connection, which is the
+  /// usual treatment for background prefetch of any size.
+  static const periodicCacheDeepenTaskName = "cache:deepen:periodic";
+  static const _cacheDeepenTaskId = "cache-deepen";
+
   /// Twice a day. The cost is two Launch Library requests per run against a
   /// budget of fifteen an hour, and its data barely moves faster than that;
   /// news is free but there is no reason to fetch it on its own schedule.
@@ -138,6 +145,8 @@ class BackgroundHandler {
           return await handleEventUpdatePeriodic(inputData);
         case periodicCacheWarmTaskName:
           return await handleCacheWarm();
+        case periodicCacheDeepenTaskName:
+          return await handleCacheDeepen();
         default:
           throw FormatException(
             "Expected task name to be for event or update, but got \"$task\"",
@@ -163,6 +172,14 @@ class BackgroundHandler {
         existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
         constraints: _periodicTaskConstraints,
       );
+
+      await Workmanager().registerPeriodicTask(
+        _cacheDeepenTaskId,
+        periodicCacheDeepenTaskName,
+        frequency: cacheWarmInterval,
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
+        constraints: Constraints(networkType: NetworkType.unmetered),
+      );
     } catch (err) {
       debugPrint("Could not schedule cache warming: $err");
     }
@@ -175,28 +192,108 @@ class BackgroundHandler {
   /// (If the app happens to be in the foreground at the same time, the two
   /// isolates can overwrite each other's cache *index*; the response files
   /// survive, so the worst case is a cache miss, not bad data.)
+  /// The essential refresh: the first page of each listing, plus news.
   Future<bool> handleCacheWarm() async {
     final api = LaunchLibraryAPI();
 
-    // In parallel: this API regularly takes ten seconds a request and the
-    // three are independent, so there is no reason to add them up.
+    var allowance = await _spendableRequests();
+    if (allowance <= 0) {
+      return true;
+    }
+
     final results = await Future.wait([
-      _warmCache("launches", () async {
-        final launches = (await api.upcomingLaunches()).data.results;
-        await _refreshSubscriptionsFrom(launches: launches);
-      }),
-      _warmCache("events", () async {
-        final events = (await api.upcomingEvents()).data.results;
-        await _refreshSubscriptionsFrom(events: events);
-      }),
+      if (allowance-- > 0)
+        _warmCache("launches", () async {
+          final resp = await api.upcomingLaunches();
+          await _refreshSubscriptionsFrom(launches: resp.data.results);
+        }),
+      if (allowance-- > 0)
+        _warmCache("events", () async {
+          final resp = await api.upcomingEvents();
+          await _refreshSubscriptionsFrom(events: resp.data.results);
+        }),
+      // News is a different API with no budget to protect.
       _warmCache("news", () => SpaceFlightNewsAPI().articles()),
     ]);
 
-    // Returning false asks WorkManager to run the whole task again. That is
-    // only right when nothing worked; one dead endpoint should not make us
-    // re-spend requests on the two that succeeded.
+    await _letTheCacheIndexSettle();
+
+    // Returning false asks WorkManager to run the whole task again, which is
+    // only right when nothing worked at all.
     return results.any((ok) => ok);
   }
+
+  /// Reads further into both listings with whatever budget is spare.
+  ///
+  /// Deepens the search corpus, and files more launches under their own URLs
+  /// for everything that looks one up by id — an event's attached launch, a
+  /// notification tap, the subscriptions page.
+  Future<bool> handleCacheDeepen() async {
+    final api = LaunchLibraryAPI();
+
+    var allowance = await _spendableRequests();
+    if (allowance <= 0) {
+      return true;
+    }
+
+    String? launchNext;
+    String? eventNext;
+    var pages = 0;
+
+    try {
+      // Sequential: each page's `next` only exists once the one before it has
+      // come back. Launches first, since there are far more of them.
+      launchNext = (await api.upcomingLaunches()).data.next;
+      allowance--;
+
+      while (allowance-- > 0 && launchNext != null) {
+        launchNext = (await api.upcomingLaunches(next: launchNext)).data.next;
+        pages++;
+      }
+
+      if (allowance > 0) {
+        eventNext = (await api.upcomingEvents()).data.next;
+        while (allowance-- > 0 && eventNext != null) {
+          eventNext = (await api.upcomingEvents(next: eventNext)).data.next;
+          pages++;
+        }
+      }
+    } catch (err) {
+      debugPrint("Could not read further into the listings: $err");
+    }
+
+    debugPrint("Read $pages extra listing page(s)");
+    await _letTheCacheIndexSettle();
+
+    return true;
+  }
+
+  /// How many Launch Library requests this job may spend.
+  ///
+  /// Asking is free — `/api-throttle/` does not count against the budget — and
+  /// stopping at half of it leaves room for whatever the user does next.
+  Future<int> _spendableRequests() async {
+    final throttle = await LaunchLibraryAPI().throttle();
+    final allowance = throttle?.requestsUntilHalfSpent ?? _blindAllowance;
+
+    if (allowance <= 0) {
+      debugPrint("Half the request budget is already spent; not fetching");
+    }
+
+    return allowance;
+  }
+
+  /// `flutter_cache_manager` writes its index three seconds after the last
+  /// put, so a job that returns immediately loses everything it just stored:
+  /// the response files are on disk and nothing can find them. Waiting is the
+  /// difference between the extra pages being cached and being thrown away.
+  Future<void> _letTheCacheIndexSettle() {
+    return Future.delayed(const Duration(seconds: 5));
+  }
+
+  /// What to spend when the budget cannot be read: the two first pages, which
+  /// is what the job did before it asked at all.
+  static const _blindAllowance = 2;
 
   /// Runs the subscription logic over anything we already downloaded.
   ///

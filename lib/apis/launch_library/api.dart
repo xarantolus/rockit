@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:rockit/apis/api_client.dart';
 import 'package:rockit/apis/error_details.dart';
+import 'package:rockit/apis/launch_library/throttle.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 
@@ -122,6 +123,30 @@ class LaunchLibraryAPI extends APIClient {
     return res.bubble(
       UpcomingEventsResponse.fromJson(APIClient.asJsonObject(res.data)),
     );
+  }
+
+  /// What the API says about our remaining budget.
+  ///
+  /// `/api-throttle/` does not count against the budget itself — repeated
+  /// calls leave `current_use` unchanged — so this is free to ask.
+  ///
+  /// Returns null when the answer cannot be trusted: unreachable, or served
+  /// from the cache because the request failed. Acting on a stale reading
+  /// would mean spending requests we do not have and leaving the app throttled
+  /// for the user.
+  Future<ApiThrottle?> throttle() async {
+    try {
+      final res = await fetch(_endpoint("/api-throttle/", {}));
+      if (res.error == ErrorType.cachedFallback) {
+        return null;
+      }
+
+      return ApiThrottle.fromJson(APIClient.asJsonObject(jsonDecode(res.data)));
+    } catch (err) {
+      debugPrint("Could not read the request budget: $err");
+
+      return null;
+    }
   }
 
   /// Files every entry of a listing under the URL its own endpoint would use.
