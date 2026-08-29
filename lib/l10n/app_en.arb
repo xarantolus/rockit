@@ -164,6 +164,24 @@
     }
   },
   "daysUnit": "{count,plural, =1{1 day}other{{count} days}}",
+  "hoursUnit": "{count,plural, =1{1 hour}other{{count} hours}}",
+  "@hoursUnit": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "minutesUnit": "{count,plural, =1{1 minute}other{{count} minutes}}",
+  "@minutesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "@daysUnit": {
     "placeholders": {
       "count": {

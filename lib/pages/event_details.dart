@@ -6,6 +6,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/attribution.dart';
+import 'package:rockit/time/duration_label.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/program_renderer.dart';
@@ -162,14 +163,38 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
+  /// "3 hours 32 minutes", or null when there is nothing worth saying.
+  String? _durationLabel(BuildContext context, Duration? duration) {
+    if (duration == null) {
+      return null;
+    }
+
+    final localizations = AppLocalizations.of(context)!;
+    final parts = durationParts(duration).map((p) {
+      switch (p.unit) {
+        case DurationUnit.days:
+          return localizations.daysUnit(p.value);
+        case DurationUnit.hours:
+          return localizations.hoursUnit(p.value);
+        case DurationUnit.minutes:
+          return localizations.minutesUnit(p.value);
+      }
+    });
+
+    return parts.isEmpty ? null : parts.join(" ");
+  }
+
   Widget _quickFacts(BuildContext context, Event e) {
     final chips = <Widget>[
       if (e.type != null) InfoChip(label: e.type!, icon: Icons.event_outlined),
       if (e.location != null)
         InfoChip(label: e.location!, icon: Icons.place_outlined),
-      if (e.duration != null)
+      // How long the event runs. Rendered in whole days this always read
+      // "0 days", because the API's durations are hours and minutes: a static
+      // fire window is PT3H32M12S, a press conference PT1H2M35S.
+      if (_durationLabel(context, e.duration) != null)
         InfoChip(
-          label: AppLocalizations.of(context)!.daysUnit(e.duration!.inDays),
+          label: _durationLabel(context, e.duration)!,
           icon: Icons.schedule,
         ),
       // Who is running it. The one field every upcoming event has that the page
