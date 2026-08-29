@@ -97,6 +97,14 @@ bool hasUsableTime(DatePrecision? precision) {
   return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
 }
 
+/// Whether a date has gone from a guess to a real clock time.
+///
+/// The one precision change worth telling a subscriber about: their reminders
+/// only start meaning anything at this point. Going the other way, or drifting
+/// within the same precision, happens constantly for unconfirmed launches.
+bool timeBecameKnown(DatePrecision? before, DatePrecision? after) =>
+    !hasUsableTime(before) && hasUsableTime(after);
+
 /// Whether [display] names an actual calendar day, rather than a window.
 bool showsExactDay(TimeDisplay display) => switch (display) {
   TimeDisplay.countdown || TimeDisplay.pastDateTime || TimeDisplay.day => true,

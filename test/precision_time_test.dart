@@ -148,6 +148,37 @@ void main() {
     });
   });
 
+  group('timeBecameKnown', () {
+    test('a guess turning into a clock time is worth saying', () {
+      expect(timeBecameKnown(precision('M'), precision('MIN')), isTrue);
+      expect(timeBecameKnown(precision('Q3'), precision('SEC')), isTrue);
+      expect(timeBecameKnown(precision('Y'), precision('HR')), isTrue);
+    });
+
+    test('staying vague is not', () {
+      expect(timeBecameKnown(precision('Y'), precision('M')), isFalse);
+      expect(timeBecameKnown(precision('M'), precision('DAY')), isFalse);
+    });
+
+    test('staying precise is not, however much the time moves', () {
+      // A launch slipping by hours is normal and would be constant noise.
+      expect(timeBecameKnown(precision('MIN'), precision('SEC')), isFalse);
+      expect(timeBecameKnown(precision('SEC'), precision('SEC')), isFalse);
+    });
+
+    test('going vague again is not', () {
+      expect(timeBecameKnown(precision('MIN'), precision('M')), isFalse);
+    });
+
+    test('an unknown precision does not count as known', () {
+      expect(timeBecameKnown(precision('FORTNIGHT'), precision('MIN')), isTrue);
+      expect(
+        timeBecameKnown(precision('MIN'), precision('FORTNIGHT')),
+        isFalse,
+      );
+    });
+  });
+
   group('quarterOf', () {
     test('maps months onto quarters', () {
       expect(quarterOf(DateTime.utc(2026, 1)), 1);

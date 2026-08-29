@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/launch_library/api.dart';
@@ -9,6 +10,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/notifications/create.dart';
+import 'package:rockit/time/precision_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -300,6 +302,81 @@ class BackgroundHandler {
     return [];
   }
 
+  Future<String?> _loadString(String key) async {
+    try {
+      final instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      return instance.getString(key);
+    } catch (err) {
+      debugPrint("Error loading $key: $err");
+
+      return null;
+    }
+  }
+
+  Future<void> _saveString(String key, String value) async {
+    try {
+      final instance = await SharedPreferences.getInstance();
+      await instance.reload();
+
+      await instance.setString(key, value);
+    } catch (err) {
+      debugPrint("Error saving $key: $err");
+    }
+  }
+
+  String _getPrecisionKey(String type, String id) => "precision:$type:$id";
+
+  /// Notifies once a date stops being a guess.
+  ///
+  /// Only entries in the API's update feed produce a notification, and the
+  /// change a subscriber most wants is often not in it: a launch going from
+  /// "NET October" to an actual time. The reminders quietly start working at
+  /// that point and nobody is told.
+  ///
+  /// Deliberately only that one transition. A [net] that drifts by hours, or a
+  /// precision that gets *vaguer*, happens constantly for unconfirmed launches
+  /// and would be noise.
+  Future<void> _notifyIfTimeBecameKnown({
+    required String type,
+    required String id,
+    required String title,
+    required DatePrecision? precision,
+    required DateTime? at,
+    required NotificationDetails details,
+    required String payload,
+  }) async {
+    final key = _getPrecisionKey(type, id);
+    final previous = await _loadString(key);
+
+    await _saveString(key, precision?.abbrev ?? "");
+
+    // Nothing to compare against on the first run, which is the moment the
+    // user subscribed.
+    if (previous == null || at == null) {
+      return;
+    }
+
+    if (!timeBecameKnown(DatePrecision(abbrev: previous), precision)) {
+      return;
+    }
+
+    try {
+      await notifications!.show(
+        id: "time:$id".hashCode.abs(),
+        title: title,
+        body:
+            "A launch time has been set: "
+            "${DateFormat("EEE, d MMM y, HH:mm").format(at.toLocal())}",
+        notificationDetails: details,
+        payload: payload,
+      );
+    } catch (err) {
+      debugPrint("Could not notify about the new time for $id: $err");
+    }
+  }
+
   String _getUpdateKey(String type, String id) {
     return "update:$type:lastupdate:$id";
   }
@@ -376,6 +453,16 @@ class BackgroundHandler {
     } catch (err) {
       debugPrint("Error while processing launch updates: $err");
     }
+
+    await _notifyIfTimeBecameKnown(
+      type: "launch",
+      id: launchId,
+      title: launchTitle,
+      precision: launch.netPrecision,
+      at: launch.net,
+      details: _getLaunchUpdateNotifDetails(launchId),
+      payload: "$actionLaunchUpdate::$launchId",
+    );
 
     final timeSinceLaunch = DateTime.now().difference(launchTime);
     if (timeSinceLaunch > const Duration(hours: 12)) {
@@ -454,6 +541,7 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
+      await _deleteKey(_getPrecisionKey("launch", launchId));
     } catch (err) {
       debugPrint("Deleting update key for launch while unsubscribing: $err");
     }
@@ -679,6 +767,7 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("event", eventId));
+      await _deleteKey(_getPrecisionKey("event", eventId));
     } catch (err) {
       debugPrint("Deleting update key for event while unsubscribing: $err");
     }
@@ -785,6 +874,16 @@ class BackgroundHandler {
     } catch (err) {
       debugPrint("Error while processing event updates: $err");
     }
+
+    await _notifyIfTimeBecameKnown(
+      type: "event",
+      id: eventId,
+      title: eventTitle,
+      precision: event.datePrecision,
+      at: event.date,
+      details: _getEventUpdateNotifDetails(eventId),
+      payload: "$actionEventUpdate::$eventId",
+    );
 
     final timeSinceStart = DateTime.now().difference(startTime);
     if (timeSinceStart > const Duration(hours: 12)) {
