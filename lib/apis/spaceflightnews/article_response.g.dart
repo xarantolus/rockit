@@ -12,6 +12,11 @@ ArticleLaunch _$ArticleLaunchFromJson(Map<String, dynamic> json) =>
       provider: json['provider'] as String?,
     );
 
+ArticleEvent _$ArticleEventFromJson(Map<String, dynamic> json) => ArticleEvent(
+  eventId: (json['event_id'] as num?)?.toInt(),
+  provider: json['provider'] as String?,
+);
+
 Article _$ArticleFromJson(Map<String, dynamic> json) => Article(
   id: (json['id'] as num?)?.toInt(),
   title: json['title'] as String?,
@@ -29,6 +34,11 @@ Article _$ArticleFromJson(Map<String, dynamic> json) => Article(
   launches:
       (json['launches'] as List<dynamic>?)
           ?.map((e) => ArticleLaunch.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  events:
+      (json['events'] as List<dynamic>?)
+          ?.map((e) => ArticleEvent.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
 );

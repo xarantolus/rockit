@@ -17,6 +17,20 @@ class ArticleLaunch {
       _$ArticleLaunchFromJson(json);
 }
 
+/// An event an article is about.
+///
+/// `event_id` is a Launch Library 2 id, like [ArticleLaunch.launchId] is.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class ArticleEvent {
+  const ArticleEvent({this.eventId, this.provider});
+
+  final int? eventId;
+  final String? provider;
+
+  factory ArticleEvent.fromJson(Map<String, dynamic> json) =>
+      _$ArticleEventFromJson(json);
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class Article {
   const Article({
@@ -30,6 +44,7 @@ class Article {
     this.updatedAt,
     this.featured,
     this.launches = const [],
+    this.events = const [],
   });
 
   final int? id;
@@ -42,12 +57,21 @@ class Article {
   final DateTime? updatedAt;
   final bool? featured;
 
-  /// About a third of articles name a launch; the rest are empty.
+  /// A third to a half of articles name a launch — but the association is
+  /// added *retroactively*, so the newest few hundred have none at all
+  /// (0/100 in the last fortnight, 21/100 at three weeks, 45/100 beyond a
+  /// month). A fresh feed will therefore usually show no links.
   final List<ArticleLaunch> launches;
+
+  /// Same, for events. Rarer, but these resolve more often when they do
+  /// appear: every upcoming event fits in the one cached page.
+  final List<ArticleEvent> events;
 
   /// The Launch Library ids this article is about.
   Iterable<String> get launchIds =>
       launches.map((l) => l.launchId).whereType<String>();
+
+  Iterable<int> get eventIds => events.map((e) => e.eventId).whereType<int>();
 
   factory Article.fromJson(Map<String, dynamic> json) =>
       _$ArticleFromJson(json);

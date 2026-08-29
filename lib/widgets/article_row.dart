@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/apis/launch_library/events_response.dart';
+import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
@@ -21,6 +23,7 @@ class ArticleRow extends StatelessWidget
     this.newsSite,
     this.publishDate,
     this.relatedLaunch,
+    this.relatedEvent,
     super.key,
   });
 
@@ -33,6 +36,9 @@ class ArticleRow extends StatelessWidget
   /// Set only when the article names a launch we already hold in the cache, so
   /// showing it never costs an API request.
   final Launch? relatedLaunch;
+
+  /// Same, for an event it names.
+  final Event? relatedEvent;
 
   static const _imageSize = 96.0;
 
@@ -122,7 +128,30 @@ class ArticleRow extends StatelessWidget
                     ],
                     if (relatedLaunch != null) ...[
                       const SizedBox(height: 6),
-                      _LaunchChip(launch: relatedLaunch!),
+                      _RelatedChip(
+                        icon: Icons.rocket_launch,
+                        label:
+                            relatedLaunch!.name ??
+                            AppLocalizations.of(context)!.relatedLaunch,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => LaunchDetailsPage(relatedLaunch!),
+                          ),
+                        ),
+                      ),
+                    ] else if (relatedEvent != null) ...[
+                      const SizedBox(height: 6),
+                      _RelatedChip(
+                        icon: Icons.event,
+                        label:
+                            relatedEvent!.name ??
+                            AppLocalizations.of(context)!.relatedLaunch,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => EventDetailsPage(relatedEvent!),
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -136,21 +165,24 @@ class ArticleRow extends StatelessWidget
 }
 
 /// Tapping this opens the launch the article is about, rather than the article.
-class _LaunchChip extends StatelessWidget {
-  const _LaunchChip({required this.launch});
+class _RelatedChip extends StatelessWidget {
+  const _RelatedChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
-  final Launch launch;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = launch.name ?? AppLocalizations.of(context)!.relatedLaunch;
 
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      onTap: () => Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => LaunchDetailsPage(launch))),
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -160,11 +192,7 @@ class _LaunchChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.rocket_launch,
-              size: 13,
-              color: theme.colorScheme.primary,
-            ),
+            Icon(icon, size: 13, color: theme.colorScheme.primary),
             const SizedBox(width: 5),
             Flexible(
               child: Text(

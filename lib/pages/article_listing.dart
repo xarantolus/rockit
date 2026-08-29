@@ -6,6 +6,7 @@ import 'package:rockit/l10n/app_localizations.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:rockit/apis/cache_first.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/paging.dart';
@@ -43,8 +44,9 @@ class _ArticleListingPageState extends State<ArticleListingPage>
         },
       );
 
-  /// Cached launches keyed by id, for the "related launch" chip.
+  /// Cached launches and events keyed by id, for the "related" chip.
   Map<String, Launch>? _launchesById;
+  Map<int, Event>? _eventsById;
 
   @override
   void initState() {
@@ -65,10 +67,20 @@ class _ArticleListingPageState extends State<ArticleListingPage>
         return;
       }
 
+      final cachedEvents = await LaunchLibraryAPI().cachedUpcomingEvents();
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _launchesById = {
           for (final launch in cached.results)
             if (launch.id != null) launch.id!: launch,
+        };
+        _eventsById = {
+          for (final event in cachedEvents?.results ?? const <Event>[])
+            if (event.id != null) event.id!: event,
         };
       });
     } catch (e) {
@@ -124,7 +136,12 @@ class _ArticleListingPageState extends State<ArticleListingPage>
 
     return RefreshingOverlay(
       refreshing: controller.isRefreshing,
-      child: NewsList(articles, widget.service, launchesById: _launchesById),
+      child: NewsList(
+        articles,
+        widget.service,
+        launchesById: _launchesById,
+        eventsById: _eventsById,
+      ),
     );
   }
 }
@@ -134,6 +151,7 @@ class NewsList extends StatefulWidget {
     this.initialArticles,
     this.service, {
     this.launchesById,
+    this.eventsById,
     super.key,
   });
 
@@ -143,6 +161,7 @@ class NewsList extends StatefulWidget {
   /// Launches already in the cache, keyed by id. Only used to decorate rows,
   /// so a miss simply means no chip — never an extra request.
   final Map<String, Launch>? launchesById;
+  final Map<int, Event>? eventsById;
 
   @override
   State<NewsList> createState() => _NewsListState();
@@ -285,6 +304,12 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
                   : a.launchIds
                         .map((id) => widget.launchesById![id])
                         .whereType<Launch>()
+                        .firstOrNull,
+              relatedEvent: widget.eventsById == null
+                  ? null
+                  : a.eventIds
+                        .map((id) => widget.eventsById![id])
+                        .whereType<Event>()
                         .firstOrNull,
             );
           },
