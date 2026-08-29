@@ -18,6 +18,7 @@ import 'package:rockit/time/precision_time.dart';
 import 'package:rockit/util/ordinal.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
+import 'package:rockit/widgets/addons/readable_width.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -678,175 +679,180 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LaunchHero(
-              image: widget.launch.image,
-              title:
-                  widget.launch.mission?.name ??
-                  widget.launch.name ??
-                  AppLocalizations.of(context)!.unknownLaunch,
-              subtitle: widget.launch.providerName,
-              status: widget.launch.status,
-              date: widget.launch.net ?? widget.launch.windowStart,
-              precision: widget.launch.netPrecision,
-              timezoneName: widget.launch.pad?.location?.timezoneName,
-              heroTag: widget.heroEnabled
-                  ? "${widget.heroPrefix}launch-image"
-                  : null,
-              heroId: widget.launch.id,
-            ),
-
-            _quickFacts(context, widget.launch),
-
-            _launchStats(context, widget.launch),
-
-            if (widget.launch.id != null && !kIsWeb)
-              _subscription(widget.launch.id!),
-
-            // Open by default: it is what the page is about. Dropped entirely
-            // when there is no description, since the name is already the hero.
-            if (widget.launch.mission?.description != null)
-              DetailCard(
-                title: AppLocalizations.of(context)!.mission,
-                child: _missionDetails(context, widget.launch.mission!),
+        child: ReadableWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LaunchHero(
+                image: widget.launch.image,
+                title:
+                    widget.launch.mission?.name ??
+                    widget.launch.name ??
+                    AppLocalizations.of(context)!.unknownLaunch,
+                subtitle: widget.launch.providerName,
+                status: widget.launch.status,
+                date: widget.launch.net ?? widget.launch.windowStart,
+                precision: widget.launch.netPrecision,
+                timezoneName: widget.launch.pad?.location?.timezoneName,
+                heroTag: widget.heroEnabled
+                    ? "${widget.heroPrefix}launch-image"
+                    : null,
+                heroId: widget.launch.id,
               ),
 
-            DetailCard(
-              title: AppLocalizations.of(context)!.info,
-              child: _generalInfo(context, widget.launch),
-            ),
+              _quickFacts(context, widget.launch),
 
-            if (widget.launch.rocket?.configuration != null)
+              _launchStats(context, widget.launch),
+
+              if (widget.launch.id != null && !kIsWeb)
+                _subscription(widget.launch.id!),
+
+              // Open by default: it is what the page is about. Dropped entirely
+              // when there is no description, since the name is already the hero.
+              if (widget.launch.mission?.description != null)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.mission,
+                  child: _missionDetails(context, widget.launch.mission!),
+                ),
+
               DetailCard(
-                title: AppLocalizations.of(context)!.rocket,
-                trailing: widget.launch.rocketName,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (widget.launch.rocket?.configuration?.description !=
-                        null)
-                      _rocketConfiguration(
+                title: AppLocalizations.of(context)!.info,
+                child: _generalInfo(context, widget.launch),
+              ),
+
+              if (widget.launch.rocket?.configuration != null)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.rocket,
+                  trailing: widget.launch.rocketName,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (widget.launch.rocket?.configuration?.description !=
+                          null)
+                        _rocketConfiguration(
+                          context,
+                          widget.launch.rocket!.configuration!,
+                        ),
+                      _rocketSpecs(
                         context,
                         widget.launch.rocket!.configuration!,
                       ),
-                    _rocketSpecs(context, widget.launch.rocket!.configuration!),
-                    ...widget.launch.rocket!.spacecraftStage.map(
-                      (stage) => _spacecraftStage(context, stage),
-                    ),
-                  ],
+                      ...widget.launch.rocket!.spacecraftStage.map(
+                        (stage) => _spacecraftStage(context, stage),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-            if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false)
-              DetailCard(
-                title: AppLocalizations.of(context)!.boosters,
+              if (widget.launch.rocket?.launcherStage.isNotEmpty ?? false)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.boosters,
 
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: widget.launch.rocket!.launcherStage
-                      .map((stage) => _boosterCard(context, stage))
-                      .toList(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.launch.rocket!.launcherStage
+                        .map((stage) => _boosterCard(context, stage))
+                        .toList(),
+                  ),
                 ),
-              ),
 
-            if (widget.launch.pad != null &&
-                widget.launch.pad?.country != "Unknown")
-              DetailCard(
-                title: AppLocalizations.of(context)!.launchSite,
-                trailing: widget.launch.pad?.name,
-                child: _launchPad(context, widget.launch.pad!),
-              ),
-
-            if (widget.launch.timeline.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.timeline,
-                child: LaunchTimeline(
-                  events: widget.launch.timeline,
-                  net: widget.launch.net,
-                  precision: widget.launch.netPrecision,
+              if (widget.launch.pad != null &&
+                  widget.launch.pad?.country != "Unknown")
+                DetailCard(
+                  title: AppLocalizations.of(context)!.launchSite,
+                  trailing: widget.launch.pad?.name,
+                  child: _launchPad(context, widget.launch.pad!),
                 ),
-              ),
 
-            if (widget.launch.updates.isNotEmpty)
-              DetailCard(
-                key: _updatesKey,
-                title: AppLocalizations.of(context)!.updates,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderUpdateList(context, widget.launch.updates),
+              if (widget.launch.timeline.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.timeline,
+                  child: LaunchTimeline(
+                    events: widget.launch.timeline,
+                    net: widget.launch.net,
+                    precision: widget.launch.netPrecision,
+                  ),
                 ),
-              ),
 
-            if (widget.launch.vidUrls.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.videos,
-                // The article pads its own text; letting it reach the card's
-                // edges gives the image the same full-bleed width a listing
-                // card's photo has.
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: widget.launch.vidUrls
-                      .map(
-                        (vid) => _urlInfoArticleWidget(
-                          context,
-                          vid,
-                          false,
-                          const Icon(Icons.play_arrow, size: 72),
-                        ),
-                      )
-                      .toList(),
+              if (widget.launch.updates.isNotEmpty)
+                DetailCard(
+                  key: _updatesKey,
+                  title: AppLocalizations.of(context)!.updates,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderUpdateList(context, widget.launch.updates),
+                  ),
                 ),
-              ),
 
-            if (widget.launch.infoUrls.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.moreInfo,
-                // The article pads its own text; letting it reach the card's
-                // edges gives the image the same full-bleed width a listing
-                // card's photo has.
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: widget.launch.infoUrls
-                      .map((info) => _urlInfoArticleWidget(context, info))
-                      .toList(),
+              if (widget.launch.vidUrls.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.videos,
+                  // The article pads its own text; letting it reach the card's
+                  // edges gives the image the same full-bleed width a listing
+                  // card's photo has.
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.launch.vidUrls
+                        .map(
+                          (vid) => _urlInfoArticleWidget(
+                            context,
+                            vid,
+                            false,
+                            const Icon(Icons.play_arrow, size: 72),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-              ),
 
-            if (patches.isNotEmpty)
-              DetailCard(
-                title: patches.length == 1
-                    ? AppLocalizations.of(context)!.missionPatch
-                    : AppLocalizations.of(context)!.missionPatches,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _missionPatchCards(context, patches),
+              if (widget.launch.infoUrls.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.moreInfo,
+                  // The article pads its own text; letting it reach the card's
+                  // edges gives the image the same full-bleed width a listing
+                  // card's photo has.
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.launch.infoUrls
+                        .map((info) => _urlInfoArticleWidget(context, info))
+                        .toList(),
+                  ),
                 ),
-              ),
 
-            if (widget.launch.launchServiceProvider?.description != null)
-              DetailCard(
-                title: AppLocalizations.of(context)!.source,
-                trailing: widget.launch.providerName,
-                child: _launchServiceProvider(
-                  context,
-                  widget.launch.launchServiceProvider!,
+              if (patches.isNotEmpty)
+                DetailCard(
+                  title: patches.length == 1
+                      ? AppLocalizations.of(context)!.missionPatch
+                      : AppLocalizations.of(context)!.missionPatches,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _missionPatchCards(context, patches),
+                  ),
                 ),
-              ),
 
-            if (widget.launch.program.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.programs,
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderProgramInfo(context, widget.launch.program),
+              if (widget.launch.launchServiceProvider?.description != null)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.source,
+                  trailing: widget.launch.providerName,
+                  child: _launchServiceProvider(
+                    context,
+                    widget.launch.launchServiceProvider!,
+                  ),
                 ),
-              ),
-          ],
+
+              if (widget.launch.program.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.programs,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderProgramInfo(context, widget.launch.program),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

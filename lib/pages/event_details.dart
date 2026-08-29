@@ -18,6 +18,7 @@ import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
+import 'package:rockit/widgets/addons/readable_width.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/launch.dart';
 
@@ -202,116 +203,118 @@ class _EventDetailsPageState extends State<EventDetailsPage>
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LaunchHero(
-              image: widget.event.image,
-              title:
-                  widget.event.name ??
-                  AppLocalizations.of(context)!.unknownEvent,
-              subtitle: widget.event.type ?? widget.event.location,
-              // Events have no launch status, and their dates are never
-              // precise to a time, so this always renders a window.
-              date: widget.event.date,
-              precision: widget.event.datePrecision,
-              heroTag: widget.heroEnabled
-                  ? "${widget.heroPrefix}event-image"
-                  : null,
-              heroId: "${widget.event.id}",
-            ),
-
-            _quickFacts(context, widget.event),
-
-            if (!kIsWeb) _subscription("${widget.event.id}"),
-
-            DetailCard(
-              title: AppLocalizations.of(context)!.info,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (widget.event.description != null)
-                    _eventDetails(context, widget.event),
-                  if (widget.event.lastUpdated != null)
-                    DetailRow(
-                      label: AppLocalizations.of(context)!.lastUpdate,
-                      value: formatDateTime(
-                        context,
-                        widget.event.lastUpdated!.toLocal(),
-                      ),
-                    ),
-                ],
+        child: ReadableWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LaunchHero(
+                image: widget.event.image,
+                title:
+                    widget.event.name ??
+                    AppLocalizations.of(context)!.unknownEvent,
+                subtitle: widget.event.type ?? widget.event.location,
+                // Events have no launch status, and their dates are never
+                // precise to a time, so this always renders a window.
+                date: widget.event.date,
+                precision: widget.event.datePrecision,
+                heroTag: widget.heroEnabled
+                    ? "${widget.heroPrefix}event-image"
+                    : null,
+                heroId: "${widget.event.id}",
               ),
-            ),
 
-            // These were being dropped. The page rendered `news_url`, which
-            // 2.3.0 does not have — it moved to the `info_urls` list — so that
-            // button never appeared, and only the first video was ever offered.
-            if (widget.event.vidUrls.isNotEmpty)
+              _quickFacts(context, widget.event),
+
+              if (!kIsWeb) _subscription("${widget.event.id}"),
+
               DetailCard(
-                title: AppLocalizations.of(context)!.videos,
-                padded: false,
+                title: AppLocalizations.of(context)!.info,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: widget.event.vidUrls
-                      .map(
-                        (vid) => _urlInfoArticleWidget(
+                  children: [
+                    if (widget.event.description != null)
+                      _eventDetails(context, widget.event),
+                    if (widget.event.lastUpdated != null)
+                      DetailRow(
+                        label: AppLocalizations.of(context)!.lastUpdate,
+                        value: formatDateTime(
                           context,
-                          vid,
-                          false,
-                          const Icon(Icons.play_arrow, size: 72),
+                          widget.event.lastUpdated!.toLocal(),
                         ),
-                      )
-                      .toList(),
+                      ),
+                  ],
                 ),
               ),
 
-            if (widget.event.infoUrls.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.moreInfo,
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: widget.event.infoUrls
-                      .map((info) => _urlInfoArticleWidget(context, info))
-                      .toList(),
+              // These were being dropped. The page rendered `news_url`, which
+              // 2.3.0 does not have — it moved to the `info_urls` list — so that
+              // button never appeared, and only the first video was ever offered.
+              if (widget.event.vidUrls.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.videos,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.event.vidUrls
+                        .map(
+                          (vid) => _urlInfoArticleWidget(
+                            context,
+                            vid,
+                            false,
+                            const Icon(Icons.play_arrow, size: 72),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-              ),
 
-            // Events often hang off a launch; this is the way through to it.
-            if (widget.event.launches.isNotEmpty)
-              SectionLabel(title: AppLocalizations.of(context)!.launches),
-            ..._renderLaunches(widget.event.launches),
-
-            if (widget.event.spacestations.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.stations,
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: _renderSpaceStations(widget.event.spacestations),
+              if (widget.event.infoUrls.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.moreInfo,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.event.infoUrls
+                        .map((info) => _urlInfoArticleWidget(context, info))
+                        .toList(),
+                  ),
                 ),
-              ),
 
-            if (widget.event.updates.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.updates,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderUpdateList(context, widget.event.updates),
-                ),
-              ),
+              // Events often hang off a launch; this is the way through to it.
+              if (widget.event.launches.isNotEmpty)
+                SectionLabel(title: AppLocalizations.of(context)!.launches),
+              ..._renderLaunches(widget.event.launches),
 
-            if (widget.event.program.isNotEmpty)
-              DetailCard(
-                title: AppLocalizations.of(context)!.programs,
-                padded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: renderProgramInfo(context, widget.event.program),
+              if (widget.event.spacestations.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.stations,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _renderSpaceStations(widget.event.spacestations),
+                  ),
                 ),
-              ),
-          ],
+
+              if (widget.event.updates.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.updates,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderUpdateList(context, widget.event.updates),
+                  ),
+                ),
+
+              if (widget.event.program.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.programs,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderProgramInfo(context, widget.event.program),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

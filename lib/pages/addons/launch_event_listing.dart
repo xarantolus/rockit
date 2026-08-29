@@ -292,26 +292,21 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       try {
         // Scroll the list view to the currently viewed launch. If the user now leaves this view
         // the list will have scrolled to the last viewed item, which is nice
-        bool isLandscape = false;
+        int columns = 1;
         try {
-          isLandscape =
-              MediaQuery.maybeOf(context)?.orientation == Orientation.landscape;
+          columns = LaunchEventWidget.columnsForContext(context);
         } catch (_) {}
 
-        // The card sizes off its own width, so a two-column landscape grid
-        // gets shorter cards — the offset maths has to use the same number.
+        // The card sizes off its own width, so more columns means shorter
+        // cards — the offset maths has to use the same number.
         final wheight = LaunchEventWidget.calculateHeight(
           context,
-          columns: isLandscape ? 2 : 1,
+          columns: columns,
         );
 
-        // Basically get the offset of the item that's at the given idx.
+        // The row this item is on, roughly centred.
         final targetOffset = min(
-          max(
-            wheight * (isLandscape ? idx / 2 : idx) -
-                (isLandscape && idx % 2 == 0 ? 0 : wheight) / 2,
-            0.0,
-          ),
+          max(wheight * (idx ~/ columns) - wheight / 2, 0.0),
           // Do not scroll further than the list height.
           // The wheight * items.length is not a very accurate way of
           // calculating it, but the scroll position is not always available so we do it like that.
@@ -414,9 +409,7 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       return Center(child: Text(widget.emptyText));
     }
 
-    final columns = MediaQuery.of(context).orientation == Orientation.landscape
-        ? 2
-        : 1;
+    final columns = LaunchEventWidget.columnsForContext(context);
 
     final grid = InfiniteGridView(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

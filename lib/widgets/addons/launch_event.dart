@@ -80,6 +80,23 @@ class LaunchEventWidget extends StatefulWidget {
     return heightForWidth(_getWidth(context) / max(columns, 1));
   }
 
+  /// How many cards fit side by side in [width].
+  ///
+  /// Derived from the width rather than the orientation, which is what left a
+  /// tablet in portrait showing one card per row across 667dp. Aiming at a
+  /// column of roughly [_idealColumnWidth] keeps a card about the size it is on
+  /// a phone: one column on a phone, two in landscape or on a tablet held
+  /// upright, three on a tablet turned sideways.
+  static int columnsFor(double width) {
+    return (width / _idealColumnWidth).round().clamp(1, 4);
+  }
+
+  static const _idealColumnWidth = 400.0;
+
+  static int columnsForContext(BuildContext context) {
+    return columnsFor(_getWidth(context));
+  }
+
   @override
   State<LaunchEventWidget> createState() => _LaunchEventWidgetState();
 }
