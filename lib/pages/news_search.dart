@@ -8,6 +8,7 @@ import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/util/keyboard.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/columns.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/article_row.dart';
@@ -171,6 +172,24 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
     }
   }
 
+  Widget _row(Article a) {
+    return ArticleRow(
+      title: a.title,
+      link: a.url,
+      imageUrl: a.imageUrl,
+      newsSite: a.newsSite,
+      publishDate: a.publishedAt,
+      relatedLaunch: a.launchIds
+          .map((id) => _launches[id])
+          .whereType<Launch>()
+          .firstOrNull,
+      relatedEvent: a.eventIds
+          .map((id) => _events[id])
+          .whereType<Event>()
+          .firstOrNull,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -241,34 +260,38 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
             _focus.unfocus();
             return false;
           },
-          child: ListView.builder(
-            controller: _scroll,
-            physics: const BouncingScrollPhysics(),
-            padding: bottomSystemBarPadding(context),
-            itemCount: _articles.length,
-            itemBuilder: (context, index) {
-              if (!_finished && !_loading && index >= _articles.length ~/ 2) {
-                WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => unawaited(_run(_running, more: true)),
-                );
-              }
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = columnsForWidth(constraints.maxWidth);
 
-              final a = _articles[index];
+              return ListView.builder(
+                controller: _scroll,
+                physics: const BouncingScrollPhysics(),
+                padding: bottomSystemBarPadding(context),
+                itemCount: ArticleRowGroup.rowCount(_articles.length, columns),
+                itemBuilder: (context, row) {
+                  final first = row * columns;
 
-              return ArticleRow(
-                title: a.title,
-                link: a.url,
-                imageUrl: a.imageUrl,
-                newsSite: a.newsSite,
-                publishDate: a.publishedAt,
-                relatedLaunch: a.launchIds
-                    .map((id) => _launches[id])
-                    .whereType<Launch>()
-                    .firstOrNull,
-                relatedEvent: a.eventIds
-                    .map((id) => _events[id])
-                    .whereType<Event>()
-                    .firstOrNull,
+                  if (!_finished &&
+                      !_loading &&
+                      first >= _articles.length ~/ 2) {
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => unawaited(_run(_running, more: true)),
+                    );
+                  }
+
+                  return ArticleRowGroup(
+                    columns: columns,
+                    children: [
+                      for (
+                        var i = first;
+                        i < first + columns && i < _articles.length;
+                        i++
+                      )
+                        _row(_articles[i]),
+                    ],
+                  );
+                },
               );
             },
           ),

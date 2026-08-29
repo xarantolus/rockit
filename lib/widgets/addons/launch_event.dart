@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
+import 'package:rockit/widgets/addons/columns.dart';
 import 'package:rockit/widgets/addons/precision_time_text.dart';
 import 'package:rockit/widgets/addons/shared_image_hero.dart';
 import 'package:rockit/widgets/addons/status_pill.dart';
@@ -86,11 +87,7 @@ class LaunchEventWidget extends StatefulWidget {
   /// column of roughly [_idealColumnWidth] keeps a card about the size it is on
   /// a phone: one column on a phone, two in landscape or on a tablet held
   /// upright, three on a tablet turned sideways.
-  static int columnsFor(double width) {
-    return (width / _idealColumnWidth).round().clamp(1, 4);
-  }
-
-  static const _idealColumnWidth = 400.0;
+  static int columnsFor(double width) => columnsForWidth(width);
 
   static int columnsForContext(BuildContext context) {
     return columnsFor(_getWidth(context));

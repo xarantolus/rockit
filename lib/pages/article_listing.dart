@@ -14,6 +14,7 @@ import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/widgets/addons/columns.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/refreshing_overlay.dart';
@@ -282,39 +283,59 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
         isFinish: _finished,
         onLoadMore: _loadMore,
         textBuilder: _buildLoadingText,
-        child: ListView.builder(
-          scrollCacheExtent: ScrollCacheExtent.pixels(
-            MediaQuery.of(context).size.height * 2,
-          ),
-          physics: const BouncingScrollPhysics(),
-          padding: bottomSystemBarPadding(context),
-          itemCount: articles.length,
-          itemBuilder: (BuildContext context, int index) {
-            _loadMoreEarly(index);
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = columnsForWidth(constraints.maxWidth);
 
-            final a = articles[index];
-            return ArticleRow(
-              title: a.title,
-              link: a.url,
-              imageUrl: a.imageUrl,
-              newsSite: a.newsSite,
-              publishDate: a.publishedAt,
-              relatedLaunch: widget.launchesById == null
-                  ? null
-                  : a.launchIds
-                        .map((id) => widget.launchesById![id])
-                        .whereType<Launch>()
-                        .firstOrNull,
-              relatedEvent: widget.eventsById == null
-                  ? null
-                  : a.eventIds
-                        .map((id) => widget.eventsById![id])
-                        .whereType<Event>()
-                        .firstOrNull,
+            return ListView.builder(
+              scrollCacheExtent: ScrollCacheExtent.pixels(
+                MediaQuery.of(context).size.height * 2,
+              ),
+              physics: const BouncingScrollPhysics(),
+              padding: bottomSystemBarPadding(context),
+              itemCount: ArticleRowGroup.rowCount(articles.length, columns),
+              itemBuilder: (BuildContext context, int row) {
+                final first = row * columns;
+                _loadMoreEarly(first);
+
+                return ArticleRowGroup(
+                  columns: columns,
+                  children: [
+                    for (
+                      var i = first;
+                      i < first + columns && i < articles.length;
+                      i++
+                    )
+                      _row(articles[i]),
+                  ],
+                );
+              },
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _row(Article a) {
+    return ArticleRow(
+      title: a.title,
+      link: a.url,
+      imageUrl: a.imageUrl,
+      newsSite: a.newsSite,
+      publishDate: a.publishedAt,
+      relatedLaunch: widget.launchesById == null
+          ? null
+          : a.launchIds
+                .map((id) => widget.launchesById![id])
+                .whereType<Launch>()
+                .firstOrNull,
+      relatedEvent: widget.eventsById == null
+          ? null
+          : a.eventIds
+                .map((id) => widget.eventsById![id])
+                .whereType<Event>()
+                .firstOrNull,
     );
   }
 }

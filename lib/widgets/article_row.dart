@@ -212,3 +212,49 @@ class _RelatedChip extends StatelessWidget {
     );
   }
 }
+
+/// One row of article cards, side by side.
+///
+/// The news lists stay `ListView.builder`s over *rows* rather than becoming
+/// grids, because an article card has no fixed height — a one-line headline
+/// with no chip is much shorter than a three-line one with a launch attached,
+/// and a grid would have to pick a single extent for both, clipping the tall
+/// ones or padding out the short ones. Cards within a row stretch to match
+/// each other, which is what makes the row read as a row.
+class ArticleRowGroup extends StatelessWidget {
+  const ArticleRowGroup({
+    required this.columns,
+    required this.children,
+    super.key,
+  });
+
+  final int columns;
+  final List<Widget> children;
+
+  /// The number of rows [count] articles need in [columns] columns.
+  static int rowCount(int count, int columns) =>
+      (count + columns - 1) ~/ columns;
+
+  @override
+  Widget build(BuildContext context) {
+    if (columns == 1) {
+      return children.first;
+    }
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < columns; i++)
+            // A short final row leaves empty columns rather than letting one
+            // card stretch across the whole width.
+            Expanded(
+              child: i < children.length
+                  ? children[i]
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
+    );
+  }
+}
