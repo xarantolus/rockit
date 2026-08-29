@@ -19,6 +19,7 @@ class PrecisionTimeText extends StatefulWidget {
     required this.precision,
     this.style,
     this.countdownStyle,
+    this.showCountdown = true,
     super.key,
   });
 
@@ -31,6 +32,15 @@ class PrecisionTimeText extends StatefulWidget {
   /// Used for the ticking countdown, which usually wants to be bigger and
   /// tabular so the digits do not jitter.
   final TextStyle? countdownStyle;
+
+  /// False renders a friendly local time — "Tomorrow, 11:26 AM" — where a
+  /// countdown would otherwise tick.
+  ///
+  /// The listings use this. A wall of clocks counting down is harder to read
+  /// than a set of times, and it also means the app is not running a
+  /// per-second timer for every card on screen. The countdown belongs on the
+  /// page you opened deliberately.
+  final bool showCountdown;
 
   @override
   State<PrecisionTimeText> createState() => _PrecisionTimeTextState();
@@ -62,6 +72,7 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
   /// the launch slips to a vaguer date.
   void _syncTicker() {
     final needsTicker =
+        widget.showCountdown &&
         timeDisplayFor(widget.date, widget.precision) == TimeDisplay.countdown;
 
     if (needsTicker && _ticker == null) {
@@ -98,6 +109,13 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
 
     switch (display) {
       case TimeDisplay.countdown:
+        if (!widget.showCountdown) {
+          return Text(
+            formatDateTimeFriendlyText(context, local),
+            style: widget.style,
+          );
+        }
+
         return Text(
           Countdown.between(local, DateTime.now()).clock,
           style: (widget.countdownStyle ?? widget.style)?.copyWith(

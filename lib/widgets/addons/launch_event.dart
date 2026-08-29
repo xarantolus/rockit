@@ -157,6 +157,9 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
               PrecisionTimeText(
                 date: widget.date,
                 precision: widget.precision,
+                // A local time reads better than a wall of ticking clocks;
+                // the countdown is on the page you open.
+                showCountdown: false,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14.0,

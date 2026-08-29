@@ -160,11 +160,14 @@ class LaunchHero extends StatelessWidget with DateFormatter {
                       ),
                     ),
                     // The viewer's own timezone is the one that matters, so it
-                    // gets the brighter, larger line...
+                    // gets the brighter, larger line. Friendly, because the
+                    // question is "today, tomorrow, or this week" — a full
+                    // date takes longer to read and only earns its place once
+                    // the launch is further out than that.
                     if (showsCountdown && date != null) ...[
                       const SizedBox(height: 3),
                       Text(
-                        formatDateTimeLocal(context, date!),
+                        formatDateTimeFriendlyText(context, date!),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,
