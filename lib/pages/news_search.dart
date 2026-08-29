@@ -14,23 +14,28 @@ import 'package:rockit/widgets/article_row.dart';
 
 /// Searching the news, server-side.
 ///
-/// Separate from the launches and events search because the two are nothing
-/// alike underneath: that one filters a list already in memory and must never
-/// spend a Launch Library request, while this asks the news API, which took
-/// twenty-five requests in a row without complaint and has no advertised limit.
-/// So this one can query as you type.
-class NewsSearchDelegate extends SearchDelegate {
-  NewsSearchDelegate({
-    required String searchLabel,
-    required Color? searchTextColor,
-  }) : super(
-         searchFieldLabel: searchLabel,
-         searchFieldStyle: TextStyle(color: searchTextColor),
-       );
+/// Nothing like the launches and events search underneath: that one filters a
+/// list already in memory and must never spend a Launch Library request, while
+/// the news API has no advertised limit and answered twenty-five rapid requests
+/// without complaint. So this one queries as you type.
+///
+/// A page rather than a `SearchDelegate`. The delegate swaps its body between
+/// "suggestions" and "results" — pushing a launch and coming back switches it —
+/// and each swap destroys the list, losing the scroll position and re-running
+/// the query. Keys cannot save it either, because the delegate cross-fades the
+/// two bodies and both are briefly mounted. Owning the page outright is
+/// simpler than fighting that.
+class NewsSearchPage extends StatefulWidget {
+  const NewsSearchPage({super.key});
 
-  final _state = ValueNotifier(const NewsSearchState());
+  @override
+  State<NewsSearchPage> createState() => _NewsSearchPageState();
+}
 
+class _NewsSearchPageState extends State<NewsSearchPage> {
   final _service = SpaceFlightNewsAPI();
+  final _scroll = ScrollController();
+  final _field = TextEditingController();
 
   Timer? _debounce;
 
@@ -40,34 +45,55 @@ class NewsSearchDelegate extends SearchDelegate {
 
   String _running = "";
 
+  List<Article> _articles = const [];
+  bool _loading = false;
+  bool _failed = false;
+  bool _finished = false;
+  bool _searched = false;
+
   /// Launches and events already cached, so a result can carry the same link
   /// the feed does. Cache only — a decoration is not worth a request.
   Map<String, Launch> _launches = const {};
   Map<int, Event> _events = const {};
 
-  Future<void> loadCachedLinks() async {
-    try {
-      final launches = await LaunchLibraryAPI().cachedUpcomingLaunches();
-      final events = await LaunchLibraryAPI().cachedUpcomingEvents();
+  @override
+  void initState() {
+    super.initState();
 
-      _launches = {
-        for (final l in launches?.results ?? const <Launch>[])
-          if (l.id != null) l.id!: l,
-      };
-      _events = {
-        for (final e in events?.results ?? const <Event>[])
-          if (e.id != null) e.id!: e,
-      };
-    } catch (e) {
-      debugPrint("Could not read cached launches for news search: $e");
-    }
+    _field.addListener(() => _schedule(_field.text));
+    unawaited(_loadCachedLinks());
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _state.dispose();
+    _scroll.dispose();
+    _field.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCachedLinks() async {
+    try {
+      final launches = await LaunchLibraryAPI().cachedUpcomingLaunches();
+      final events = await LaunchLibraryAPI().cachedUpcomingEvents();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _launches = {
+          for (final l in launches?.results ?? const <Launch>[])
+            if (l.id != null) l.id!: l,
+        };
+        _events = {
+          for (final e in events?.results ?? const <Event>[])
+            if (e.id != null) e.id!: e,
+        };
+      });
+    } catch (e) {
+      debugPrint("Could not read cached launches for news search: $e");
+    }
   }
 
   /// Waits for a pause in typing before asking.
@@ -82,7 +108,11 @@ class NewsSearchDelegate extends SearchDelegate {
     if (trimmed.isEmpty) {
       _running = "";
       _generation++;
-      _state.value = const NewsSearchState();
+      setState(() {
+        _articles = const [];
+        _loading = false;
+        _searched = false;
+      });
       return;
     }
 
@@ -93,15 +123,19 @@ class NewsSearchDelegate extends SearchDelegate {
   }
 
   Future<void> _run(String q, {bool more = false}) async {
+    if (!mounted || (more && _loading)) {
+      return;
+    }
+
     final generation = more ? _generation : ++_generation;
     _running = q;
 
-    final previous = more ? _state.value.articles : const <Article>[];
-    _state.value = _state.value.copyWith(
-      loading: true,
-      failed: false,
-      articles: previous,
-    );
+    final previous = more ? _articles : const <Article>[];
+    setState(() {
+      _articles = previous;
+      _loading = true;
+      _failed = false;
+    });
 
     try {
       final res = await _service.searchArticles(
@@ -110,190 +144,121 @@ class NewsSearchDelegate extends SearchDelegate {
       );
 
       // A newer query started while this was in the air.
-      if (generation != _generation) {
+      if (!mounted || generation != _generation) {
         return;
       }
 
-      final combined = more ? [...previous, ...res.data] : res.data;
-
-      _state.value = NewsSearchState(
-        articles: combined,
-        loading: false,
-        finished: res.data.isEmpty,
-        searched: true,
-      );
+      setState(() {
+        _articles = more ? [...previous, ...res.data] : res.data;
+        _loading = false;
+        _finished = res.data.isEmpty;
+        _searched = true;
+      });
     } catch (e) {
       debugPrint("News search failed: $e");
 
-      if (generation != _generation) {
+      if (!mounted || generation != _generation) {
         return;
       }
 
-      _state.value = _state.value.copyWith(
-        loading: false,
-        failed: true,
-        searched: true,
-      );
+      setState(() {
+        _loading = false;
+        _failed = true;
+        _searched = true;
+      });
     }
   }
 
   @override
-  ThemeData appBarTheme(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
 
-    return Theme.of(context).copyWith(
-      textSelectionTheme: TextSelectionThemeData(
-        cursorColor: Colors.white,
-        selectionColor: Colors.white.withValues(alpha: .5),
-        selectionHandleColor: colorScheme.secondary,
-      ),
-      hintColor: Colors.white,
-      appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.primary,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: scheme.primary,
         systemOverlayStyle: systemOverlayStyle(context),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: TextField(
+          controller: _field,
+          autofocus: true,
+          textInputAction: TextInputAction.search,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+          cursorColor: Colors.white,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: localizations.search,
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.clear, color: Colors.white),
+            onPressed: _field.clear,
+            tooltip: localizations.clearSearch,
+          ),
+        ],
       ),
+      body: _body(localizations),
     );
   }
 
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear, color: Colors.white),
-        onPressed: () {
-          query = '';
-          showSuggestions(context);
-        },
-        tooltip: AppLocalizations.of(context)!.clearSearch,
-      ),
-    ];
-  }
+  Widget _body(AppLocalizations localizations) {
+    if (_articles.isEmpty) {
+      if (_loading) {
+        return const Center(child: PlanetLoadingAnimation());
+      }
+      if (_failed) {
+        return Center(child: Text(localizations.loadingNewsFail));
+      }
+      if (_searched) {
+        return Center(child: Text(localizations.emptyResults));
+      }
 
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.white),
-      onPressed: () {
-        _debounce?.cancel();
-        close(context, null);
-      },
-      tooltip: AppLocalizations.of(context)!.close,
-    );
-  }
+      return const SizedBox.shrink();
+    }
 
-  // Both show the same thing: there is nothing to suggest that is not simply
-  // the result, and having them differ would mean the screen changed under the
-  // user when the keyboard closed.
-  @override
-  Widget buildResults(BuildContext context) => _results(context);
+    return Stack(
+      children: [
+        ListView.builder(
+          controller: _scroll,
+          physics: const BouncingScrollPhysics(),
+          padding: bottomSystemBarPadding(context),
+          itemCount: _articles.length,
+          itemBuilder: (context, index) {
+            if (!_finished && !_loading && index >= _articles.length ~/ 2) {
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => unawaited(_run(_running, more: true)),
+              );
+            }
 
-  @override
-  Widget buildSuggestions(BuildContext context) => _results(context);
+            final a = _articles[index];
 
-  Widget _results(BuildContext context) {
-    _schedule(query);
-
-    return ValueListenableBuilder(
-      valueListenable: _state,
-      builder: (context, state, _) {
-        final localizations = AppLocalizations.of(context)!;
-
-        if (state.articles.isEmpty) {
-          if (state.loading) {
-            return const Center(child: PlanetLoadingAnimation());
-          }
-          if (state.failed) {
-            return Center(child: Text(localizations.loadingNewsFail));
-          }
-          if (state.searched) {
-            return Center(child: Text(localizations.emptyResults));
-          }
-
-          return const SizedBox.shrink();
-        }
-
-        return Stack(
-          children: [
-            ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              padding: bottomSystemBarPadding(context),
-              itemCount: state.articles.length,
-              itemBuilder: (context, index) {
-                if (!state.finished &&
-                    !state.loading &&
-                    index >= state.articles.length ~/ 2) {
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => unawaited(_run(_running, more: true)),
-                  );
-                }
-
-                final a = state.articles[index];
-
-                return ArticleRow(
-                  title: a.title,
-                  link: a.url,
-                  imageUrl: a.imageUrl,
-                  newsSite: a.newsSite,
-                  publishDate: a.publishedAt,
-                  relatedLaunch: a.launchIds
-                      .map((id) => _launches[id])
-                      .whereType<Launch>()
-                      .firstOrNull,
-                  relatedEvent: a.eventIds
-                      .map((id) => _events[id])
-                      .whereType<Event>()
-                      .firstOrNull,
-                );
-              },
-            ),
-            // Kept over the old results rather than replacing them, so typing
-            // does not blank the screen between queries.
-            if (state.loading)
-              const Align(
-                alignment: Alignment.topCenter,
-                child: LinearProgressIndicator(minHeight: 2),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// What the search screen is showing right now.
-class NewsSearchState {
-  const NewsSearchState({
-    this.articles = const [],
-    this.loading = false,
-    this.failed = false,
-    this.finished = false,
-    this.searched = false,
-  });
-
-  final List<Article> articles;
-  final bool loading;
-  final bool failed;
-
-  /// The last page came back empty, so there is no point asking for more.
-  final bool finished;
-
-  /// A query has actually run, which is what separates "nothing found" from
-  /// "you have not typed anything yet".
-  final bool searched;
-
-  NewsSearchState copyWith({
-    List<Article>? articles,
-    bool? loading,
-    bool? failed,
-    bool? finished,
-    bool? searched,
-  }) {
-    return NewsSearchState(
-      articles: articles ?? this.articles,
-      loading: loading ?? this.loading,
-      failed: failed ?? this.failed,
-      finished: finished ?? this.finished,
-      searched: searched ?? this.searched,
+            return ArticleRow(
+              title: a.title,
+              link: a.url,
+              imageUrl: a.imageUrl,
+              newsSite: a.newsSite,
+              publishDate: a.publishedAt,
+              relatedLaunch: a.launchIds
+                  .map((id) => _launches[id])
+                  .whereType<Launch>()
+                  .firstOrNull,
+              relatedEvent: a.eventIds
+                  .map((id) => _events[id])
+                  .whereType<Event>()
+                  .firstOrNull,
+            );
+          },
+        ),
+        // Kept over the old results rather than replacing them, so typing does
+        // not blank the screen between queries.
+        if (_loading)
+          const Align(
+            alignment: Alignment.topCenter,
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+      ],
     );
   }
 }

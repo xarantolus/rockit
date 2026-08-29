@@ -164,18 +164,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     final colour = Theme.of(context).textTheme.bodyLarge?.color;
 
     if (DefaultTabController.of(context).index == _newsTab) {
-      final news = NewsSearchDelegate(
-        searchLabel: label,
-        searchTextColor: colour,
-      );
-
-      unawaited(news.loadCachedLinks());
       unawaited(
-        showSearch(
-          context: context,
-          delegate: news,
-          query: '',
-        ).whenComplete(news.dispose),
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const NewsSearchPage())),
       );
 
       return;
