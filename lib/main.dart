@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/notifications/create.dart';
 import 'package:rockit/pages/home_page.dart';
@@ -48,6 +49,10 @@ void main() async {
     // Keeps the listings warm between sessions, so a cold start has something
     // to paint immediately.
     unawaited(BackgroundHandler().scheduleCacheWarming());
+
+    // Nothing waits on this: it only reads directory entries and deletes, and
+    // a start should not be held up to tidy a cache.
+    unawaited(CacheJanitor().sweep());
   }
 
   runApp(RockItApp(appPayloadNotifier));

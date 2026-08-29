@@ -19,6 +19,12 @@ class APIClient {
         Config(
           _key,
           stalePeriod: const Duration(days: 3),
+          // The default of 200 is smaller than one listing page's worth of
+          // work: a page of 100 launches writes the page *plus* a seeded copy
+          // of each entry, so two pages already evict the first. That capped
+          // search at one page however deep the background job read.
+          // CacheJanitor bounds the bytes.
+          maxNrOfCacheObjects: 800,
           repo: JsonCacheInfoRepository(databaseName: _key),
           fileService: HttpFileService(),
         ),

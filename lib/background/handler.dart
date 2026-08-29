@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
@@ -217,6 +218,10 @@ class BackgroundHandler {
     ]);
 
     await _letTheCacheIndexSettle();
+
+    // After the writes, so what this run just stored counts towards the budget
+    // rather than being swept on the next one.
+    await CacheJanitor().sweep();
 
     // Returning false asks WorkManager to run the whole task again, which is
     // only right when nothing worked at all.

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:rockit/apis/bounded_image_service.dart';
 
 class ImageWidget extends StatefulWidget {
   const ImageWidget(this.imageURL, {super.key});
@@ -157,7 +158,17 @@ int decodeBucketFor(double physicalPixels) {
 
 final BaseCacheManager? _imageCache = () {
   try {
-    return CacheManager(Config('images', stalePeriod: const Duration(days: 7)));
+    return CacheManager(
+      Config(
+        'images',
+        stalePeriod: const Duration(days: 7),
+        // Both limits are explicit because the defaults are the problem: the
+        // package counts objects and never bytes, so 200 news originals is
+        // gigabytes. CacheJanitor enforces the size; this only caps how many.
+        maxNrOfCacheObjects: 200,
+        fileService: BoundedImageFileService(),
+      ),
+    );
   } catch (e) {
     debugPrint("Could not initialize cache manager: $e");
   }
