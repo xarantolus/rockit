@@ -7,11 +7,19 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// The longest edge worth keeping on disk.
 ///
-/// `decodeBucketFor` caps every decode in the app at 2048 px, so pixels beyond
-/// this are bytes that nothing can ever draw. News sites publish originals:
-/// one NASA article photo measured 8256x5504 and 16.6 MB, downloaded to fill a
-/// 96 dp row.
-const maxStoredEdge = 2048;
+/// Only downloads over [reencodeAbove] are re-encoded at all, and in this app
+/// those are exclusively news press photos — sites publish the originals, one
+/// NASA article photo measuring 8256x5504 and 16.6 MB — which are only ever
+/// drawn in a 96 dp row, about 288 physical pixels. So this leaves better than
+/// three times the headroom they need.
+///
+/// It is deliberately far below `decodeBucketFor`'s 2048 px ceiling, which is
+/// the point beyond which *nothing* in the app can draw a pixel. Choosing 2048
+/// instead costs about 3.5x the bytes for the same rows: measured over one run
+/// of the news feed, 72 MB against 39 MB. The pathological case — an oversized
+/// image drawn full width — is a 5% upscale on a 1080 px phone, and no Launch
+/// Library image comes close to the threshold anyway.
+const maxStoredEdge = 1024;
 
 /// Below this, leave the download alone.
 ///
