@@ -355,7 +355,7 @@ class TimelineEvent {
 
   static Object? _readTypeName(Map<dynamic, dynamic> json, String key) {
     final type = json['type'];
-    if (type is Map) return type['abbrev'] ?? type['name'];
+    if (type is Map) return type['abbrev'];
     return null;
   }
 
