@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
@@ -7,6 +6,7 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/apis/spaceflightnews/article_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/util/keyboard.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
@@ -202,7 +202,11 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
             // new one, not the end of searching.
             onPressed: () {
               _field.clear();
+              // Both, because either can be the one that is missing: focus if
+              // the user had tapped away, the keyboard if it was merely
+              // dismissed while the field kept the caret.
               _focus.requestFocus();
+              showKeyboard();
             },
             tooltip: localizations.clearSearch,
           ),

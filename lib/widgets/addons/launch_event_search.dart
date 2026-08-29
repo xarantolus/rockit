@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
+import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
+import 'package:rockit/util/keyboard.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
@@ -87,7 +88,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         icon: const Icon(Icons.clear, color: Colors.white),
         onPressed: () {
           query = '';
+          // `showSuggestions` asks the delegate's own field for focus, which it
+          // already has, so nothing brings the keyboard back on its own.
           showSuggestions(context);
+          showKeyboard();
         },
         tooltip: AppLocalizations.of(context)!.clearSearch,
       ),
