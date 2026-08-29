@@ -80,8 +80,6 @@ class Pad {
   final String? name;
   final String? description;
 
-  /// Strings in 2.2.0, numbers in 2.3.0 — exactly the kind of type change a
-  /// plain cast would throw on.
   @JsonKey(fromJson: doubleFromJson)
   final double? latitude;
 
@@ -94,7 +92,6 @@ class Pad {
   final String? infoUrl;
   final int? totalLaunchCount;
 
-  /// An object in 2.3.0; 2.2.0 sent `country_code` instead.
   @JsonKey(fromJson: namedFromJson)
   final String? country;
 
@@ -136,7 +133,7 @@ class RocketConfiguration {
 
   final Agency? manufacturer;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   final String? infoUrl;
@@ -227,7 +224,7 @@ class Launcher {
   final int? flights;
   final int? successfulLandings;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   factory Launcher.fromJson(Map<String, dynamic> json) =>
@@ -257,22 +254,13 @@ class LauncherStage {
   /// Which flight of this particular airframe this is.
   final int? launcherFlightNumber;
 
-  /// How long this airframe sat between flights. Sent as an ISO-8601 duration
-  /// in 2.3.0 (`P27DT4H`) and as whole days in 2.2.0; both become a [Duration].
-  @JsonKey(readValue: _readTurnAround, fromJson: durationFromJson)
+  /// How long this airframe sat between flights, as an ISO-8601 duration.
+  @JsonKey(fromJson: durationFromJson)
   final Duration? turnAroundTime;
 
   final DateTime? previousFlightDate;
   final Launcher? launcher;
   final Landing? landing;
-
-  static Object? _readTurnAround(Map<dynamic, dynamic> json, String key) {
-    final value = json[key];
-    if (value != null) return value;
-
-    final days = json['turn_around_time_days'];
-    return days is num ? 'P${days.toInt()}D' : null;
-  }
 
   factory LauncherStage.fromJson(Map<String, dynamic> json) =>
       _$LauncherStageFromJson(json);
@@ -286,7 +274,7 @@ class SpacecraftStage {
   final String? name;
   final String? description;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   factory SpacecraftStage.fromJson(Map<String, dynamic> json) =>
@@ -306,8 +294,7 @@ class Rocket {
   final RocketConfiguration? configuration;
   final List<LauncherStage> launcherStage;
 
-  /// A single object in 2.2.0, a list in 2.3.0 — a crewed flight can carry
-  /// more than one spacecraft.
+  /// A list: a crewed flight can carry more than one spacecraft.
   final List<SpacecraftStage> spacecraftStage;
 
   factory Rocket.fromJson(Map<String, dynamic> json) => _$RocketFromJson(json);
@@ -416,7 +403,7 @@ class Launch {
   final DateTime? lastUpdated;
   final LaunchStatus? status;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   /// Percentage chance of favourable weather; null until close to launch.
@@ -440,11 +427,7 @@ class Launch {
   final List<Program> program;
   final List<MissionPatch> missionPatches;
 
-  /// 2.2.0 spelled these `infoURLs` / `vidURLs`.
-  @JsonKey(readValue: _readInfoUrls)
   final List<ContentUrl> infoUrls;
-
-  @JsonKey(readValue: _readVidUrls)
   final List<ContentUrl> vidUrls;
 
   final List<Update> updates;
@@ -461,12 +444,6 @@ class Launch {
 
   /// All-time launch count from this pad.
   final int? padLaunchAttemptCount;
-
-  static Object? _readInfoUrls(Map<dynamic, dynamic> json, String key) =>
-      json[key] ?? json['infoURLs'];
-
-  static Object? _readVidUrls(Map<dynamic, dynamic> json, String key) =>
-      json[key] ?? json['vidURLs'];
 
   /// Best available human name for the rocket.
   String? get rocketName =>

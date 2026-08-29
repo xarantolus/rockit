@@ -18,7 +18,7 @@ class SpaceStation {
   final String? name;
   final String? description;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   factory SpaceStation.fromJson(Map<String, dynamic> json) =>
@@ -73,8 +73,7 @@ class Event {
   /// A free-text place, e.g. `Earth` or `Mercury` — not a launch pad.
   final String? location;
 
-  /// 2.2.0 called this `feature_image` and sent a bare URL.
-  @JsonKey(readValue: _readImage, fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   final bool? webcastLive;
@@ -90,9 +89,6 @@ class Event {
   final List<ContentUrl> infoUrls;
   final List<ContentUrl> vidUrls;
   final List<Update> updates;
-
-  static Object? _readImage(Map<dynamic, dynamic> json, String key) =>
-      json[key] ?? json['feature_image'];
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
 }

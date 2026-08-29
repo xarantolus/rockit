@@ -31,7 +31,7 @@ void main() {
     });
 
     test('parses net as a real DateTime', () {
-      // 2.2.0 handed these out as strings and every call site re-parsed them.
+      // Parsed once on receive, rather than re-parsed at every use site.
       for (final launch in res.results) {
         expect(launch.net, isA<DateTime>());
       }
@@ -153,36 +153,6 @@ void main() {
     test('every event has the id the listing dedupes on', () {
       final ids = res.results.map((e) => e.id).toSet();
       expect(ids, hasLength(res.results.length));
-    });
-  });
-
-  group('backwards compatibility with cached 2.2.0 responses', () {
-    test('accepts a bare image URL string', () {
-      final launch = Launch.fromJson({
-        'id': 'x',
-        'image': 'https://example.invalid/rocket.jpg',
-      });
-
-      expect(launch.image?.imageUrl, 'https://example.invalid/rocket.jpg');
-      expect(launch.image?.thumbnailUrl, isNull);
-    });
-
-    test('accepts the old infoURLs / vidURLs spellings', () {
-      final launch = Launch.fromJson({
-        'id': 'x',
-        'vidURLs': [
-          {'title': 'Livestream', 'url': 'https://example.invalid/live'},
-        ],
-      });
-
-      expect(launch.vidUrls.single.title, 'Livestream');
-    });
-
-    test('accepts pad latitude as a string', () {
-      // 2.2.0 sent these as strings; a plain cast would have thrown.
-      final pad = Pad.fromJson({'latitude': '28.60822681'});
-
-      expect(pad.latitude, closeTo(28.608, 0.001));
     });
   });
 

@@ -13,24 +13,20 @@ part 'common.g.dart';
 /// versions. A nullable field with a missing key decodes to null; a
 /// non-nullable one would throw and take the whole listing down with it.
 
-/// Reads a value the API has changed the type of, or that arrives as a string
-/// in cached 2.2.0 responses.
+/// Reads a number without a cast that would throw on the wrong type.
 double? doubleFromJson(Object? value) {
   if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value);
   return null;
 }
 
 int? intFromJson(Object? value) {
   if (value is int) return value;
   if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value);
   return null;
 }
 
-/// `type` is a bare string in 2.2.0 and an object with a `name` in 2.3.0.
+/// Pulls the `name` out of one of the API's little `{id, name, ...}` objects.
 String? namedFromJson(Object? value) {
-  if (value is String) return value;
   if (value is Map) return value['name'] as String?;
   return null;
 }
@@ -131,7 +127,7 @@ class ImageLicense {
       _$ImageLicenseFromJson(json);
 }
 
-/// An image as 2.3.0 returns it — an object, where 2.2.0 sent a bare URL.
+/// An image as the API returns it: an object carrying both sizes.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class ApiImage {
   const ApiImage({
@@ -157,11 +153,9 @@ class ApiImage {
   factory ApiImage.fromJson(Map<String, dynamic> json) =>
       _$ApiImageFromJson(json);
 
-  /// Tolerates the bare URL string 2.2.0 used, so a cached response written by
-  /// an older build still decodes.
-  static ApiImage? fromJsonOrUrl(Object? value) {
+  /// Null rather than a throw when the key is missing or not an object.
+  static ApiImage? fromJsonOrNull(Object? value) {
     if (value is Map<String, dynamic>) return ApiImage.fromJson(value);
-    if (value is String && value.isNotEmpty) return ApiImage(imageUrl: value);
     return null;
   }
 
@@ -204,10 +198,10 @@ class Agency {
   final String? infoUrl;
   final String? wikiUrl;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? logo;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   factory Agency.fromJson(Map<String, dynamic> json) => _$AgencyFromJson(json);
@@ -247,7 +241,7 @@ class MissionPatch {
   final int? id;
   final String? name;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   final int? priority;
@@ -326,7 +320,7 @@ class Program {
   final String? name;
   final String? description;
 
-  @JsonKey(fromJson: ApiImage.fromJsonOrUrl)
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
   final String? infoUrl;

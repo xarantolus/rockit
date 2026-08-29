@@ -114,7 +114,7 @@ void main() {
     });
 
     test('a response with no precision keeps the old countdown behaviour', () {
-      // Cached 2.2.0 responses predate the field entirely.
+      // The field is absent whenever the API has not set it.
       expect(
         timeDisplayFor(someDate, null, now: beforeIt),
         TimeDisplay.countdown,
