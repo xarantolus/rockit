@@ -714,7 +714,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
               // Open by default: it is what the page is about. Dropped entirely
               // when there is no description, since the name is already the hero.
-              if (widget.launch.mission?.description != null)
+              if ((widget.launch.mission?.description ?? "").isNotEmpty)
                 DetailCard(
                   title: AppLocalizations.of(context)!.mission,
                   child: _missionDetails(context, widget.launch.mission!),
@@ -732,8 +732,9 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (widget.launch.rocket?.configuration?.description !=
-                          null)
+                      if ((widget.launch.rocket?.configuration?.description ??
+                              "")
+                          .isNotEmpty)
                         _rocketConfiguration(
                           context,
                           widget.launch.rocket!.configuration!,
@@ -837,7 +838,8 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   ),
                 ),
 
-              if (widget.launch.launchServiceProvider?.description != null)
+              if ((widget.launch.launchServiceProvider?.description ?? "")
+                  .isNotEmpty)
                 DetailCard(
                   title: AppLocalizations.of(context)!.source,
                   trailing: widget.launch.providerName,

@@ -289,7 +289,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (widget.event.description != null)
+                    if ((widget.event.description ?? "").isNotEmpty)
                       _eventDetails(context, widget.event),
                     if (widget.event.lastUpdated != null)
                       DetailRow(
