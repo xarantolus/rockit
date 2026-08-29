@@ -36,6 +36,7 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
   final _service = SpaceFlightNewsAPI();
   final _scroll = ScrollController();
   final _field = TextEditingController();
+  final _focus = FocusNode();
 
   Timer? _debounce;
 
@@ -69,6 +70,7 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
     _debounce?.cancel();
     _scroll.dispose();
     _field.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -181,20 +183,27 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: TextField(
           controller: _field,
+          focusNode: _focus,
           autofocus: true,
           textInputAction: TextInputAction.search,
           style: const TextStyle(color: Colors.white, fontSize: 18),
           cursorColor: Colors.white,
           decoration: InputDecoration(
             border: InputBorder.none,
-            hintText: localizations.search,
+            hintText: localizations.searchNews,
             hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.clear, color: Colors.white),
-            onPressed: _field.clear,
+            // Tapping the button takes focus, which closes the keyboard —
+            // and clearing the query is almost always the start of typing a
+            // new one, not the end of searching.
+            onPressed: () {
+              _field.clear();
+              _focus.requestFocus();
+            },
             tooltip: localizations.clearSearch,
           ),
         ],
