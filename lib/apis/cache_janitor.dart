@@ -19,15 +19,32 @@ import 'package:path_provider/path_provider.dart';
 /// safe — the store checks that a file exists before serving it, drops the
 /// entry when it does not, and refetches.
 class CacheJanitor {
-  /// Names match the `Config` keys the two stores are created with, because
-  /// that is what the package names their directories after.
-  static const _stores = {'images': imageBudget, 'http-cache': jsonBudget};
-
   static const imageBudget = 128 * 1024 * 1024;
 
   /// Enough for the deepest the background job can read — seven listing pages
   /// at ~3 MB, plus a per-launch copy of each entry — with room to spare.
   static const jsonBudget = 48 * 1024 * 1024;
+
+  /// How long a stored *response* may go without being refetched.
+  ///
+  /// Nothing else expires one. The store's `stalePeriod` counts from the last
+  /// *read*, not the last write, so an entry that keeps being read is kept
+  /// forever, and the cache-only reads never fall through to the network. A
+  /// launch that has since flown drops out of the listings — they start at
+  /// `net__gte` yesterday — so it is never re-seeded either: whatever it said
+  /// the last time it was fetched is what it would say for good, including a
+  /// status frozen at "Go for Launch" for a rocket that has long since landed.
+  ///
+  /// Only responses age out. An image at a URL does not change, so evicting a
+  /// good one only means downloading it again.
+  static const maxResponseAge = Duration(days: 7);
+
+  /// Names match the `Config` keys the two stores are created with, because
+  /// that is what the package names their directories after.
+  static const _stores = [
+    (dir: 'images', budget: imageBudget, maxAge: null),
+    (dir: 'http-cache', budget: jsonBudget, maxAge: maxResponseAge),
+  ];
 
   /// Deletes oldest-first until each store is under its budget.
   ///
@@ -41,18 +58,26 @@ class CacheJanitor {
     try {
       final root = await getTemporaryDirectory();
 
-      for (final store in _stores.entries) {
-        await trim(Directory('${root.path}/${store.key}'), store.value);
+      for (final store in _stores) {
+        await trim(
+          Directory('${root.path}/${store.dir}'),
+          store.budget,
+          maxAge: store.maxAge,
+        );
       }
     } catch (e) {
       debugPrint("Could not sweep the caches: $e");
     }
   }
 
-  /// Deletes oldest-first from [dir] until it fits [budget], returning the
-  /// number of bytes freed.
+  /// Deletes everything older than [maxAge], then oldest-first until [dir]
+  /// fits [budget]. Returns the number of bytes freed.
+  ///
+  /// Age is the file's own modification time, which is when it was written —
+  /// so this measures how long ago the response was *fetched*, not how
+  /// recently someone looked at it.
   @visibleForTesting
-  static Future<int> trim(Directory dir, int budget) async {
+  static Future<int> trim(Directory dir, int budget, {Duration? maxAge}) async {
     if (!await dir.exists()) {
       return 0;
     }
@@ -74,7 +99,10 @@ class CacheJanitor {
       }
     }
 
-    if (total <= budget) {
+    final expiry = maxAge == null ? null : DateTime.now().subtract(maxAge);
+    final expired = expiry != null && files.any((f) => f.$3.isBefore(expiry));
+
+    if (total <= budget && !expired) {
       return 0;
     }
 
@@ -83,8 +111,10 @@ class CacheJanitor {
     var freed = 0;
     var removed = 0;
 
-    for (final (file, size, _) in files) {
-      if (total - freed <= budget) {
+    for (final (file, size, modified) in files) {
+      final tooOld = expiry != null && modified.isBefore(expiry);
+
+      if (!tooOld && total - freed <= budget) {
         break;
       }
 

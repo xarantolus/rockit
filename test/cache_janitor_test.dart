@@ -80,4 +80,50 @@ void main() {
 
     expect(await CacheJanitor.trim(gone, 100), 0);
   });
+
+  group('expiry', () {
+    test('drops responses older than the age limit, budget or not', () async {
+      final old = write('old', 10, minutesOld: 60 * 24 * 8);
+      final fresh = write('fresh', 10, minutesOld: 60);
+
+      // Far under budget: only age can be doing this.
+      await CacheJanitor.trim(dir, 1000, maxAge: const Duration(days: 7));
+
+      expect(old.existsSync(), isFalse);
+      expect(fresh.existsSync(), isTrue);
+    });
+
+    test('keeps everything when nothing has aged out', () async {
+      write('a', 10, minutesOld: 60 * 24 * 6);
+
+      final freed = await CacheJanitor.trim(
+        dir,
+        1000,
+        maxAge: const Duration(days: 7),
+      );
+
+      expect(freed, 0);
+      expect(dir.listSync().length, 1);
+    });
+
+    test('without an age limit, age alone deletes nothing', () async {
+      write('ancient', 10, minutesOld: 60 * 24 * 400);
+
+      expect(await CacheJanitor.trim(dir, 1000), 0);
+      expect(dir.listSync().length, 1);
+    });
+
+    test('applies the age limit and the budget together', () async {
+      write('old', 500, minutesOld: 60 * 24 * 9);
+      write('big1', 500, minutesOld: 120);
+      write('big2', 500, minutesOld: 60);
+
+      await CacheJanitor.trim(dir, 600, maxAge: const Duration(days: 7));
+
+      // The aged one goes for being old, then one more to fit the budget.
+      expect(totalBytes(), lessThanOrEqualTo(600));
+      expect(File('${dir.path}/old').existsSync(), isFalse);
+      expect(File('${dir.path}/big2').existsSync(), isTrue);
+    });
+  });
 }

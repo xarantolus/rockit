@@ -18,9 +18,12 @@ class _LaunchWidgetState extends State<LaunchWidget> {
   Widget build(BuildContext context) {
     return LaunchEventWidget(
       title: widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch,
-      subtitle:
-          widget.launch.launchServiceProvider?.name ??
-          AppLocalizations.of(context)!.unknown,
+      // Null rather than "Unknown": a launch embedded in an event is
+      // `response_mode: list`, which carries no provider at all, and no
+      // request can change that — the schema hardcodes LaunchBasic there.
+      // Saying nothing is honest; saying "Unknown" reads as a fact about the
+      // launch.
+      subtitle: widget.launch.providerName,
       heroId: "${widget.launch.id}",
       heroTag: "${widget.heroPrefix}launch-image",
       image: widget.launch.image,

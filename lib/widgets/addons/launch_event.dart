@@ -33,7 +33,9 @@ class LaunchEventWidget extends StatefulWidget {
   final String? heroId;
 
   final String title;
-  final String subtitle;
+
+  /// Null when it is genuinely not known — the line is then left out.
+  final String? subtitle;
 
   final LaunchStatus? status;
 
@@ -142,12 +144,17 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  widget.subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14.0),
-                ),
+                child: widget.subtitle == null
+                    ? const SizedBox.shrink()
+                    : Text(
+                        widget.subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14.0,
+                        ),
+                      ),
               ),
               const SizedBox(width: 10),
               PrecisionTimeText(
