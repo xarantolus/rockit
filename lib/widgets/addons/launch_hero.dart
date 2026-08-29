@@ -100,11 +100,14 @@ class LaunchHero extends StatelessWidget with DateFormatter {
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
+                      // Kept a little heavier than the card's: this carries a
+                      // status pill, a countdown, a provider and a pad line
+                      // rather than two lines.
                       stops: [0.0, 0.6, 1.0],
                       colors: [
-                        Color(0xF2000000),
-                        Color(0x59000000),
-                        Color(0x1A000000),
+                        Color(0xD6000000),
+                        Color(0x4D000000),
+                        Color(0x00000000),
                       ],
                     ),
                   ),
