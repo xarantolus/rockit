@@ -70,6 +70,32 @@ void main() {
       );
     });
 
+    test('covers every abbreviation the API defines', () {
+      // The full list is /2.3.0/config/net_precisions/ — seventeen of them.
+      // These are the ones that used to fall through to "unknown", which
+      // renders as a precise calendar day: a decade shown as a Wednesday.
+      expect(
+        timeDisplayFor(someDate, precision('WK'), now: beforeIt),
+        TimeDisplay.day,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('AM'), now: beforeIt),
+        TimeDisplay.day,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('PM'), now: beforeIt),
+        TimeDisplay.day,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('FY'), now: beforeIt),
+        TimeDisplay.year,
+      );
+      expect(
+        timeDisplayFor(someDate, precision('DEC'), now: beforeIt),
+        TimeDisplay.decade,
+      );
+    });
+
     test('an unrecognised precision degrades to a day, never a countdown', () {
       // If the API adds a vocabulary entry, claiming less precision is the
       // safe way to be wrong.

@@ -30,6 +30,10 @@ enum TimeDisplay {
   /// A bare year.
   year,
 
+  /// A whole decade, e.g. "NET 2030s". Rare, but the API has a precision for
+  /// it, and without this it fell through to a precise calendar day.
+  decade,
+
   /// No usable date at all.
   unknown,
 }
@@ -76,6 +80,9 @@ TimeDisplay timeDisplayFor(
 
     case DatePrecisionKind.year:
       return TimeDisplay.year;
+
+    case DatePrecisionKind.decade:
+      return TimeDisplay.decade;
 
     case DatePrecisionKind.unknown:
       return TimeDisplay.day;

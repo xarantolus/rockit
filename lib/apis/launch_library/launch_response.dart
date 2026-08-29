@@ -23,9 +23,13 @@ class LaunchStatus {
 
   /// Ids from `/config/launch_statuses/`. An unknown id falls through every
   /// case and the UI renders it neutrally rather than guessing.
+  // Ids rather than abbreviations, which are free text. The full list is at
+  // `/2.3.0/config/launch_statuses/`.
   bool get isGo => id == 1;
   bool get isTentative => id == 2 || id == 8; // To Be Determined / Confirmed
-  bool get isSuccess => id == 3;
+  // Payload Deployed is an outcome, not a pending state: without it a
+  // deployed launch fell through to the same grey badge as "To Be Determined".
+  bool get isSuccess => id == 3 || id == 9;
   bool get isFailure => id == 4 || id == 7; // Failure / Partial Failure
   bool get isHold => id == 5;
   bool get isInFlight => id == 6;

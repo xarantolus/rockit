@@ -58,6 +58,9 @@ class DatePrecision {
   /// Matching is on `abbrev` because the ids are sparse (0, 1, 5, 7, 10, 14…)
   /// and new ones appear. Quarters arrive as `Q1`–`Q4` and half-years as
   /// `H1`/`H2`; both mean "some months this year", so they collapse together.
+  /// The abbreviations come from `/2.3.0/config/net_precisions/`, which
+  /// enumerates all seventeen. The longer spellings are kept as a fallback in
+  /// case the vocabulary ever changes under us.
   DatePrecisionKind get kind {
     switch (abbrev?.toUpperCase()) {
       case 'SEC':
@@ -67,8 +70,13 @@ class DatePrecision {
       case 'HR':
       case 'HOUR':
         return DatePrecisionKind.hour;
+      // Morning and Afternoon pin the day but not the clock, so they are a
+      // day as far as anything we render is concerned.
+      case 'AM':
+      case 'PM':
       case 'DAY':
         return DatePrecisionKind.day;
+      case 'WK':
       case 'WEEK':
         return DatePrecisionKind.week;
       case 'M':
@@ -82,8 +90,11 @@ class DatePrecision {
       case 'H2':
         return DatePrecisionKind.quarter;
       case 'Y':
+      case 'FY':
       case 'YEAR':
         return DatePrecisionKind.year;
+      case 'DEC':
+        return DatePrecisionKind.decade;
     }
     return DatePrecisionKind.unknown;
   }
@@ -98,6 +109,7 @@ enum DatePrecisionKind {
   month,
   quarter,
   year,
+  decade,
 
   /// Something the API added that we do not know yet. Treated as imprecise,
   /// which is the safe direction to be wrong in.

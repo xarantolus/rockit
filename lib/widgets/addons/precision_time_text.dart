@@ -148,6 +148,13 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
           style: widget.style,
         );
 
+      case TimeDisplay.decade:
+        // Floored, so a date in 2031 known only to the decade reads "2030s".
+        return Text(
+          "${localizations.netPrefix} ${local.year ~/ 10 * 10}s",
+          style: widget.style,
+        );
+
       case TimeDisplay.unknown:
         return Text(localizations.launchTimeUnknown, style: widget.style);
     }
