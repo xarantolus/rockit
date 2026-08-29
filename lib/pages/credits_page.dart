@@ -16,7 +16,6 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
 
     const spaceDevsLink = "https://thespacedevs.com/";
     const projectLink = "https://github.com/xarantolus/rockit";
-    const twitterBotLink = "https://twitter.com/wenhopbot";
 
     return Scaffold(
       appBar: CustomAppBar.create(
@@ -57,20 +56,6 @@ class CreditPage extends StatelessWidget with LinkCopier, UrlLauncher {
                 await launchURL(context, projectLink);
               },
               onLongPress: () => copyLink(context, projectLink),
-              label: Text(AppLocalizations.of(context)!.openWebsite),
-            ),
-            const Divider(),
-            Text(AppLocalizations.of(context)!.twitterBot, style: titleStyle),
-            Text(
-              AppLocalizations.of(context)!.twitterBotDescription,
-              style: descStyle,
-            ),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.open_in_browser),
-              onPressed: () async {
-                await launchURL(context, twitterBotLink);
-              },
-              onLongPress: () => copyLink(context, twitterBotLink),
               label: Text(AppLocalizations.of(context)!.openWebsite),
             ),
           ],

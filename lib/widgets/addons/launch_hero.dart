@@ -54,13 +54,24 @@ class LaunchHero extends StatelessWidget with DateFormatter {
 
     try {
       final local = tz.TZDateTime.from(at, tz.getLocation(zone));
-      // Same wall clock as the viewer: nothing extra to say.
-      if (local.hour == at.toLocal().hour &&
-          local.minute == at.toLocal().minute) {
+      final here = at.toLocal();
+
+      final sameDay =
+          local.year == here.year &&
+          local.month == here.month &&
+          local.day == here.day;
+
+      // Nothing worth saying only when the pad reads the same clock on the
+      // same day.
+      if (sameDay && local.hour == here.hour && local.minute == here.minute) {
         return null;
       }
 
-      return formatTime(context, local);
+      // Nearly half of launches fall on a different calendar day at the pad,
+      // and a bare time there reads as today.
+      return sameDay
+          ? formatTime(context, local)
+          : formatDateTime(context, local);
     } catch (_) {
       return null;
     }

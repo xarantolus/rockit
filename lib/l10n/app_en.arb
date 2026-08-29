@@ -110,8 +110,6 @@
   "openWebsite": "Open Website",
   "development": "Development",
   "developmentDescription": "This app is developed on GitHub. If you want to see or contribute to the code, feel free to check it out!",
-  "twitterBot": "Twitter bot",
-  "twitterBotDescription": "If you're interested in Starship updates, you can follow my Starship bot on Twitter.",
   "downloadApp": "Download app",
   "downloadAppDescription": "The Android App helps you stay informed even better.",
   "cancel": "Cancel",

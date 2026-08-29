@@ -98,9 +98,9 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
               // sit on top at full strength. The blur is what keeps them
               // readable — a flat wash over a launch photo competes with them.
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                 child: Material(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.72),
+                  color: theme.colorScheme.surface.withValues(alpha: 0.45),
                   child: SizedBox(
                     height: FloatingNavBar._height,
                     child: Row(mainAxisSize: MainAxisSize.min, children: items),
