@@ -26,6 +26,23 @@ class ApiThrottle {
 
   final String? ident;
 
+  /// How long until the API will accept another request, rounded up to a whole
+  /// minute.
+  ///
+  /// Whether that moment frees one slot or the whole budget is not documented
+  /// — the API's own docs say only "15 calls per hour", and the schema types
+  /// this as a bare integer — and it cannot be measured on `lldev`, which is
+  /// exempt from throttling. It does not matter for telling someone when to
+  /// come back: either way, that is when the next request goes through.
+  Duration? get untilNextSlot {
+    final secs = nextUseSecs;
+    if (secs == null || secs <= 0) {
+      return null;
+    }
+
+    return Duration(minutes: (secs / 60).ceil());
+  }
+
   /// How many requests are left before the API starts refusing.
   ///
   /// Null when the reading did not say, so a caller can tell "none left" from

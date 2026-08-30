@@ -120,13 +120,37 @@
   "close": "Close",
   "emptyResults": "No results for this query",
   "loadingMore": "Loading more\u2026",
-  "searchResultsMissing": "Some results are missing.",
-  "@searchResultsMissing": {
-    "description": "Shown above search results when the index could not be finished, so the list may be short"
+  "searchLimitedResults": "Hourly data limit reached. Some results are missing.",
+  "@searchLimitedResults": {
+    "description": "Above a short result list when the launch API's hourly request limit stopped the index being finished"
   },
-  "searchLoadFailed": "Couldn\u2019t load launches and events.",
-  "@searchLoadFailed": {
-    "description": "Shown instead of the no-results message when nothing could be loaded at all, so an empty list is not mistaken for an answer"
+  "searchOfflineResults": "No connection. Some results are missing.",
+  "@searchOfflineResults": {
+    "description": "Above a short result list when the launch API could not be reached at all"
+  },
+  "searchLimitedResultsIn": "{count,plural, =1{Hourly limit reached. More in about 1 min.}other{Hourly limit reached. More in about {count} min.}}",
+  "@searchLimitedResultsIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchLimitedEmptyIn": "{count,plural, =1{Hourly limit for launch data reached. Try again in about 1 min.}other{Hourly limit for launch data reached. Try again in about {count} min.}}",
+  "@searchLimitedEmptyIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchLimitedEmpty": "Hourly limit for launch data reached. Try again shortly.",
+  "@searchLimitedEmpty": {
+    "description": "Instead of the no-results message when the hourly request limit meant nothing could be loaded"
+  },
+  "searchOfflineEmpty": "Couldn\u2019t reach the launch data. Check your connection.",
+  "@searchOfflineEmpty": {
+    "description": "Instead of the no-results message when the launch API could not be reached at all"
   },
   "@loadingMore": {
     "description": "Shown in place of the no-results message while the search index is still being fetched, so an empty list is not mistaken for an answer"

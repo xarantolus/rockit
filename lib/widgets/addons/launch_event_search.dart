@@ -13,6 +13,17 @@ import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
+/// Why the search index stopped short of everything.
+enum SearchIssue {
+  none,
+
+  /// The launch API rations requests by the hour and we are out of them.
+  rateLimited,
+
+  /// It could not be reached at all.
+  unreachable,
+}
+
 class LaunchEventSearchDelegate extends SearchDelegate {
   LaunchEventSearchDelegate({
     required String searchLabel,
@@ -37,11 +48,17 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   /// rather than looking simply incomplete.
   final completing = ValueNotifier<bool>(false);
 
-  /// True when the index could not be finished — the budget was gone, the API
-  /// refused, or the connection failed. Kept apart from [completing] because
-  /// an empty list means something different in each case, and "no results" is
-  /// an answer we have not earned in either.
-  final incomplete = ValueNotifier<bool>(false);
+  /// Why the index could not be finished, if it could not.
+  ///
+  /// Kept apart from [completing] because an empty list means something
+  /// different in each case, and "no results" is an answer we have not earned
+  /// in either. The two reasons are worth telling apart: nobody knows the
+  /// launch API rations requests by the hour, so a limit we hit reads as their
+  /// phone being offline unless it is named.
+  final issue = ValueNotifier<({SearchIssue kind, Duration? retryIn})>((
+    kind: SearchIssue.none,
+    retryIn: null,
+  ));
 
   /// Set when the user leaves. Pages already in flight will land and be
   /// cached, which is useful, but nothing new is requested for a screen that
@@ -137,15 +154,17 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         return;
       }
 
-      var budget = await _spendableRequests();
+      final spendable = await _spendableRequests();
+      var budget = spendable.budget;
+
       if (budget <= 0) {
         // Known to be short, rather than known to be empty.
-        incomplete.value = true;
+        issue.value = (kind: spendable.issue, retryIn: spendable.retryIn);
         return;
       }
 
       completing.value = true;
-      var finished = true;
+      var trouble = (kind: SearchIssue.none, retryIn: null as Duration?);
 
       /// Continues a listing over the network, where a null `from` starts at
       /// page one.
@@ -161,8 +180,13 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         var more = true;
 
         while (more) {
-          if (_closed || budget <= 0) {
-            finished = false;
+          // Leaving is not a failure, so it says nothing to the user.
+          if (_closed) {
+            return;
+          }
+
+          if (budget <= 0) {
+            trouble = await _classifyFailure();
             return;
           }
 
@@ -172,7 +196,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
             final resp = await page(next);
             final data = resp.data;
             if (data == null) {
-              finished = false;
+              trouble = await _classifyFailure();
               return;
             }
 
@@ -184,7 +208,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
             // A refused or failed request for a page nothing has cached throws
             // rather than degrading, and it must not read as "no results".
             debugPrint("Could not fetch a page for the search index: $e");
-            finished = false;
+            trouble = await _classifyFailure();
             return;
           }
         }
@@ -193,10 +217,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
       await fetchRest(launches, (next) => api.upcomingLaunches(next: next));
       await fetchRest(events, (next) => api.upcomingEvents(next: next));
 
-      incomplete.value = !finished;
+      issue.value = trouble;
     } catch (e) {
       debugPrint("Error building the search index: $e");
-      incomplete.value = true;
+      issue.value = (kind: SearchIssue.unreachable, retryIn: null);
     } finally {
       completing.value = false;
       _indexing = false;
@@ -209,13 +233,43 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   /// plenty: `/api-throttle/` is free and answers even while everything else is
   /// being refused, so a failure to read it means the network is down, when
   /// fetching would not have worked anyway.
-  Future<int> _spendableRequests() async {
-    final remaining = (await LaunchLibraryAPI().throttle())?.remaining;
+  Future<({int budget, SearchIssue issue, Duration? retryIn})>
+  _spendableRequests() async {
+    final throttle = await LaunchLibraryAPI().throttle();
+    final remaining = throttle?.remaining;
+
     if (remaining == null) {
-      return 0;
+      return (budget: 0, issue: SearchIssue.unreachable, retryIn: null);
     }
 
-    return min(_maxExtraPages, remaining - _reserve);
+    final budget = min(_maxExtraPages, remaining - _reserve);
+
+    return (
+      budget: budget,
+      issue: budget <= 0 ? SearchIssue.rateLimited : SearchIssue.none,
+      retryIn: throttle?.untilNextSlot,
+    );
+  }
+
+  /// Works out why a page did not arrive, by asking the one endpoint that
+  /// still answers when the rest is being refused.
+  ///
+  /// `/api-throttle/` is free and replies through a 429, so failing to read it
+  /// means the connection is gone, while reading it and finding the budget
+  /// spent means the limit is what stopped us.
+  Future<({SearchIssue kind, Duration? retryIn})> _classifyFailure() async {
+    final throttle = await LaunchLibraryAPI().throttle();
+    final remaining = throttle?.remaining;
+
+    if (remaining == null) {
+      return (kind: SearchIssue.unreachable, retryIn: null);
+    }
+
+    if (remaining > 0) {
+      return (kind: SearchIssue.unreachable, retryIn: null);
+    }
+
+    return (kind: SearchIssue.rateLimited, retryIn: throttle?.untilNextSlot);
   }
 
   @override
@@ -299,8 +353,9 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     lastTerm = query;
 
     return _whileIndexing(
-      builder: (context, all, busy, short) {
+      builder: (context, all, busy, why) {
         final matches = _matches(all).map((e) => e.item).toList();
+        final short = why.kind != SearchIssue.none;
 
         // Nothing found *yet* is not the same as nothing to find, and neither
         // is nothing found *because the API refused*. "No results" is only
@@ -314,7 +369,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  AppLocalizations.of(context)!.searchLoadFailed,
+                  _nothingLoadedReason(context, why),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -326,7 +381,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           children: [
             // Above the list rather than over it: unlike the progress bar this
             // is not going away on its own, so it should take its own space.
-            if (short && !busy) _incompleteNotice(context),
+            if (short && !busy) _incompleteNotice(context, why),
             Expanded(
               child: Stack(
                 children: [
@@ -399,22 +454,65 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   /// Rebuilds on the index, on whether it is still filling and on whether it
   /// gave up, so every state below is decided in one place.
   Widget _whileIndexing({
-    required Widget Function(BuildContext, List<_Entry>, bool, bool) builder,
+    required Widget Function(
+      BuildContext,
+      List<_Entry>,
+      bool,
+      ({SearchIssue kind, Duration? retryIn}),
+    )
+    builder,
   }) {
     return ValueListenableBuilder(
       valueListenable: entries,
       builder: (context, all, _) => ValueListenableBuilder(
         valueListenable: completing,
         builder: (context, busy, _) => ValueListenableBuilder(
-          valueListenable: incomplete,
-          builder: (context, short, _) => builder(context, all, busy, short),
+          valueListenable: issue,
+          builder: (context, why, _) => builder(context, all, busy, why),
         ),
       ),
     );
   }
 
+  /// Names the cause, because "some results are missing" on its own reads as a
+  /// bad connection whichever it was.
+  String _shortListReason(
+    BuildContext context,
+    ({SearchIssue kind, Duration? retryIn}) why,
+  ) {
+    final l = AppLocalizations.of(context)!;
+
+    if (why.kind != SearchIssue.rateLimited) {
+      return l.searchOfflineResults;
+    }
+
+    final mins = why.retryIn?.inMinutes;
+
+    return mins == null
+        ? l.searchLimitedResults
+        : l.searchLimitedResultsIn(mins);
+  }
+
+  String _nothingLoadedReason(
+    BuildContext context,
+    ({SearchIssue kind, Duration? retryIn}) why,
+  ) {
+    final l = AppLocalizations.of(context)!;
+
+    if (why.kind != SearchIssue.rateLimited) {
+      return l.searchOfflineEmpty;
+    }
+
+    final mins = why.retryIn?.inMinutes;
+
+    return mins == null ? l.searchLimitedEmpty : l.searchLimitedEmptyIn(mins);
+  }
+
   /// Says the list is short rather than letting it pass for the whole answer.
-  Widget _incompleteNotice(BuildContext context) {
+  Widget _incompleteNotice(
+    BuildContext context,
+    ({SearchIssue kind, Duration? retryIn}) why,
+  ) {
     final theme = Theme.of(context);
 
     return Container(
@@ -431,7 +529,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              AppLocalizations.of(context)!.searchResultsMissing,
+              _shortListReason(context, why),
               style: TextStyle(
                 fontSize: 13,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -469,7 +567,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     BuildContext context,
     List<_Entry> all,
     bool busy,
-    bool short,
+    ({SearchIssue kind, Duration? retryIn}) why,
   ) {
     final suggestions = _searchSuggestions(_matches(all));
 
@@ -482,9 +580,9 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            short
-                ? AppLocalizations.of(context)!.searchLoadFailed
-                : AppLocalizations.of(context)!.emptyResults,
+            why.kind == SearchIssue.none
+                ? AppLocalizations.of(context)!.emptyResults
+                : _nothingLoadedReason(context, why),
             textAlign: TextAlign.center,
           ),
         ),

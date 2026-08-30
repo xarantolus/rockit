@@ -5,6 +5,7 @@ import 'package:rockit/apis/launch_library/throttle.dart';
 /// wrong either wastes the user's budget or leaves the app throttled when they
 /// next open it.
 void main() {
+  _untilNextSlot();
   ApiThrottle at({int? limit = 15, int? used = 0}) =>
       ApiThrottle(yourRequestLimit: limit, currentUse: used);
 
@@ -59,6 +60,41 @@ void main() {
       expect(t.nextUseSecs, 1631);
       expect(t.ident, "188.101.224.20");
       expect(t.requestsUntilHalfSpent, lessThanOrEqualTo(0));
+    });
+  });
+}
+
+void _untilNextSlot() {
+  group('untilNextSlot', () {
+    // Rounded up, because "try again in 0 min" is useless. What that moment
+    // frees — one slot or the lot — is undocumented and does not change the
+    // arithmetic.
+    test('rounds up to a whole minute', () {
+      expect(
+        const ApiThrottle(nextUseSecs: 61).untilNextSlot,
+        const Duration(minutes: 2),
+      );
+      expect(
+        const ApiThrottle(nextUseSecs: 60).untilNextSlot,
+        const Duration(minutes: 1),
+      );
+      expect(
+        const ApiThrottle(nextUseSecs: 1).untilNextSlot,
+        const Duration(minutes: 1),
+      );
+    });
+
+    test('is null when there is nothing to wait for', () {
+      expect(const ApiThrottle().untilNextSlot, isNull);
+      expect(const ApiThrottle(nextUseSecs: 0).untilNextSlot, isNull);
+      expect(const ApiThrottle(nextUseSecs: -5).untilNextSlot, isNull);
+    });
+
+    test('handles a long wait', () {
+      expect(
+        const ApiThrottle(nextUseSecs: 1631).untilNextSlot,
+        const Duration(minutes: 28),
+      );
     });
   });
 }
