@@ -19,7 +19,14 @@ import 'package:path_provider/path_provider.dart';
 /// safe — the store checks that a file exists before serving it, drops the
 /// entry when it does not, and refetches.
 class CacheJanitor {
-  static const imageBudget = 128 * 1024 * 1024;
+  /// Launch and event photography: shown large, the same picture every time,
+  /// and a bounded set.
+  static const imageBudget = 96 * 1024 * 1024;
+
+  /// Article and link-preview thumbnails, which are the biggest files in the
+  /// cache and the least revisited. Its own store, so it can expire on its own
+  /// seven-day clock without taking the launch photos with it.
+  static const articleImageBudget = 32 * 1024 * 1024;
 
   /// Enough for the deepest the background job can read — seven listing pages
   /// at ~3 MB, plus a per-launch copy of each entry — with room to spare.
@@ -43,6 +50,7 @@ class CacheJanitor {
   /// that is what the package names their directories after.
   static const _stores = [
     (dir: 'images', budget: imageBudget, maxAge: null),
+    (dir: 'article-images', budget: articleImageBudget, maxAge: null),
     (dir: 'http-cache', budget: jsonBudget, maxAge: maxResponseAge),
   ];
 

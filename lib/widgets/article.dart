@@ -74,14 +74,14 @@ class _ArticleCardWidgetState extends State<ArticleCardWidget>
     final imageStack = Stack(
       children: [
         if (widget.fullImage == true)
-          ImageWidget(widget.imageUrl)
+          ImageWidget(widget.imageUrl, shortLived: true)
         else
           // This SizedBox makes sure the image covers the entire area it's shown in,
           // cutting off parts of the image if it is too high/wide
           SizedBox(
             width: double.infinity,
             height: double.infinity,
-            child: ImageWidget(widget.imageUrl),
+            child: ImageWidget(widget.imageUrl, shortLived: true),
           ),
         if (widget.newsSite != null)
           Align(

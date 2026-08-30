@@ -60,7 +60,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
     try {
       final articles = await SpaceFlightNewsAPI().articles();
-      await warmImages(articles.data.map((a) => a.imageUrl));
+      await warmImages(articles.data.map((a) => a.imageUrl), shortLived: true);
     } catch (e) {
       debugPrint("Could not warm the news tab: $e");
     }

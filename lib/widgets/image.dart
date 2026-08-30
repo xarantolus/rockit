@@ -7,9 +7,14 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:rockit/apis/bounded_image_service.dart';
 
 class ImageWidget extends StatefulWidget {
-  const ImageWidget(this.imageURL, {super.key});
+  const ImageWidget(this.imageURL, {this.shortLived = false, super.key});
 
   final String? imageURL;
+
+  /// True for a thumbnail that goes stale with its article rather than one
+  /// worth keeping, which picks the seven-day store instead of the sixty-day
+  /// one. See [_articleImageCache].
+  final bool shortLived;
 
   @override
   State<ImageWidget> createState() => _ImageWidgetState();
@@ -53,7 +58,7 @@ class _ImageWidgetState extends State<ImageWidget>
     try {
       final ImageProvider source = CachedNetworkImageProvider(
         kIsWeb ? "https://fuckcors.app/$imageURL" : imageURL,
-        cacheManager: _imageCache,
+        cacheManager: widget.shortLived ? _articleImageCache : _imageCache,
       );
 
       return Image(
@@ -156,6 +161,29 @@ int decodeBucketFor(double physicalPixels) {
   return rounded.clamp(_bucket, _maxBound);
 }
 
+/// Article and link-preview thumbnails, kept on a much shorter leash.
+///
+/// A launch photo is worth keeping: it is shown large, it is the same picture
+/// every time you open that launch, and there are only so many of them. A news
+/// thumbnail is the opposite — the feed moves on within days, the picture is
+/// drawn at 96 dp, and the biggest files in the whole cache are these. Seven
+/// days is longer than the feed stays interesting.
+final BaseCacheManager? _articleImageCache = () {
+  try {
+    return CacheManager(
+      Config(
+        'article-images',
+        stalePeriod: const Duration(days: 7),
+        maxNrOfCacheObjects: 150,
+        fileService: BoundedImageFileService(),
+      ),
+    );
+  } catch (e) {
+    debugPrint("Could not initialize the article image cache: $e");
+  }
+  return null;
+}();
+
 final BaseCacheManager? _imageCache = () {
   try {
     return CacheManager(
@@ -192,8 +220,12 @@ final BaseCacheManager? _imageCache = () {
 ///
 /// One at a time and only the first few, so a tab nobody is looking at cannot
 /// crowd out the one they are.
-Future<void> warmImages(Iterable<String?> urls, {int limit = 4}) async {
-  final cache = _imageCache;
+Future<void> warmImages(
+  Iterable<String?> urls, {
+  int limit = 4,
+  bool shortLived = false,
+}) async {
+  final cache = shortLived ? _articleImageCache : _imageCache;
   if (cache == null || kIsWeb) {
     return;
   }

@@ -82,7 +82,7 @@ class ArticleRow extends StatelessWidget
                 child: SizedBox(
                   width: _imageSize,
                   height: _imageSize,
-                  child: ImageWidget(imageUrl),
+                  child: ImageWidget(imageUrl, shortLived: true),
                 ),
               ),
               const SizedBox(width: 12),
