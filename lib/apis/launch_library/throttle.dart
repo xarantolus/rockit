@@ -26,6 +26,22 @@ class ApiThrottle {
 
   final String? ident;
 
+  /// How many requests are left before the API starts refusing.
+  ///
+  /// Null when the reading did not say, so a caller can tell "none left" from
+  /// "we do not know" — spending against a guess is how a session ends up
+  /// throttled.
+  int? get remaining {
+    final limit = yourRequestLimit;
+    if (limit == null || limit <= 0) {
+      return null;
+    }
+
+    final left = limit - (currentUse ?? 0);
+
+    return left < 0 ? 0 : left;
+  }
+
   /// How many requests may still be spent without going past half the budget.
   ///
   /// Half, so that opening the app right after a background job still has room

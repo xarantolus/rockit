@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
@@ -17,43 +20,135 @@ class LaunchEventSearchDelegate extends SearchDelegate {
          searchFieldStyle: TextStyle(color: searchTextColor),
        );
 
-  /// Everything searchable, rebuilt as cached pages arrive.
+  /// Everything searchable, rebuilt as pages arrive.
   final entries = ValueNotifier<List<_Entry>>([]);
 
-  /// Walks the *cached* listing pages and indexes what it finds.
+  /// True while pages are still being fetched, so the results can say so
+  /// rather than looking simply incomplete.
+  final completing = ValueNotifier<bool>(false);
+
+  /// At most this many requests to finish the index, whatever the budget says.
   ///
-  /// Cache only. This used to page with `preferCache: true`, which falls
-  /// through to the network on a miss, so opening search could spend most of
-  /// the fifteen hourly requests before the field even appeared — measured at
-  /// three requests and 21 seconds against the dev API, and it is capped at
-  /// ten. Now an uncached page simply is not searched.
-  Future<void> indexCachedPages() async {
-    final api = LaunchLibraryAPI();
-    final found = <dynamic>[];
+  /// The whole upcoming set is about three pages — 191 launches and 33 events
+  /// against a page size of 100 — and page one of each is normally cached
+  /// already, so this is a ceiling that is rarely reached rather than a crawl.
+  static const _maxExtraPages = 3;
 
-    Future<void> walk(Future<dynamic> Function(String? next) page) async {
-      String? next;
-      do {
-        final resp = await page(next);
-        if (resp == null) {
-          return;
-        }
+  /// Left unspent, so searching cannot consume the budget a detail page or a
+  /// refresh needs straight afterwards.
+  static const _reserve = 4;
 
-        found.addAll(resp.results as List<dynamic>);
-        next = resp.next as String?;
+  bool _indexing = false;
 
+  /// Indexes the cached listing pages, then fetches whatever the cache was
+  /// missing.
+  ///
+  /// The cache walk comes first and alone decides what is on screen initially:
+  /// this used to page with `preferCache: true`, which falls through to the
+  /// network on a *miss*, so opening search could spend most of the fifteen
+  /// hourly requests before the field even appeared — measured at three
+  /// requests and 21 seconds against the dev API. Fetching afterwards keeps
+  /// that opening instant while still completing the index, because results
+  /// stream into [entries] as they arrive.
+  Future<void> indexPages() async {
+    if (_indexing) {
+      return;
+    }
+
+    _indexing = true;
+
+    try {
+      final api = LaunchLibraryAPI();
+      final found = <dynamic>[];
+
+      void publish() {
         entries.value = sortLaunchesAndEvents(
           List.of(found),
         ).map(_Entry.new).toList();
-      } while (next != null);
-    }
+      }
 
-    try {
-      await walk((next) => api.cachedUpcomingLaunches(next: next));
-      await walk((next) => api.cachedUpcomingEvents(next: next));
+      /// Reads cached pages until one is missing, and returns where to
+      /// continue from — null when the listing is already complete.
+      Future<String?> walkCache(
+        Future<dynamic> Function(String? next) page,
+      ) async {
+        String? next;
+        do {
+          final resp = await page(next);
+          if (resp == null) {
+            return next;
+          }
+
+          found.addAll(resp.results as List<dynamic>);
+          next = resp.next as String?;
+          publish();
+        } while (next != null);
+
+        return null;
+      }
+
+      final launchNext = await walkCache(
+        (next) => api.cachedUpcomingLaunches(next: next),
+      );
+      final eventNext = await walkCache(
+        (next) => api.cachedUpcomingEvents(next: next),
+      );
+
+      if (launchNext == null && eventNext == null) {
+        return;
+      }
+
+      var budget = await _spendableRequests();
+      if (budget <= 0) {
+        return;
+      }
+
+      completing.value = true;
+
+      /// Continues a listing over the network from [from].
+      Future<void> fetchRest(
+        String? from,
+        Future<ErrorDetails<dynamic>> Function(String? next) page,
+      ) async {
+        var next = from;
+        while (next != null && budget > 0) {
+          budget--;
+
+          final resp = await page(next);
+          final data = resp.data;
+          if (data == null) {
+            return;
+          }
+
+          found.addAll(data.results as List<dynamic>);
+          next = data.next as String?;
+          publish();
+        }
+      }
+
+      await fetchRest(launchNext, (next) => api.upcomingLaunches(next: next));
+      await fetchRest(eventNext, (next) => api.upcomingEvents(next: next));
     } catch (e) {
       debugPrint("Error building the search index: $e");
+    } finally {
+      completing.value = false;
+      _indexing = false;
     }
+  }
+
+  /// What may be spent on completing the index.
+  ///
+  /// A budget that cannot be read is treated as no budget rather than as
+  /// plenty: `/api-throttle/` is free and answers even while everything else is
+  /// being refused, so a failure to read it means the network is down, when
+  /// fetching would not have worked anyway.
+  Future<int> _spendableRequests() async {
+    final remaining = (await LaunchLibraryAPI().throttle())?.remaining;
+    if (remaining == null) {
+      return 0;
+    }
+
+    return min(_maxExtraPages, remaining - _reserve);
   }
 
   @override
@@ -138,11 +233,28 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
     return ValueListenableBuilder(
       valueListenable: entries,
-      builder: (context, all, _) => LaunchEventListing<dynamic, String>(
-        emptyText: AppLocalizations.of(context)!.emptyResults,
-        initialItems: _matches(all).map((e) => e.item).toList(),
-        scrollOffset: scrollOffset,
-        heroPrefix: "search-",
+      builder: (context, all, _) => Stack(
+        children: [
+          LaunchEventListing<dynamic, String>(
+            emptyText: AppLocalizations.of(context)!.emptyResults,
+            initialItems: _matches(all).map((e) => e.item).toList(),
+            scrollOffset: scrollOffset,
+            heroPrefix: "search-",
+          ),
+          // Over the results rather than replacing them: what is already
+          // indexed is searchable while the rest arrives, and this is the only
+          // thing that distinguishes "still filling" from "that is all there
+          // is".
+          ValueListenableBuilder(
+            valueListenable: completing,
+            builder: (context, busy, _) => busy
+                ? const Align(
+                    alignment: Alignment.topCenter,
+                    child: LinearProgressIndicator(minHeight: 2),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

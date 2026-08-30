@@ -178,7 +178,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
       searchTextColor: colour,
     );
 
-    unawaited(delegate.indexCachedPages());
+    unawaited(delegate.indexPages());
     unawaited(showSearch(context: context, delegate: delegate, query: ''));
   }
 
