@@ -67,16 +67,21 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         ).map(_Entry.new).toList();
       }
 
-      /// Reads cached pages until one is missing, and returns where to
-      /// continue from — null when the listing is already complete.
-      Future<String?> walkCache(
+      /// Reads cached pages until one is missing.
+      ///
+      /// `complete` and `from` are separate on purpose: a null `from` means
+      /// "start at page one", which is exactly what an empty cache needs, and
+      /// is not the same as having nothing left to do. Returning one nullable
+      /// URL conflated the two, so a cold cache concluded it had already
+      /// finished and fetched nothing at all.
+      Future<({bool complete, String? from})> walkCache(
         Future<dynamic> Function(String? next) page,
       ) async {
         String? next;
         do {
           final resp = await page(next);
           if (resp == null) {
-            return next;
+            return (complete: false, from: next);
           }
 
           found.addAll(resp.results as List<dynamic>);
@@ -84,17 +89,17 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           publish();
         } while (next != null);
 
-        return null;
+        return (complete: true, from: null);
       }
 
-      final launchNext = await walkCache(
+      final launches = await walkCache(
         (next) => api.cachedUpcomingLaunches(next: next),
       );
-      final eventNext = await walkCache(
+      final events = await walkCache(
         (next) => api.cachedUpcomingEvents(next: next),
       );
 
-      if (launchNext == null && eventNext == null) {
+      if (launches.complete && events.complete) {
         return;
       }
 
@@ -105,13 +110,20 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
       completing.value = true;
 
-      /// Continues a listing over the network from [from].
+      /// Continues a listing over the network, where a null `from` starts at
+      /// page one.
       Future<void> fetchRest(
-        String? from,
+        ({bool complete, String? from}) resume,
         Future<ErrorDetails<dynamic>> Function(String? next) page,
       ) async {
-        var next = from;
-        while (next != null && budget > 0) {
+        if (resume.complete) {
+          return;
+        }
+
+        var next = resume.from;
+        var more = true;
+
+        while (more && budget > 0) {
           budget--;
 
           final resp = await page(next);
@@ -122,12 +134,13 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
           found.addAll(data.results as List<dynamic>);
           next = data.next as String?;
+          more = next != null;
           publish();
         }
       }
 
-      await fetchRest(launchNext, (next) => api.upcomingLaunches(next: next));
-      await fetchRest(eventNext, (next) => api.upcomingEvents(next: next));
+      await fetchRest(launches, (next) => api.upcomingLaunches(next: next));
+      await fetchRest(events, (next) => api.upcomingEvents(next: next));
     } catch (e) {
       debugPrint("Error building the search index: $e");
     } finally {
@@ -231,31 +244,35 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     }
     lastTerm = query;
 
-    return ValueListenableBuilder(
-      valueListenable: entries,
-      builder: (context, all, _) => Stack(
-        children: [
-          LaunchEventListing<dynamic, String>(
-            emptyText: AppLocalizations.of(context)!.emptyResults,
-            initialItems: _matches(all).map((e) => e.item).toList(),
-            scrollOffset: scrollOffset,
-            heroPrefix: "search-",
-          ),
-          // Over the results rather than replacing them: what is already
-          // indexed is searchable while the rest arrives, and this is the only
-          // thing that distinguishes "still filling" from "that is all there
-          // is".
-          ValueListenableBuilder(
-            valueListenable: completing,
-            builder: (context, busy, _) => busy
-                ? const Align(
-                    alignment: Alignment.topCenter,
-                    child: LinearProgressIndicator(minHeight: 2),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
+    return _whileIndexing(
+      builder: (context, all, busy) {
+        final matches = _matches(all).map((e) => e.item).toList();
+
+        // Nothing found *yet* is not the same as nothing to find, and the
+        // difference is the whole point of still fetching. Saying "no results"
+        // here would be an answer we do not have.
+        if (matches.isEmpty && busy) {
+          return _stillLoading(context);
+        }
+
+        return Stack(
+          children: [
+            LaunchEventListing<dynamic, String>(
+              emptyText: AppLocalizations.of(context)!.emptyResults,
+              initialItems: matches,
+              scrollOffset: scrollOffset,
+              heroPrefix: "search-",
+            ),
+            // Over the results rather than replacing them: what is already
+            // indexed stays searchable while the rest arrives.
+            if (busy)
+              const Align(
+                alignment: Alignment.topCenter,
+                child: LinearProgressIndicator(minHeight: 2),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -300,17 +317,53 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    return _whileIndexing(builder: _suggestionList);
+  }
+
+  /// Rebuilds on both the index and whether it is still filling, so every
+  /// state below can be decided in one place.
+  Widget _whileIndexing({
+    required Widget Function(BuildContext, List<_Entry>, bool) builder,
+  }) {
     return ValueListenableBuilder(
       valueListenable: entries,
-      builder: (context, all, _) => _suggestionList(context, all),
+      builder: (context, all, _) => ValueListenableBuilder(
+        valueListenable: completing,
+        builder: (context, busy, _) => builder(context, all, busy),
+      ),
     );
   }
 
-  Widget _suggestionList(BuildContext context, List<_Entry> all) {
+  Widget _stillLoading(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.searchStillLoading,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _suggestionList(BuildContext context, List<_Entry> all, bool busy) {
     final suggestions = _searchSuggestions(_matches(all));
 
     if (suggestions.isEmpty) {
-      return Center(child: Text(AppLocalizations.of(context)!.emptyResults));
+      return busy
+          ? _stillLoading(context)
+          : Center(child: Text(AppLocalizations.of(context)!.emptyResults));
     }
 
     return ListView.builder(
