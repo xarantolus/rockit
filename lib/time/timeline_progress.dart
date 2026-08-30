@@ -41,17 +41,52 @@ int? activeTimelineIndex({
   return active;
 }
 
-/// Whether a ticking clock is worth running for this timeline.
+/// How long until the highlight moves, or null when it never will again.
 ///
-/// Only true between the first and last milestone. A launch days away, or one
-/// long finished, does not need a timer per second.
-bool timelineIsRunning({
+/// The rows themselves are fixed offsets — only which one is lit changes — so
+/// there is nothing to redraw between milestones. A timer per second spent the
+/// whole countdown rebuilding the list to show the same thing.
+///
+/// Returns a wait even when the timeline has not started, which is the case
+/// that used to be missed entirely: with nothing scheduled, a page opened an
+/// hour early never lit up at all, however long it was left open.
+Duration? untilNextTimelineChange({
   required List<Duration> offsets,
   required Duration elapsed,
 }) {
-  if (offsets.isEmpty) {
-    return false;
+  for (final offset in offsets) {
+    if (offset > elapsed) {
+      return offset - elapsed;
+    }
   }
 
-  return elapsed >= offsets.first && elapsed <= offsets.last;
+  return null;
+}
+
+/// The offset a row is labelled with, e.g. `T-1h 30m` or `T+5m`.
+///
+/// Trailing zeroes are dropped: a milestone exactly five minutes after liftoff
+/// reads `T+5m`, not `T+5m 0s`.
+String timelineOffsetLabel(Duration offset) {
+  if (offset == Duration.zero) {
+    return "T-0";
+  }
+
+  final abs = offset.abs();
+  final sign = offset.isNegative ? "T-" : "T+";
+
+  String pair(int major, String majorUnit, int minor, String minorUnit) =>
+      minor == 0
+      ? "$sign$major$majorUnit"
+      : "$sign$major$majorUnit $minor$minorUnit";
+
+  if (abs.inHours > 0) {
+    return pair(abs.inHours, "h", abs.inMinutes.remainder(60), "m");
+  }
+
+  if (abs.inMinutes > 0) {
+    return pair(abs.inMinutes, "m", abs.inSeconds.remainder(60), "s");
+  }
+
+  return "$sign${abs.inSeconds}s";
 }

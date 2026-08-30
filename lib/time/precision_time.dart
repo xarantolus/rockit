@@ -104,6 +104,20 @@ bool hasUsableTime(DatePrecision? precision) {
   return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
 }
 
+/// How long until the next local midnight.
+///
+/// Every friendly label is relative to *today* — "Today", "Tomorrow",
+/// "Yesterday", a weekday name — and a month label turns over on a midnight
+/// too, so this is when anything showing a date needs looking at again. A
+/// screen left open across midnight otherwise keeps saying "Tomorrow" about a
+/// launch happening today.
+Duration untilNextLocalMidnight(DateTime now) {
+  final local = now.toLocal();
+  final midnight = DateTime(local.year, local.month, local.day + 1);
+
+  return midnight.difference(local);
+}
+
 /// A stable identity for the time a user actually sees, at the precision the
 /// API claims to know it.
 ///

@@ -12,6 +12,7 @@ const countdown = [
 ];
 
 void main() {
+  _watchStates();
   group('activeTimelineIndex', () {
     test('nothing is active before the first milestone', () {
       expect(
@@ -132,41 +133,111 @@ void main() {
       );
     });
   });
+}
 
-  group('timelineIsRunning', () {
-    test('is false long before and long after', () {
+void _watchStates() {
+  group('untilNextTimelineChange', () {
+    // The rows are fixed offsets; only the highlight moves. So this is the
+    // only moment worth redrawing for, and a page opened before the first
+    // milestone still has to be told about it — with nothing scheduled it
+    // never lit up at all.
+    final offsets = [
+      const Duration(hours: -1),
+      const Duration(minutes: -5),
+      Duration.zero,
+      const Duration(minutes: 9),
+    ];
+
+    test('waits for the first milestone when nothing has started', () {
       expect(
-        timelineIsRunning(
-          offsets: countdown,
-          elapsed: const Duration(days: -3),
+        untilNextTimelineChange(
+          offsets: offsets,
+          elapsed: const Duration(hours: -3),
         ),
-        isFalse,
-      );
-      expect(
-        timelineIsRunning(offsets: countdown, elapsed: const Duration(days: 3)),
-        isFalse,
+        const Duration(hours: 2),
       );
     });
 
-    test('is true between the first and last milestone', () {
+    test('waits for the next one while running', () {
       expect(
-        timelineIsRunning(offsets: countdown, elapsed: Duration.zero),
-        isTrue,
-      );
-      expect(
-        timelineIsRunning(
-          offsets: countdown,
-          elapsed: const Duration(minutes: -35),
+        untilNextTimelineChange(
+          offsets: offsets,
+          elapsed: const Duration(minutes: -30),
         ),
-        isTrue,
+        const Duration(minutes: 25),
       );
     });
 
-    test('an empty timeline never runs', () {
+    test('a milestone exactly now waits for the one after it', () {
       expect(
-        timelineIsRunning(offsets: const [], elapsed: Duration.zero),
-        isFalse,
+        untilNextTimelineChange(offsets: offsets, elapsed: Duration.zero),
+        const Duration(minutes: 9),
       );
+    });
+
+    test('nothing left to wait for once the last has passed', () {
+      expect(
+        untilNextTimelineChange(
+          offsets: offsets,
+          elapsed: const Duration(minutes: 9),
+        ),
+        isNull,
+      );
+      expect(
+        untilNextTimelineChange(
+          offsets: offsets,
+          elapsed: const Duration(days: 1),
+        ),
+        isNull,
+      );
+    });
+
+    test('an empty timeline never waits', () {
+      expect(
+        untilNextTimelineChange(offsets: const [], elapsed: Duration.zero),
+        isNull,
+      );
+    });
+
+    test('the wait is always positive', () {
+      for (var m = -70; m < 15; m++) {
+        final until = untilNextTimelineChange(
+          offsets: offsets,
+          elapsed: Duration(minutes: m),
+        );
+        if (until != null) {
+          expect(until, greaterThan(Duration.zero));
+        }
+      }
+    });
+  });
+
+  group('timelineOffsetLabel', () {
+    test('drops a trailing zero rather than writing "5m 0s"', () {
+      expect(timelineOffsetLabel(const Duration(minutes: 5)), 'T+5m');
+      expect(timelineOffsetLabel(const Duration(minutes: -5)), 'T-5m');
+      expect(timelineOffsetLabel(const Duration(hours: 1)), 'T+1h');
+      expect(timelineOffsetLabel(const Duration(hours: -1)), 'T-1h');
+    });
+
+    test('keeps both parts when the smaller one is not zero', () {
+      expect(
+        timelineOffsetLabel(const Duration(hours: -1, minutes: -30)),
+        'T-1h 30m',
+      );
+      expect(
+        timelineOffsetLabel(const Duration(minutes: 5, seconds: 30)),
+        'T+5m 30s',
+      );
+    });
+
+    test('under a minute is just seconds', () {
+      expect(timelineOffsetLabel(const Duration(seconds: 45)), 'T+45s');
+      expect(timelineOffsetLabel(const Duration(seconds: -45)), 'T-45s');
+    });
+
+    test('liftoff is T-0', () {
+      expect(timelineOffsetLabel(Duration.zero), 'T-0');
     });
   });
 }

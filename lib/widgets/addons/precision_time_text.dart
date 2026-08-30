@@ -1,11 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/time/precision_time.dart';
+import 'package:rockit/widgets/addons/time_refresh.dart';
 
 /// Shows a launch or event time honouring how precisely the API knows it.
 ///
@@ -48,7 +47,12 @@ class PrecisionTimeText extends StatefulWidget {
 
 class _PrecisionTimeTextState extends State<PrecisionTimeText>
     with DateFormatter {
-  Timer? _ticker;
+  late final TimeRefresh _refresh = TimeRefresh(() {
+    setState(() {});
+    // The rate can change under us: a countdown reaching its stale age stops
+    // being a countdown, and a midnight wake needs the next one booking.
+    _syncTicker();
+  })..mounted = (() => mounted);
 
   @override
   void initState() {
@@ -64,26 +68,24 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
 
   @override
   void dispose() {
-    _ticker?.cancel();
+    _refresh.cancel();
     super.dispose();
   }
 
-  /// Starts a one-second timer only for a real countdown, and stops it again if
-  /// the launch slips to a vaguer date.
+  /// A second-by-second clock only for a real countdown; otherwise the text is
+  /// a date phrased relative to today, so it goes stale at midnight and not
+  /// before. Without the latter a card saying "Tomorrow, 11:26" still says it
+  /// after midnight, when it means today.
   void _syncTicker() {
-    final needsTicker =
-        widget.showCountdown &&
-        timeDisplayFor(widget.date, widget.precision) == TimeDisplay.countdown;
+    final display = timeDisplayFor(widget.date, widget.precision);
 
-    if (needsTicker && _ticker == null) {
-      _ticker = Timer.periodic(
-        const Duration(seconds: 1),
-        (_) => setState(() {}),
-      );
-    } else if (!needsTicker) {
-      _ticker?.cancel();
-      _ticker = null;
-    }
+    _refresh.sync(
+      display == TimeDisplay.unknown
+          ? TimeRefreshRate.none
+          : widget.showCountdown && display == TimeDisplay.countdown
+          ? TimeRefreshRate.everySecond
+          : TimeRefreshRate.atMidnight,
+    );
   }
 
   String _monthYear(BuildContext context, DateTime date) {

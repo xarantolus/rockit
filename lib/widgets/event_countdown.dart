@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/time_diff.dart';
+import 'package:rockit/widgets/addons/time_refresh.dart';
 
 class EventCountDownWidget extends StatefulWidget {
   const EventCountDownWidget(this.event, {super.key});
@@ -17,20 +16,45 @@ class EventCountDownWidget extends StatefulWidget {
 
 class _EventCountDownWidgetState extends State<EventCountDownWidget>
     with DateFormatter, TimeDiff {
-  late Timer _timer;
+  /// Seconds only while a clock with seconds on it is on screen. Outside the
+  /// countdown this shows a plain date, and redrawing that sixty times a
+  /// minute changes nothing.
+  late final TimeRefresh _refresh = TimeRefresh(() {
+    setState(() {});
+    _syncRefresh();
+  })..mounted = (() => mounted);
 
   @override
   void initState() {
     super.initState();
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+    _syncRefresh();
+  }
+
+  /// A clock is only on screen while the countdown is; the rest of the time
+  /// this is a date, which changes at midnight and not before.
+  void _syncRefresh() {
+    final date = widget.event.date;
+    if (date == null) {
+      _refresh.sync(TimeRefreshRate.none);
+      return;
+    }
+
+    final until = timeDiff(date);
+    final showsClock =
+        !until.isNegative &&
+        (until < const Duration(days: 7) || forceCountdown);
+
+    _refresh.sync(
+      showsClock ? TimeRefreshRate.everySecond : TimeRefreshRate.atMidnight,
+    );
   }
 
   bool forceCountdown = false;
 
   @override
   void dispose() {
-    _timer.cancel();
+    _refresh.cancel();
     super.dispose();
   }
 
@@ -71,6 +95,7 @@ class _EventCountDownWidgetState extends State<EventCountDownWidget>
       onTap: () {
         setState(() {
           forceCountdown = !forceCountdown;
+          _syncRefresh();
         });
       },
       child: Container(

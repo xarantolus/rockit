@@ -27,7 +27,15 @@ class LaunchTimeline extends StatefulWidget {
 }
 
 class _LaunchTimelineState extends State<LaunchTimeline> {
-  Timer? _ticker;
+  Timer? _timer;
+
+  /// Longest nap while the timeline is still ahead.
+  ///
+  /// The wait is capped rather than scheduled for the exact moment because a
+  /// timer does not run while the app is in the background: an exact one for a
+  /// launch hours out would fire however late the phone had been asleep.
+  /// Waking periodically re-reads the clock instead.
+  static const _maxWait = Duration(minutes: 5);
 
   /// Entries that carry an offset, in order. The API usually sends them sorted
   /// but nothing promises it, and the active-entry rule depends on the order.
@@ -55,54 +63,51 @@ class _LaunchTimelineState extends State<LaunchTimeline> {
   @override
   void initState() {
     super.initState();
-    _syncTicker();
+    _syncTimer();
   }
 
   @override
   void didUpdateWidget(LaunchTimeline oldWidget) {
     super.didUpdateWidget(oldWidget);
     _ordered = _order(widget.events);
-    _syncTicker();
+
+    // A refresh can move `net` or the milestones, so any pending wait is for
+    // the wrong moment. _syncTimer replaces it.
+    _syncTimer();
   }
 
   @override
   void dispose() {
-    _ticker?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
-  /// Runs a clock only while the timeline is actually in progress. A launch
-  /// three days out does not need a timer per second.
-  void _syncTicker() {
+  /// Wakes only when the highlight actually moves.
+  ///
+  /// The rows are fixed offsets, so between milestones there is nothing to
+  /// redraw — a timer per second spent the whole countdown rebuilding the list
+  /// to show the same thing. And "not running yet" is not "nothing will
+  /// happen": with nothing scheduled at all, a page opened an hour early never
+  /// lit up, however long it was left open.
+  void _syncTimer() {
+    _timer?.cancel();
+    _timer = null;
+
     final elapsed = _elapsed;
-    final wanted =
-        elapsed != null &&
-        timelineIsRunning(offsets: _offsets, elapsed: elapsed);
-
-    if (wanted && _ticker == null) {
-      _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (!mounted) return;
-        setState(() {});
-        // Stop as soon as the last milestone passes.
-        _syncTicker();
-      });
-    } else if (!wanted) {
-      _ticker?.cancel();
-      _ticker = null;
+    if (elapsed == null) {
+      return;
     }
-  }
 
-  static String _offsetLabel(Duration d) {
-    final abs = d.abs();
-    final sign = d.isNegative ? "T-" : "T+";
+    final until = untilNextTimelineChange(offsets: _offsets, elapsed: elapsed);
+    if (until == null) {
+      return;
+    }
 
-    if (abs.inHours > 0) {
-      return "$sign${abs.inHours}h ${abs.inMinutes.remainder(60)}m";
-    }
-    if (abs.inMinutes > 0) {
-      return "$sign${abs.inMinutes}m ${abs.inSeconds.remainder(60)}s";
-    }
-    return "$sign${abs.inSeconds}s";
+    _timer = Timer(until < _maxWait ? until : _maxWait, () {
+      if (!mounted) return;
+      setState(() {});
+      _syncTimer();
+    });
   }
 
   @override
@@ -135,7 +140,7 @@ class _LaunchTimelineState extends State<LaunchTimeline> {
                   SizedBox(
                     width: 84,
                     child: Text(
-                      _offsetLabel(_ordered[i].relativeTime!),
+                      timelineOffsetLabel(_ordered[i].relativeTime!),
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontFeatures: const [FontFeature.tabularFigures()],

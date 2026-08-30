@@ -335,4 +335,54 @@ void main() {
       expect(key(at, null), key(at, 'MIN'));
     });
   });
+
+  group('untilNextLocalMidnight', () {
+    // Every friendly label is relative to today, so this is when a screen left
+    // open has to look again. A card saying "Tomorrow, 11:26" otherwise still
+    // says it after midnight, when it means today.
+    test('counts the rest of the day', () {
+      expect(
+        untilNextLocalMidnight(DateTime(2026, 8, 30, 23, 30)),
+        const Duration(minutes: 30),
+      );
+      expect(
+        untilNextLocalMidnight(DateTime(2026, 8, 30, 0, 0, 1)),
+        const Duration(hours: 24) - const Duration(seconds: 1),
+      );
+    });
+
+    test('is a whole day exactly at midnight, never zero', () {
+      expect(
+        untilNextLocalMidnight(DateTime(2026, 8, 30)),
+        const Duration(hours: 24),
+      );
+    });
+
+    test('rolls over a month and a year', () {
+      expect(
+        untilNextLocalMidnight(DateTime(2026, 8, 31, 23, 0)),
+        const Duration(hours: 1),
+      );
+      expect(
+        untilNextLocalMidnight(DateTime(2026, 12, 31, 22, 15)),
+        const Duration(hours: 1, minutes: 45),
+      );
+    });
+
+    test('handles a leap day', () {
+      expect(
+        untilNextLocalMidnight(DateTime(2028, 2, 28, 23, 59)),
+        const Duration(minutes: 1),
+      );
+    });
+
+    test('is always positive', () {
+      for (var h = 0; h < 24; h++) {
+        expect(
+          untilNextLocalMidnight(DateTime(2026, 8, 30, h, 37)),
+          greaterThan(Duration.zero),
+        );
+      }
+    });
+  });
 }
