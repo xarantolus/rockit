@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/background/imminent_check.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
@@ -88,6 +89,20 @@ class BackgroundHandler {
   /// Refreshes the first page of every listing on a schedule, so opening the
   /// app paints real data instead of a spinner. Only one of these ever exists,
   /// hence a fixed id rather than one per subscription.
+  /// Refreshes every subscription in one request rather than one apiece.
+  ///
+  /// There used to be a periodic task per subscribed launch, each fetching
+  /// that one launch every hour: N subscriptions cost N requests an hour
+  /// against a budget of fifteen, so fifteen subscriptions throttled the app
+  /// permanently. Batching by id makes it two requests a run whatever the
+  /// number — one for launches, one for events.
+  static const periodicSubscriptionRefreshTaskName = "subs:refresh:periodic";
+  static const _subscriptionRefreshTaskId = "subs-refresh";
+
+  /// How often that runs. Hourly is fine for a launch days away; one closer
+  /// than [_imminentWindow] gets its own one-off check instead.
+  static const subscriptionRefreshInterval = Duration(hours: 1);
+
   static const periodicCacheWarmTaskName = "cache:warm:periodic";
   static const _cacheWarmTaskId = "cache-warm";
 
@@ -144,6 +159,8 @@ class BackgroundHandler {
           return await handleLaunchUpdatePeriodic(inputData);
         case periodicEventUpdateTaskName:
           return await handleEventUpdatePeriodic(inputData);
+        case periodicSubscriptionRefreshTaskName:
+          return await handleSubscriptionRefresh();
         case periodicCacheWarmTaskName:
           return await handleCacheWarm();
         case periodicCacheDeepenTaskName:
@@ -181,8 +198,158 @@ class BackgroundHandler {
         existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
         constraints: Constraints(networkType: NetworkType.unmetered),
       );
+
+      // Registered unconditionally, like the warmers. With nothing subscribed
+      // it reads two preference keys and returns, which is cheaper than
+      // registering and cancelling it as subscriptions come and go.
+      await Workmanager().registerPeriodicTask(
+        _subscriptionRefreshTaskId,
+        periodicSubscriptionRefreshTaskName,
+        frequency: subscriptionRefreshInterval,
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
+        constraints: _periodicTaskConstraints,
+      );
+
+      await _retirePerItemTasks();
     } catch (err) {
       debugPrint("Could not schedule cache warming: $err");
+    }
+  }
+
+  /// Cancels the per-subscription periodic tasks an older build registered.
+  ///
+  /// Once, behind a flag. **By name only** — never `cancelAll`, which would
+  /// take the cache warmers with it. Anything the lists no longer mention was
+  /// already cancelled by `unsubscribeFrom*`.
+  Future<void> _retirePerItemTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+
+    if (prefs.getBool(_retiredPerItemTasksKey) ?? false) {
+      return;
+    }
+
+    try {
+      for (final id in await _loadIDs(launchesKey)) {
+        await Workmanager().cancelByUniqueName(_taskNameForLaunch(id));
+      }
+
+      for (final id in await _loadIDs(eventsKey)) {
+        await Workmanager().cancelByUniqueName(_taskNameForEvent(id));
+      }
+
+      await prefs.setBool(_retiredPerItemTasksKey, true);
+      debugPrint("Retired the per-subscription periodic tasks");
+    } catch (err) {
+      debugPrint("Could not retire the per-subscription tasks: $err");
+    }
+  }
+
+  static const _retiredPerItemTasksKey = "retired-per-item-tasks";
+
+  /// Refreshes every subscription in two requests: one listing filtered to the
+  /// subscribed launch ids, one to the event ids.
+  ///
+  /// Returning false asks WorkManager to run the whole thing again, so it is
+  /// only for "nothing worked at all".
+  Future<bool> handleSubscriptionRefresh() async {
+    final launchIDs = await _loadIDs(launchesKey);
+    final eventIDs = await _loadIDs(eventsKey);
+
+    if (launchIDs.isEmpty && eventIDs.isEmpty) {
+      return true;
+    }
+
+    if (await _spendableRequests() <= 0) {
+      return true;
+    }
+
+    final api = LaunchLibraryAPI();
+    var worked = false;
+
+    try {
+      final launches = await api.launchesByIds(launchIDs);
+      worked = true;
+
+      for (final launch in launches) {
+        final id = launch.id;
+        if (id == null) {
+          continue;
+        }
+
+        try {
+          await processLaunch(launch, id);
+        } catch (err) {
+          debugPrint("Could not process subscribed launch $id: $err");
+        }
+      }
+
+      await _scheduleImminentChecks(launches);
+    } catch (err) {
+      debugPrint("Could not refresh subscribed launches: $err");
+    }
+
+    try {
+      final parsed = eventIDs
+          .map(int.tryParse)
+          .whereType<int>()
+          .toList(growable: false);
+
+      if (parsed.isNotEmpty) {
+        final events = await api.eventsByIds(parsed);
+        worked = true;
+
+        for (final event in events) {
+          final id = event.id;
+          if (id == null) {
+            continue;
+          }
+
+          try {
+            await processEvent(event, "$id");
+          } catch (err) {
+            debugPrint("Could not process subscribed event $id: $err");
+          }
+        }
+      }
+    } catch (err) {
+      debugPrint("Could not refresh subscribed events: $err");
+    }
+
+    await _letTheCacheIndexSettle();
+
+    return worked;
+  }
+
+  /// An hour is too coarse for a launch about to fly, but a quarter-hourly
+  /// periodic task for every subscription is worse than the problem. A launch
+  /// inside [imminentWindow] instead gets a one-off check a minute before each
+  /// reminder, so a slip cancels or moves that reminder *before* it goes out
+  /// rather than after: without it a launch that has slipped an hour still
+  /// announces "5 minutes", and the correction arrives too late to matter.
+  Future<void> _scheduleImminentChecks(List<Launch> launches) async {
+    final now = DateTime.now();
+
+    for (final launch in launches) {
+      final id = launch.id;
+      if (id == null) {
+        continue;
+      }
+
+      for (final check in imminentCheckDelays(launch.net, now)) {
+        try {
+          await Workmanager().registerOneOffTask(
+            imminentCheckTaskName(id, check.offset),
+            periodicLaunchUpdateTaskName,
+            initialDelay: check.delay,
+            inputData: {"launchId": id},
+            existingWorkPolicy: ExistingWorkPolicy.replace,
+            constraints: _periodicTaskConstraints,
+          );
+        } catch (err) {
+          debugPrint("Could not schedule a near-liftoff check for $id: $err");
+        }
+      }
     }
   }
 
@@ -681,8 +848,12 @@ class BackgroundHandler {
       debugPrint("Deleting update key for launch while unsubscribing: $err");
     }
 
-    // Unsubscribe the recurring task
+    // The task an older build registered, plus every near-liftoff check.
     await Workmanager().cancelByUniqueName(_taskNameForLaunch(launchId));
+
+    for (final name in imminentCheckTaskNames(launchId)) {
+      await Workmanager().cancelByUniqueName(name);
+    }
   }
 
   String _taskNameForLaunch(String launchId) {
@@ -835,15 +1006,19 @@ class BackgroundHandler {
 
     await _saveDate(_getUpdateKey("launch", launchId), DateTime.now());
 
-    // Now tell the work manager to do periodic updates for this launch
-    await Workmanager().registerPeriodicTask(
-      _taskNameForLaunch(launchId),
-      periodicLaunchUpdateTaskName,
-      frequency: const Duration(hours: 1),
-      inputData: {"launchId": launchId},
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
-      constraints: _periodicTaskConstraints,
-    );
+    // No task of its own: `subs:refresh:periodic` picks it up with every other
+    // subscription in a single request. Its reminders are scheduled here and
+    // now instead, from the cached launch, so they exist before the sheet
+    // closes rather than whenever WorkManager first gets round to it. Cache
+    // only — subscribing must not spend a request.
+    try {
+      final cached = await LaunchLibraryAPI().cachedLaunch(launchId);
+      if (cached != null) {
+        await processLaunch(cached, launchId);
+      }
+    } catch (err) {
+      debugPrint("Could not set up reminders for $launchId yet: $err");
+    }
   }
 
   /*
@@ -931,15 +1106,20 @@ class BackgroundHandler {
 
     await _saveDate(_getUpdateKey("event", eventId), DateTime.now());
 
-    // Now tell the work manager to do periodic updates for this launch
-    await Workmanager().registerPeriodicTask(
-      _taskNameForEvent(eventId),
-      periodicEventUpdateTaskName,
-      frequency: const Duration(hours: 1),
-      inputData: {"eventId": eventId},
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
-      constraints: _periodicTaskConstraints,
-    );
+    // As with launches: no task of its own, and the reminders are set up now
+    // from the cached copy rather than on WorkManager's schedule.
+    try {
+      final id = int.tryParse(eventId);
+      final cached = id == null
+          ? null
+          : await LaunchLibraryAPI().cachedEvent(id);
+
+      if (cached != null) {
+        await processEvent(cached, eventId);
+      }
+    } catch (err) {
+      debugPrint("Could not set up reminders for event $eventId yet: $err");
+    }
   }
 
   Future<bool> handleEventUpdatePeriodic(
