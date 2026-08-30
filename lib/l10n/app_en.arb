@@ -128,7 +128,7 @@
   "@searchOfflineResults": {
     "description": "Above a short result list when the launch API could not be reached at all"
   },
-  "searchLimitedResultsIn": "{count,plural, =1{Hourly limit reached. More in about 1 min.}other{Hourly limit reached. More in about {count} min.}}",
+  "searchLimitedResultsIn": "{count,plural, =1{Hourly limit reached. Come back in 1 minute.}other{Hourly limit reached. Come back in {count} minutes.}}",
   "@searchLimitedResultsIn": {
     "placeholders": {
       "count": {
@@ -136,7 +136,7 @@
       }
     }
   },
-  "searchLimitedEmptyIn": "{count,plural, =1{Hourly limit for launch data reached. Try again in about 1 min.}other{Hourly limit for launch data reached. Try again in about {count} min.}}",
+  "searchLimitedEmptyIn": "{count,plural, =1{Hourly limit for launch data reached. Come back in 1 minute.}other{Hourly limit for launch data reached. Come back in {count} minutes.}}",
   "@searchLimitedEmptyIn": {
     "placeholders": {
       "count": {

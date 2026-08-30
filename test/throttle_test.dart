@@ -5,7 +5,7 @@ import 'package:rockit/apis/launch_library/throttle.dart';
 /// wrong either wastes the user's budget or leaves the app throttled when they
 /// next open it.
 void main() {
-  _untilNextSlot();
+  _untilLimitClears();
   ApiThrottle at({int? limit = 15, int? used = 0}) =>
       ApiThrottle(yourRequestLimit: limit, currentUse: used);
 
@@ -64,35 +64,33 @@ void main() {
   });
 }
 
-void _untilNextSlot() {
-  group('untilNextSlot', () {
-    // Rounded up, because "try again in 0 min" is useless. What that moment
-    // frees — one slot or the lot — is undocumented and does not change the
-    // arithmetic.
+void _untilLimitClears() {
+  group('untilLimitClears', () {
+    // Rounded up, because "come back in 0 minutes" helps nobody.
     test('rounds up to a whole minute', () {
       expect(
-        const ApiThrottle(nextUseSecs: 61).untilNextSlot,
+        const ApiThrottle(nextUseSecs: 61).untilLimitClears,
         const Duration(minutes: 2),
       );
       expect(
-        const ApiThrottle(nextUseSecs: 60).untilNextSlot,
+        const ApiThrottle(nextUseSecs: 60).untilLimitClears,
         const Duration(minutes: 1),
       );
       expect(
-        const ApiThrottle(nextUseSecs: 1).untilNextSlot,
+        const ApiThrottle(nextUseSecs: 1).untilLimitClears,
         const Duration(minutes: 1),
       );
     });
 
     test('is null when there is nothing to wait for', () {
-      expect(const ApiThrottle().untilNextSlot, isNull);
-      expect(const ApiThrottle(nextUseSecs: 0).untilNextSlot, isNull);
-      expect(const ApiThrottle(nextUseSecs: -5).untilNextSlot, isNull);
+      expect(const ApiThrottle().untilLimitClears, isNull);
+      expect(const ApiThrottle(nextUseSecs: 0).untilLimitClears, isNull);
+      expect(const ApiThrottle(nextUseSecs: -5).untilLimitClears, isNull);
     });
 
     test('handles a long wait', () {
       expect(
-        const ApiThrottle(nextUseSecs: 1631).untilNextSlot,
+        const ApiThrottle(nextUseSecs: 1631).untilLimitClears,
         const Duration(minutes: 28),
       );
     });

@@ -26,15 +26,14 @@ class ApiThrottle {
 
   final String? ident;
 
-  /// How long until the API will accept another request, rounded up to a whole
-  /// minute.
+  /// How long until the limit clears, rounded up to a whole minute.
   ///
-  /// Whether that moment frees one slot or the whole budget is not documented
-  /// — the API's own docs say only "15 calls per hour", and the schema types
-  /// this as a bare integer — and it cannot be measured on `lldev`, which is
-  /// exempt from throttling. It does not matter for telling someone when to
-  /// come back: either way, that is when the next request goes through.
-  Duration? get untilNextSlot {
+  /// The Launch Library FAQ describes `next_use_secs` as "the time in seconds
+  /// until you can make calls again if you are being rate-limited" — plural,
+  /// and nothing anywhere says the window rolls a request at a time, so it is
+  /// taken as a full clear. Rounded up because "come back in 0 minutes" helps
+  /// nobody.
+  Duration? get untilLimitClears {
     final secs = nextUseSecs;
     if (secs == null || secs <= 0) {
       return null;

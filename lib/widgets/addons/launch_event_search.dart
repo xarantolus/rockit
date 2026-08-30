@@ -247,7 +247,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     return (
       budget: budget,
       issue: budget <= 0 ? SearchIssue.rateLimited : SearchIssue.none,
-      retryIn: throttle?.untilNextSlot,
+      retryIn: throttle?.untilLimitClears,
     );
   }
 
@@ -269,7 +269,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
       return (kind: SearchIssue.unreachable, retryIn: null);
     }
 
-    return (kind: SearchIssue.rateLimited, retryIn: throttle?.untilNextSlot);
+    return (kind: SearchIssue.rateLimited, retryIn: throttle?.untilLimitClears);
   }
 
   @override
