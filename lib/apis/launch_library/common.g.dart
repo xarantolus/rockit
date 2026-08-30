@@ -36,8 +36,8 @@ Agency _$AgencyFromJson(Map<String, dynamic> json) => Agency(
   description: json['description'] as String?,
   infoUrl: json['info_url'] as String?,
   wikiUrl: json['wiki_url'] as String?,
-  logo: ApiImage.fromJsonOrUrl(json['logo']),
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  logo: ApiImage.fromJsonOrNull(json['logo']),
+  image: ApiImage.fromJsonOrNull(json['image']),
 );
 
 Orbit _$OrbitFromJson(Map<String, dynamic> json) => Orbit(
@@ -49,7 +49,7 @@ Orbit _$OrbitFromJson(Map<String, dynamic> json) => Orbit(
 MissionPatch _$MissionPatchFromJson(Map<String, dynamic> json) => MissionPatch(
   id: (json['id'] as num?)?.toInt(),
   name: json['name'] as String?,
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  image: ApiImage.fromJsonOrNull(json['image']),
   priority: (json['priority'] as num?)?.toInt(),
 );
 
@@ -84,7 +84,7 @@ Program _$ProgramFromJson(Map<String, dynamic> json) => Program(
   id: (json['id'] as num?)?.toInt(),
   name: json['name'] as String?,
   description: json['description'] as String?,
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  image: ApiImage.fromJsonOrNull(json['image']),
   infoUrl: json['info_url'] as String?,
   wikiUrl: json['wiki_url'] as String?,
   type: namedFromJson(json['type']),

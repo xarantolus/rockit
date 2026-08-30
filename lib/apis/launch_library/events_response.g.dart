@@ -10,7 +10,7 @@ SpaceStation _$SpaceStationFromJson(Map<String, dynamic> json) => SpaceStation(
   id: (json['id'] as num?)?.toInt(),
   name: json['name'] as String?,
   description: json['description'] as String?,
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  image: ApiImage.fromJsonOrNull(json['image']),
 );
 
 Event _$EventFromJson(Map<String, dynamic> json) => Event(
@@ -25,7 +25,7 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
       : DatePrecision.fromJson(json['date_precision'] as Map<String, dynamic>),
   duration: durationFromJson(json['duration']),
   location: json['location'] as String?,
-  image: ApiImage.fromJsonOrUrl(Event._readImage(json, 'image')),
+  image: ApiImage.fromJsonOrNull(json['image']),
   webcastLive: json['webcast_live'] as bool?,
   lastUpdated: json['last_updated'] == null
       ? null

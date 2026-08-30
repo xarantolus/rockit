@@ -48,7 +48,7 @@ RocketConfiguration _$RocketConfigurationFromJson(Map<String, dynamic> json) =>
       manufacturer: json['manufacturer'] == null
           ? null
           : Agency.fromJson(json['manufacturer'] as Map<String, dynamic>),
-      image: ApiImage.fromJsonOrUrl(json['image']),
+      image: ApiImage.fromJsonOrNull(json['image']),
       infoUrl: json['info_url'] as String?,
       wikiUrl: json['wiki_url'] as String?,
       reusable: json['reusable'] as bool?,
@@ -92,7 +92,7 @@ Launcher _$LauncherFromJson(Map<String, dynamic> json) => Launcher(
   flightProven: json['flight_proven'] as bool?,
   flights: (json['flights'] as num?)?.toInt(),
   successfulLandings: (json['successful_landings'] as num?)?.toInt(),
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  image: ApiImage.fromJsonOrNull(json['image']),
 );
 
 LauncherStage _$LauncherStageFromJson(Map<String, dynamic> json) =>
@@ -101,9 +101,7 @@ LauncherStage _$LauncherStageFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String?,
       reused: json['reused'] as bool?,
       launcherFlightNumber: (json['launcher_flight_number'] as num?)?.toInt(),
-      turnAroundTime: durationFromJson(
-        LauncherStage._readTurnAround(json, 'turn_around_time'),
-      ),
+      turnAroundTime: durationFromJson(json['turn_around_time']),
       previousFlightDate: json['previous_flight_date'] == null
           ? null
           : DateTime.parse(json['previous_flight_date'] as String),
@@ -120,7 +118,7 @@ SpacecraftStage _$SpacecraftStageFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
       description: json['description'] as String?,
-      image: ApiImage.fromJsonOrUrl(json['image']),
+      image: ApiImage.fromJsonOrNull(json['image']),
     );
 
 Rocket _$RocketFromJson(Map<String, dynamic> json) => Rocket(
@@ -185,7 +183,7 @@ Launch _$LaunchFromJson(Map<String, dynamic> json) => Launch(
   status: json['status'] == null
       ? null
       : LaunchStatus.fromJson(json['status'] as Map<String, dynamic>),
-  image: ApiImage.fromJsonOrUrl(json['image']),
+  image: ApiImage.fromJsonOrNull(json['image']),
   probability: intFromJson(json['probability']),
   weatherConcerns: json['weather_concerns'] as String?,
   failreason: json['failreason'] as String?,
@@ -217,12 +215,12 @@ Launch _$LaunchFromJson(Map<String, dynamic> json) => Launch(
           .toList() ??
       const [],
   infoUrls:
-      (Launch._readInfoUrls(json, 'info_urls') as List<dynamic>?)
+      (json['info_urls'] as List<dynamic>?)
           ?.map((e) => ContentUrl.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   vidUrls:
-      (Launch._readVidUrls(json, 'vid_urls') as List<dynamic>?)
+      (json['vid_urls'] as List<dynamic>?)
           ?.map((e) => ContentUrl.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
