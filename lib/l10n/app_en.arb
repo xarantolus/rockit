@@ -136,20 +136,20 @@
       }
     }
   },
-  "searchLimitedEmptyIn": "{count,plural, =1{Hourly limit for launch data reached. Come back in 1 minute.}other{Hourly limit for launch data reached. Come back in {count} minutes.}}",
-  "@searchLimitedEmptyIn": {
+  "apiLimitReachedIn": "{count,plural, =1{Hourly limit for launch data reached. Come back in 1 minute.}other{Hourly limit for launch data reached. Come back in {count} minutes.}}",
+  "@apiLimitReachedIn": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "searchLimitedEmpty": "Hourly limit for launch data reached. Try again shortly.",
-  "@searchLimitedEmpty": {
+  "apiLimitReached": "Hourly limit for launch data reached. Come back later.",
+  "@apiLimitReached": {
     "description": "Instead of the no-results message when the hourly request limit meant nothing could be loaded"
   },
-  "searchOfflineEmpty": "Couldn\u2019t reach the launch data. Check your connection.",
-  "@searchOfflineEmpty": {
+  "apiUnreachable": "Couldn\u2019t reach the launch data. Check your connection.",
+  "@apiUnreachable": {
     "description": "Instead of the no-results message when the launch API could not be reached at all"
   },
   "@loadingMore": {

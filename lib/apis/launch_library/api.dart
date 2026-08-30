@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'dart:math';
 import 'dart:convert';
 
 import 'package:rockit/apis/api_client.dart';
@@ -209,11 +210,84 @@ class LaunchLibraryAPI extends APIClient {
     return res.bubble(Launch.fromJson(APIClient.asJsonObject(res.data)));
   }
 
+  /// Fetches many launches in **one** request, and files each under its own
+  /// URL so the next lookup is free.
+  ///
+  /// The subscriptions page used to ask for one launch at a time. Anything in
+  /// a recent listing answered from the seeded cache, but a launch that has
+  /// already flown drops out of the listings — they start at `net__gte`
+  /// yesterday — so it was never seeded and cost a request every single time
+  /// the page was opened. Five subscriptions was a third of the hourly budget.
+  ///
+  /// The ids go in comma-separated. Repeating the parameter (`id=a&id=b`) does
+  /// *not* OR them: the API honours only the last and returns one launch,
+  /// which looks exactly like the filter being unsupported.
+  Future<List<Launch>> launchesByIds(List<String> ids) async {
+    return _byIds(
+      ids,
+      "/launches/",
+      "launches",
+      (json) => Launch.fromJson(APIClient.asJsonObject(json)),
+    );
+  }
+
+  /// The same for events.
+  Future<List<Event>> eventsByIds(List<int> ids) async {
+    return _byIds(
+      ids.map((id) => "$id").toList(),
+      "/events/",
+      "events",
+      (json) => Event.fromJson(APIClient.asJsonObject(json)),
+    );
+  }
+
+  Future<List<T>> _byIds<T>(
+    List<String> ids,
+    String path,
+    String kind,
+    T Function(Object?) parse,
+  ) async {
+    final found = <T>[];
+
+    // Sorted so the same set of subscriptions always builds the same URL, and
+    // the request itself can come back from the cache too.
+    final sorted = [...ids]..sort();
+
+    for (var start = 0; start < sorted.length; start += pageSize) {
+      final chunk = sorted.sublist(start, min(start + pageSize, sorted.length));
+
+      final res = await fetchJSON(
+        _endpoint(path, {
+          "id": chunk.join(","),
+          "limit": "$pageSize",
+          "mode": "detailed",
+        }),
+        true,
+      );
+
+      unawaited(_seedDetailCache(res.data, kind, (r) => r["id"]));
+
+      final results = APIClient.asJsonObject(res.data)["results"];
+      if (results is List) {
+        found.addAll(results.map(parse));
+      }
+    }
+
+    return found;
+  }
+
   /// The stored launch, without touching the network.
   Future<Launch?> cachedLaunch(String id) async {
     final json = await readCacheJSON(_endpoint("/launches/$id/", {}));
 
     return json == null ? null : Launch.fromJson(APIClient.asJsonObject(json));
+  }
+
+  /// The stored event, without touching the network.
+  Future<Event?> cachedEvent(int id) async {
+    final json = await readCacheJSON(_endpoint("/events/$id/", {}));
+
+    return json == null ? null : Event.fromJson(APIClient.asJsonObject(json));
   }
 
   Future<ErrorDetails<Event>> event(int id, [bool preferCache = false]) async {
