@@ -120,6 +120,14 @@
   "close": "Close",
   "emptyResults": "No results for this query",
   "loadingMore": "Loading more\u2026",
+  "searchResultsMissing": "Some results are missing.",
+  "@searchResultsMissing": {
+    "description": "Shown above search results when the index could not be finished, so the list may be short"
+  },
+  "searchLoadFailed": "Couldn\u2019t load launches and events.",
+  "@searchLoadFailed": {
+    "description": "Shown instead of the no-results message when nothing could be loaded at all, so an empty list is not mistaken for an answer"
+  },
   "@loadingMore": {
     "description": "Shown in place of the no-results message while the search index is still being fetched, so an empty list is not mistaken for an answer"
   },

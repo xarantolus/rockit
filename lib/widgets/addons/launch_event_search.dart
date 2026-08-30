@@ -314,7 +314,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  AppLocalizations.of(context)!.showingIncompleteData,
+                  AppLocalizations.of(context)!.searchLoadFailed,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -413,9 +413,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
-  /// Says the index is short rather than letting an empty list imply there is
-  /// nothing to find. `showingIncompleteData` is the wording the rest of the
-  /// app already uses when a fetch only half worked.
+  /// Says the list is short rather than letting it pass for the whole answer.
   Widget _incompleteNotice(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -433,7 +431,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              AppLocalizations.of(context)!.showingIncompleteData,
+              AppLocalizations.of(context)!.searchResultsMissing,
               style: TextStyle(
                 fontSize: 13,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -485,7 +483,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
           padding: const EdgeInsets.all(24),
           child: Text(
             short
-                ? AppLocalizations.of(context)!.showingIncompleteData
+                ? AppLocalizations.of(context)!.searchLoadFailed
                 : AppLocalizations.of(context)!.emptyResults,
             textAlign: TextAlign.center,
           ),
