@@ -428,19 +428,23 @@ class BackgroundHandler {
     }
   }
 
-  String _getPrecisionKey(String type, String id) => "precision:$type:$id";
+  /// Not the old `precision:` key. That held a precision abbrev, so reusing it
+  /// would read one as a display key on the first run after an update and
+  /// announce a change that had not happened.
+  String _getDisplayedTimeKey(String type, String id) =>
+      "displaytime:$type:$id";
 
-  /// Notifies once a date stops being a guess.
+  /// Notifies when the time a subscriber can see actually changes.
   ///
-  /// Only entries in the API's update feed produce a notification, and the
-  /// change a subscriber most wants is often not in it: a launch going from
-  /// "NET October" to an actual time. The reminders quietly start working at
-  /// that point and nobody is told.
+  /// Only entries in the API's update feed produce a notification otherwise,
+  /// and the changes that matter most are often not in it: a launch going from
+  /// "NET October" to a real time, or slipping from Tuesday to Thursday.
   ///
-  /// Deliberately only that one transition. A [net] that drifts by hours, or a
-  /// precision that gets *vaguer*, happens constantly for unconfirmed launches
-  /// and would be noise.
-  Future<void> _notifyIfTimeBecameKnown({
+  /// The test is [displayedTimeKey], not the raw [at]. A launch known only to
+  /// the month moves within that month constantly and shows the same "NET
+  /// October" throughout, so comparing instants would be pure noise; comparing
+  /// what is rendered fires exactly when the screen would look different.
+  Future<void> _notifyIfDisplayedTimeChanged({
     required String type,
     required String id,
     required String title,
@@ -449,34 +453,60 @@ class BackgroundHandler {
     required NotificationDetails details,
     required String payload,
   }) async {
-    final key = _getPrecisionKey(type, id);
+    final key = _getDisplayedTimeKey(type, id);
     final previous = await _loadString(key);
+    final current = displayedTimeKey(at, precision);
 
-    await _saveString(key, precision?.abbrev ?? "");
+    await _saveString(key, current ?? "");
 
     // Nothing to compare against on the first run, which is the moment the
-    // user subscribed.
-    if (previous == null || at == null) {
+    // user subscribed. An empty current means the API has no date at all.
+    if (previous == null || current == null || at == null) {
       return;
     }
 
-    if (!timeBecameKnown(DatePrecision(abbrev: previous), precision)) {
+    if (previous == current) {
       return;
     }
+
+    // A date appearing for the first time is not a change of plan, and the
+    // reminders only start meaning anything here.
+    final wasUnknown = previous.isEmpty;
+    final noun = type == "event" ? "event" : "launch";
 
     try {
       await notifications!.show(
         id: "time:$id".hashCode.abs(),
         title: title,
-        body:
-            "A launch time has been set: "
-            "${DateFormat("EEE, d MMM y, HH:mm").format(at.toLocal())}",
+        body: wasUnknown
+            ? "A $noun time has been set: ${_describeTime(at, precision)}"
+            : "The $noun time changed to ${_describeTime(at, precision)}",
         notificationDetails: details,
         payload: payload,
       );
     } catch (err) {
       debugPrint("Could not notify about the new time for $id: $err");
     }
+  }
+
+  /// Says the time only as precisely as the API claims to know it, so a launch
+  /// known to the month is not announced as a specific minute.
+  static String _describeTime(DateTime at, DatePrecision? precision) {
+    final local = at.toLocal();
+
+    return switch (precision?.kind) {
+      DatePrecisionKind.second ||
+      DatePrecisionKind.minute ||
+      DatePrecisionKind.hour ||
+      null => DateFormat("EEE, d MMM y, HH:mm").format(local),
+      DatePrecisionKind.day ||
+      DatePrecisionKind.week ||
+      DatePrecisionKind.unknown => DateFormat("EEE, d MMM y").format(local),
+      DatePrecisionKind.month => DateFormat("MMMM y").format(local),
+      DatePrecisionKind.quarter => "Q${quarterOf(local)} ${local.year}",
+      DatePrecisionKind.year => "${local.year}",
+      DatePrecisionKind.decade => "${local.year - local.year % 10}s",
+    };
   }
 
   String _getUpdateKey(String type, String id) {
@@ -556,7 +586,7 @@ class BackgroundHandler {
       debugPrint("Error while processing launch updates: $err");
     }
 
-    await _notifyIfTimeBecameKnown(
+    await _notifyIfDisplayedTimeChanged(
       type: "launch",
       id: launchId,
       title: launchTitle,
@@ -643,7 +673,10 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
-      await _deleteKey(_getPrecisionKey("launch", launchId));
+      await _deleteKey(_getDisplayedTimeKey("launch", launchId));
+      // The name this used to be stored under, so an install upgraded
+      // from an older build does not leave one behind.
+      await _deleteKey("precision:launch:$launchId");
     } catch (err) {
       debugPrint("Deleting update key for launch while unsubscribing: $err");
     }
@@ -869,7 +902,10 @@ class BackgroundHandler {
 
     try {
       await _deleteKey(_getUpdateKey("event", eventId));
-      await _deleteKey(_getPrecisionKey("event", eventId));
+      await _deleteKey(_getDisplayedTimeKey("event", eventId));
+      // The name this used to be stored under, so an install upgraded
+      // from an older build does not leave one behind.
+      await _deleteKey("precision:event:$eventId");
     } catch (err) {
       debugPrint("Deleting update key for event while unsubscribing: $err");
     }
@@ -977,7 +1013,7 @@ class BackgroundHandler {
       debugPrint("Error while processing event updates: $err");
     }
 
-    await _notifyIfTimeBecameKnown(
+    await _notifyIfDisplayedTimeChanged(
       type: "event",
       id: eventId,
       title: eventTitle,

@@ -174,37 +174,6 @@ void main() {
     });
   });
 
-  group('timeBecameKnown', () {
-    test('a guess turning into a clock time is worth saying', () {
-      expect(timeBecameKnown(precision('M'), precision('MIN')), isTrue);
-      expect(timeBecameKnown(precision('Q3'), precision('SEC')), isTrue);
-      expect(timeBecameKnown(precision('Y'), precision('HR')), isTrue);
-    });
-
-    test('staying vague is not', () {
-      expect(timeBecameKnown(precision('Y'), precision('M')), isFalse);
-      expect(timeBecameKnown(precision('M'), precision('DAY')), isFalse);
-    });
-
-    test('staying precise is not, however much the time moves', () {
-      // A launch slipping by hours is normal and would be constant noise.
-      expect(timeBecameKnown(precision('MIN'), precision('SEC')), isFalse);
-      expect(timeBecameKnown(precision('SEC'), precision('SEC')), isFalse);
-    });
-
-    test('going vague again is not', () {
-      expect(timeBecameKnown(precision('MIN'), precision('M')), isFalse);
-    });
-
-    test('an unknown precision does not count as known', () {
-      expect(timeBecameKnown(precision('FORTNIGHT'), precision('MIN')), isTrue);
-      expect(
-        timeBecameKnown(precision('MIN'), precision('FORTNIGHT')),
-        isFalse,
-      );
-    });
-  });
-
   group('quarterOf', () {
     test('maps months onto quarters', () {
       expect(quarterOf(DateTime.utc(2026, 1)), 1);
@@ -283,6 +252,87 @@ void main() {
 
       expect(c.days, 365);
       expect(c.clock, 'T-365d 00:00:00');
+    });
+  });
+
+  group('displayedTimeKey', () {
+    // The rule a subscriber notification hangs on: a key change is exactly a
+    // change on screen, so it must not move for anything the user cannot see.
+    final at = DateTime(2026, 9, 12, 14, 30);
+
+    String? key(DateTime? d, String? abbrev) =>
+        displayedTimeKey(d, abbrev == null ? null : precision(abbrev));
+
+    test('no date has no key', () {
+      expect(key(null, 'MIN'), isNull);
+    });
+
+    test('a countdown is identical down to the minute', () {
+      expect(key(at, 'MIN'), key(at, 'SEC'));
+      expect(key(at, 'MIN'), key(at, 'HR'));
+    });
+
+    test('seconds are below what a countdown key tracks', () {
+      expect(
+        key(DateTime(2026, 9, 12, 14, 30, 5), 'MIN'),
+        key(DateTime(2026, 9, 12, 14, 30, 55), 'MIN'),
+      );
+    });
+
+    test('a minute of slip is a change at minute precision', () {
+      expect(key(at, 'MIN'), isNot(key(DateTime(2026, 9, 12, 14, 31), 'MIN')));
+    });
+
+    test('the same slip is invisible at day precision', () {
+      expect(key(at, 'DAY'), key(DateTime(2026, 9, 12, 23, 59), 'DAY'));
+    });
+
+    test('moving a day shows at day precision', () {
+      expect(key(at, 'DAY'), isNot(key(DateTime(2026, 9, 13), 'DAY')));
+    });
+
+    test('a month-precision launch may roam its whole month unseen', () {
+      expect(key(DateTime(2026, 9, 1), 'M'), key(DateTime(2026, 9, 30), 'M'));
+      expect(
+        key(DateTime(2026, 9, 30), 'M'),
+        isNot(key(DateTime(2026, 10, 1), 'M')),
+      );
+    });
+
+    test('quarters group by quarter, not month', () {
+      expect(key(DateTime(2026, 7, 1), 'Q3'), key(DateTime(2026, 9, 30), 'Q3'));
+      expect(
+        key(DateTime(2026, 9, 30), 'Q3'),
+        isNot(key(DateTime(2026, 10, 1), 'Q3')),
+      );
+    });
+
+    test('a year and a decade widen further still', () {
+      expect(key(DateTime(2026, 1, 1), 'Y'), key(DateTime(2026, 12, 31), 'Y'));
+      expect(
+        key(DateTime(2030, 1, 1), 'DEC'),
+        key(DateTime(2039, 12, 31), 'DEC'),
+      );
+      expect(
+        key(DateTime(2039, 12, 31), 'DEC'),
+        isNot(key(DateTime(2040, 1, 1), 'DEC')),
+      );
+    });
+
+    test('a precision change is a change, both ways', () {
+      // Going vague is as visible as becoming precise: "NET October" replaces
+      // a clock time on the card either way round.
+      expect(key(at, 'MIN'), isNot(key(at, 'M')));
+      expect(key(at, 'M'), isNot(key(at, 'MIN')));
+    });
+
+    test('a week renders as a day, and an unknown precision does too', () {
+      expect(key(at, 'WK'), key(at, 'DAY'));
+      expect(key(at, 'FORTNIGHT'), key(at, 'DAY'));
+    });
+
+    test('a missing precision is treated as a clock time', () {
+      expect(key(at, null), key(at, 'MIN'));
     });
   });
 }

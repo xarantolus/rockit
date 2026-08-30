@@ -104,13 +104,54 @@ bool hasUsableTime(DatePrecision? precision) {
   return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
 }
 
-/// Whether a date has gone from a guess to a real clock time.
+/// A stable identity for the time a user actually sees, at the precision the
+/// API claims to know it.
 ///
-/// The one precision change worth telling a subscriber about: their reminders
-/// only start meaning anything at this point. Going the other way, or drifting
-/// within the same precision, happens constantly for unconfirmed launches.
-bool timeBecameKnown(DatePrecision? before, DatePrecision? after) =>
-    !hasUsableTime(before) && hasUsableTime(after);
+/// Two values that render the same produce the same key, so a change in this is
+/// exactly a change on screen. It cannot be the rendered string itself: that is
+/// relative to *now*, so "Tomorrow, 11:26" becomes "Today, 11:26" overnight
+/// with nothing about the launch having moved.
+///
+/// Local time deliberately — a day or month boundary is wherever the viewer is,
+/// which is the same rule the cards render by.
+String? displayedTimeKey(DateTime? date, DatePrecision? precision) {
+  if (date == null) {
+    return null;
+  }
+
+  final at = date.toLocal();
+  String pad(int value, [int width = 2]) =>
+      value.toString().padLeft(width, '0');
+
+  final day = "${pad(at.year, 4)}-${pad(at.month)}-${pad(at.day)}";
+
+  switch (precision?.kind) {
+    // A countdown ticks, so anything down to the minute is on screen.
+    case DatePrecisionKind.second:
+    case DatePrecisionKind.minute:
+    case DatePrecisionKind.hour:
+    case null:
+      return "$day ${pad(at.hour)}:${pad(at.minute)}";
+
+    case DatePrecisionKind.day:
+    case DatePrecisionKind.week:
+    // An unrecognised precision renders as a plain day; see timeDisplayFor.
+    case DatePrecisionKind.unknown:
+      return day;
+
+    case DatePrecisionKind.month:
+      return "${pad(at.year, 4)}-${pad(at.month)}";
+
+    case DatePrecisionKind.quarter:
+      return "${pad(at.year, 4)}-Q${quarterOf(at)}";
+
+    case DatePrecisionKind.year:
+      return pad(at.year, 4);
+
+    case DatePrecisionKind.decade:
+      return "${pad(at.year - at.year % 10, 4)}s";
+  }
+}
 
 /// Whether [display] names an actual calendar day, rather than a window.
 bool showsExactDay(TimeDisplay display) => switch (display) {
