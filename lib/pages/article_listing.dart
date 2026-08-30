@@ -193,17 +193,25 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
     _finished = false;
   }
 
+  /// [refresh] means the user asked — a pull on the list. Everything else is
+  /// the feed paging itself as you scroll.
+  ///
+  /// Only the asked-for kind says anything. Paging happens on its own halfway
+  /// down the list, so a snackbar there is an error message nobody went
+  /// looking for, arriving mid-scroll: the same "could not get latest data"
+  /// popping up again every page. The `LoadMore` footer already reports it
+  /// exactly where the page would have appeared, and the launches and events
+  /// listings show nothing at all for this.
   Future<bool> _updateArticles([bool? refresh]) async {
+    final asked = refresh == true;
     final ErrorDetails<List<Article>> res;
 
     try {
-      res = await widget.service.articles(
-        refresh == true ? null : articles.length,
-      );
+      res = await widget.service.articles(asked ? null : articles.length);
     } catch (e) {
       debugPrint("Error loading articles: $e");
 
-      if (mounted) {
+      if (mounted && asked) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.loadingFail)),
         );
@@ -218,7 +226,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
     }
 
     setState(() {
-      if (refresh == true) {
+      if (asked) {
         articles = res.data;
         _paged = false;
       } else {
@@ -229,7 +237,9 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
       _finished = res.data.isEmpty;
     });
 
-    res.maybeShowSnack(context);
+    if (asked) {
+      res.maybeShowSnack(context);
+    }
 
     return articles.isNotEmpty;
   }
