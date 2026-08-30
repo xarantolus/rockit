@@ -37,6 +37,23 @@ class LaunchEventSearchDelegate extends SearchDelegate {
   /// rather than looking simply incomplete.
   final completing = ValueNotifier<bool>(false);
 
+  /// True when the index could not be finished — the budget was gone, the API
+  /// refused, or the connection failed. Kept apart from [completing] because
+  /// an empty list means something different in each case, and "no results" is
+  /// an answer we have not earned in either.
+  final incomplete = ValueNotifier<bool>(false);
+
+  /// Set when the user leaves. Pages already in flight will land and be
+  /// cached, which is useful, but nothing new is requested for a screen that
+  /// is gone — those are requests out of fifteen an hour.
+  bool _closed = false;
+
+  @override
+  void close(BuildContext context, dynamic result) {
+    _closed = true;
+    super.close(context, result);
+  }
+
   /// At most this many requests to finish the index, whatever the budget says.
   ///
   /// The whole upcoming set is about three pages — 191 launches and 33 events
@@ -122,10 +139,13 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
       var budget = await _spendableRequests();
       if (budget <= 0) {
+        // Known to be short, rather than known to be empty.
+        incomplete.value = true;
         return;
       }
 
       completing.value = true;
+      var finished = true;
 
       /// Continues a listing over the network, where a null `from` starts at
       /// page one.
@@ -140,26 +160,43 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         var next = resume.from;
         var more = true;
 
-        while (more && budget > 0) {
-          budget--;
-
-          final resp = await page(next);
-          final data = resp.data;
-          if (data == null) {
+        while (more) {
+          if (_closed || budget <= 0) {
+            finished = false;
             return;
           }
 
-          add(data.results as List<dynamic>);
-          next = data.next as String?;
-          more = next != null;
-          publish();
+          budget--;
+
+          try {
+            final resp = await page(next);
+            final data = resp.data;
+            if (data == null) {
+              finished = false;
+              return;
+            }
+
+            add(data.results as List<dynamic>);
+            next = data.next as String?;
+            more = next != null;
+            publish();
+          } catch (e) {
+            // A refused or failed request for a page nothing has cached throws
+            // rather than degrading, and it must not read as "no results".
+            debugPrint("Could not fetch a page for the search index: $e");
+            finished = false;
+            return;
+          }
         }
       }
 
       await fetchRest(launches, (next) => api.upcomingLaunches(next: next));
       await fetchRest(events, (next) => api.upcomingEvents(next: next));
+
+      incomplete.value = !finished;
     } catch (e) {
       debugPrint("Error building the search index: $e");
+      incomplete.value = true;
     } finally {
       completing.value = false;
       _indexing = false;
@@ -262,31 +299,53 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     lastTerm = query;
 
     return _whileIndexing(
-      builder: (context, all, busy) {
+      builder: (context, all, busy, short) {
         final matches = _matches(all).map((e) => e.item).toList();
 
-        // Nothing found *yet* is not the same as nothing to find, and the
-        // difference is the whole point of still fetching. Saying "no results"
-        // here would be an answer we do not have.
-        if (matches.isEmpty && busy) {
-          return _stillLoading(context);
+        // Nothing found *yet* is not the same as nothing to find, and neither
+        // is nothing found *because the API refused*. "No results" is only
+        // honest once the index is both finished and complete.
+        if (matches.isEmpty) {
+          if (busy) {
+            return _stillLoading(context);
+          }
+          if (short) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  AppLocalizations.of(context)!.showingIncompleteData,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
         }
 
-        return Stack(
+        return Column(
           children: [
-            LaunchEventListing<dynamic, String>(
-              emptyText: AppLocalizations.of(context)!.emptyResults,
-              initialItems: matches,
-              scrollOffset: scrollOffset,
-              heroPrefix: "search-",
-            ),
-            // Over the results rather than replacing them: what is already
-            // indexed stays searchable while the rest arrives.
-            if (busy)
-              const Align(
-                alignment: Alignment.topCenter,
-                child: LinearProgressIndicator(minHeight: 2),
+            // Above the list rather than over it: unlike the progress bar this
+            // is not going away on its own, so it should take its own space.
+            if (short && !busy) _incompleteNotice(context),
+            Expanded(
+              child: Stack(
+                children: [
+                  LaunchEventListing<dynamic, String>(
+                    emptyText: AppLocalizations.of(context)!.emptyResults,
+                    initialItems: matches,
+                    scrollOffset: scrollOffset,
+                    heroPrefix: "search-",
+                  ),
+                  // Over the results rather than replacing them: what is
+                  // already indexed stays searchable while the rest arrives.
+                  if (busy)
+                    const Align(
+                      alignment: Alignment.topCenter,
+                      child: LinearProgressIndicator(minHeight: 2),
+                    ),
+                ],
               ),
+            ),
           ],
         );
       },
@@ -337,16 +396,51 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     return _whileIndexing(builder: _suggestionList);
   }
 
-  /// Rebuilds on both the index and whether it is still filling, so every
-  /// state below can be decided in one place.
+  /// Rebuilds on the index, on whether it is still filling and on whether it
+  /// gave up, so every state below is decided in one place.
   Widget _whileIndexing({
-    required Widget Function(BuildContext, List<_Entry>, bool) builder,
+    required Widget Function(BuildContext, List<_Entry>, bool, bool) builder,
   }) {
     return ValueListenableBuilder(
       valueListenable: entries,
       builder: (context, all, _) => ValueListenableBuilder(
         valueListenable: completing,
-        builder: (context, busy, _) => builder(context, all, busy),
+        builder: (context, busy, _) => ValueListenableBuilder(
+          valueListenable: incomplete,
+          builder: (context, short, _) => builder(context, all, busy, short),
+        ),
+      ),
+    );
+  }
+
+  /// Says the index is short rather than letting an empty list imply there is
+  /// nothing to find. `showingIncompleteData` is the wording the rest of the
+  /// app already uses when a fetch only half worked.
+  Widget _incompleteNotice(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      color: theme.colorScheme.surfaceContainerHighest,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.cloud_off_outlined,
+            size: 18,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context)!.showingIncompleteData,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -373,13 +467,30 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
-  Widget _suggestionList(BuildContext context, List<_Entry> all, bool busy) {
+  Widget _suggestionList(
+    BuildContext context,
+    List<_Entry> all,
+    bool busy,
+    bool short,
+  ) {
     final suggestions = _searchSuggestions(_matches(all));
 
     if (suggestions.isEmpty) {
-      return busy
-          ? _stillLoading(context)
-          : Center(child: Text(AppLocalizations.of(context)!.emptyResults));
+      if (busy) {
+        return _stillLoading(context);
+      }
+
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            short
+                ? AppLocalizations.of(context)!.showingIncompleteData
+                : AppLocalizations.of(context)!.emptyResults,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
     return ListView.builder(
