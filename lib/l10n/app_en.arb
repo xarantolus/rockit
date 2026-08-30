@@ -117,6 +117,35 @@
   "search": "Search launches and events",
   "searchNews": "Search news",
   "clearSearch": "Clear",
+  "keywords": "Keywords",
+  "keyword": "Keyword",
+  "keywordsExplainer": "Watch for a word in a launch name or rocket. Anything new that matches is subscribed to for you, so you get the same reminders as if you had added it yourself.",
+  "keywordsEmpty": "No keywords yet",
+  "addKeyword": "Add keyword",
+  "editKeyword": "Edit keyword",
+  "keywordHint": "Starship",
+  "keywordWindow": "Look ahead",
+  "keywordWindowDays": "{count,plural, =1{1 day}other{{count} days}}",
+  "@keywordWindowDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "keywordBackfill": "Also subscribe to matching launches already known",
+  "keywordBackfillCount": "{count,plural, =0{No matches yet}=1{1 match}other{{count} matches}}",
+  "@keywordBackfillCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "keywordNeeded": "Enter a word to watch for",
+  "keywordWindowNeeded": "Enter a number of days",
+  "deleteKeyword": "Delete",
+  "keywordDeleted": "Keyword removed. Launches it added stay subscribed.",
   "close": "Close",
   "emptyResults": "No results for this query",
   "loadingMore": "Loading more\u2026",

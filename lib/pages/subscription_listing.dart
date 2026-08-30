@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/pages/keywords_page.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/api_issue.dart';
 import 'package:rockit/background/handler.dart';
@@ -131,6 +132,25 @@ class _SubscriptionListingPageState extends State<SubscriptionListingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const KeywordsPage()));
+
+          // Adding a keyword can subscribe to things, so the list behind it is
+          // out of date on the way back.
+          if (mounted) {
+            setState(() {});
+          }
+        },
+        tooltip: AppLocalizations.of(context)!.keywords,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(
+          Icons.notifications_active_outlined,
+          color: Colors.white,
+        ),
+      ),
       appBar: CustomAppBar.create(
         context,
         title: AppLocalizations.of(context)!.subscriptions,

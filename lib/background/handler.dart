@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/background/imminent_check.dart';
+import 'package:rockit/background/keywords.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
@@ -415,11 +416,17 @@ class BackgroundHandler {
     try {
       // Sequential: each page's `next` only exists once the one before it has
       // come back. Launches first, since there are far more of them.
-      launchNext = (await api.upcomingLaunches()).data.next;
+      // Scanned as well as cached: a keyword's match is often further down
+      // the listing than the first page, and these pages are already paid for.
+      final first = (await api.upcomingLaunches()).data;
+      await scanForKeywordMatches(first.results);
+      launchNext = first.next;
       allowance--;
 
       while (allowance-- > 0 && launchNext != null) {
-        launchNext = (await api.upcomingLaunches(next: launchNext)).data.next;
+        final page = (await api.upcomingLaunches(next: launchNext)).data;
+        await scanForKeywordMatches(page.results);
+        launchNext = page.next;
         pages++;
       }
 
@@ -482,6 +489,14 @@ class BackgroundHandler {
     List<Event>? events,
   }) async {
     if (launches != null) {
+      // Before the refresh below, so anything a keyword has just picked up is
+      // treated like every other subscription from here on.
+      try {
+        await scanForKeywordMatches(launches);
+      } catch (err) {
+        debugPrint("Could not scan the listing for keyword matches: $err");
+      }
+
       final subscribed = (await _loadIDs(launchesKey)).toSet();
 
       for (final launch in launches) {
@@ -823,6 +838,153 @@ class BackgroundHandler {
 
   static const launchesKey = "launches";
 
+  static const keywordsKey = "keywords";
+
+  /// Every launch the user has ever unsubscribed from.
+  ///
+  /// The invariant the keyword feature rests on: unsubscribing is final, and
+  /// no keyword may undo it. Without this, taking a launch off the list would
+  /// last until the next scan put it straight back.
+  static const declinedKey = "auto:declined";
+
+  Future<List<LaunchKeyword>> loadKeywords() async {
+    return LaunchKeyword.decode(await _loadString(keywordsKey));
+  }
+
+  Future<void> saveKeywords(List<LaunchKeyword> keywords) async {
+    await _saveString(keywordsKey, LaunchKeyword.encode(keywords));
+  }
+
+  Future<List<String>> loadDeclinedLaunchIDs() => _loadIDs(declinedKey);
+
+  /// What a scan would take on right now, without doing it.
+  ///
+  /// The same rule the scan uses, so the count on the add screen is what
+  /// actually happens rather than a text match that ignores the window.
+  Future<List<Launch>> wouldAutoSubscribe(
+    List<Launch> launches,
+    List<LaunchKeyword> keywords,
+  ) async {
+    return launchesToAutoSubscribe(
+      launches: launches,
+      keywords: keywords,
+      subscribed: (await _loadIDs(launchesKey)).toSet(),
+      declined: (await _loadIDs(declinedKey)).toSet(),
+      now: DateTime.now(),
+    );
+  }
+
+  Future<void> _decline(String launchId) async {
+    final declined = await _loadIDs(declinedKey);
+    if (declined.contains(launchId)) {
+      return;
+    }
+
+    declined.add(launchId);
+    await _saveIDs(declinedKey, declined);
+  }
+
+  /// Subscribes to whatever the keywords have turned up in [launches].
+  ///
+  /// [notify] is off when the user has just asked for this by adding a
+  /// keyword: they are looking at the screen, and thirty-six notifications for
+  /// something they pressed a button to do is not news.
+  ///
+  /// Never prompts: this runs in the background isolate, where there is no UI
+  /// to show a permission dialog on. Whatever permissions the user granted
+  /// when they subscribed to something by hand are the ones this gets.
+  ///
+  /// The subscription list is read and written **once**, immediately around
+  /// the change, rather than once per launch — the UI isolate may be editing
+  /// the same key, and a per-launch read-modify-write would lose whatever it
+  /// did in between.
+  Future<List<Launch>> scanForKeywordMatches(
+    List<Launch> launches, {
+    bool notify = true,
+  }) async {
+    final keywords = await loadKeywords();
+    if (keywords.isEmpty) {
+      return const [];
+    }
+
+    final picked = launchesToAutoSubscribe(
+      launches: launches,
+      keywords: keywords,
+      subscribed: (await _loadIDs(launchesKey)).toSet(),
+      declined: (await _loadIDs(declinedKey)).toSet(),
+      now: DateTime.now(),
+    );
+
+    if (picked.isEmpty) {
+      return const [];
+    }
+
+    final current = await _loadIDs(launchesKey);
+    for (final launch in picked) {
+      if (!current.contains(launch.id)) {
+        current.add(launch.id!);
+      }
+    }
+    await _saveIDs(launchesKey, current);
+
+    for (final launch in picked) {
+      final id = launch.id!;
+
+      try {
+        // Before processLaunch, so the updates already on the launch when we
+        // found it do not all arrive as notifications.
+        await _saveDate(_getUpdateKey("launch", id), DateTime.now());
+        await processLaunch(launch, id);
+
+        if (notify) {
+          await _notifyAutoSubscribed(launch, id);
+        }
+      } catch (err) {
+        debugPrint("Could not set up the keyword match $id: $err");
+      }
+    }
+
+    debugPrint("Subscribed to ${picked.length} launch(es) by keyword");
+
+    return picked;
+  }
+
+  /// Says what turned up, not what the app did about it.
+  ///
+  /// "Auto-subscribed" is the implementation talking; the useful thing is
+  /// which launch it is and when it goes.
+  Future<void> _notifyAutoSubscribed(Launch launch, String id) async {
+    final at = launch.net;
+    if (at == null || notifications == null) {
+      return;
+    }
+
+    try {
+      await notifications!.show(
+        id: "keyword:$id".hashCode.abs(),
+        title: launch.name ?? "New launch",
+        body: "Will launch on ${_launchWhen(at, launch.netPrecision)}",
+        notificationDetails: _getLaunchUpdateNotifDetails(id),
+        payload: "$actionLaunchDetails::$id",
+      );
+    } catch (err) {
+      debugPrint("Could not announce the keyword match $id: $err");
+    }
+  }
+
+  /// A date, and a time only when the API actually knows one.
+  static String _launchWhen(DateTime at, DatePrecision? precision) {
+    final local = at.toLocal();
+    final day = DateFormat("EEE, d MMM y").format(local);
+
+    return switch (precision?.kind) {
+      DatePrecisionKind.second ||
+      DatePrecisionKind.minute ||
+      DatePrecisionKind.hour => "$day at ${DateFormat("HH:mm").format(local)}",
+      _ => day,
+    };
+  }
+
   Future<bool> isSubscribedToLaunch(String launchId) async {
     var markedIDs = await _loadIDs(launchesKey);
     return markedIDs.contains(launchId);
@@ -837,6 +999,9 @@ class BackgroundHandler {
     var markedLaunches = await _loadIDs(launchesKey);
     markedLaunches.remove(launchId);
     await _saveIDs(launchesKey, markedLaunches);
+
+    // Remember it, so no keyword ever puts it back.
+    await _decline(launchId);
 
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
