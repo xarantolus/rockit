@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/widgets/addons/time_refresh.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
-import 'package:rockit/util/relative_time.dart';
 import 'package:rockit/widgets/image.dart';
 
 /// One article in the news feed.
@@ -42,38 +42,21 @@ class ArticleRow extends StatelessWidget
 
   static const _imageSize = 96.0;
 
+  /// The same local, friendly wording the launch and event cards use —
+  /// "Today, 11:26" — rather than an age in hours. One way of saying when
+  /// something is, everywhere.
   String _timeText(BuildContext context) {
     final published = publishDate;
-    if (published == null) {
-      return "";
-    }
 
-    final localizations = AppLocalizations.of(context)!;
-    final relative = relativeTime(published, DateTime.now());
-
-    switch (relative.unit) {
-      case RelativeUnit.justNow:
-        return localizations.justNow;
-      case RelativeUnit.minutes:
-        return localizations.agoMinutes(relative.value);
-      case RelativeUnit.hours:
-        return localizations.agoHours(relative.value);
-      case RelativeUnit.days:
-        return localizations.agoDays(relative.value);
-      case RelativeUnit.absolute:
-        return formatDate(context, published.toLocal());
-    }
+    return published == null
+        ? ""
+        : formatDateTimeFriendlyText(context, published.toLocal());
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6);
-
-    final meta = [
-      if ((newsSite ?? "").isNotEmpty) newsSite!,
-      if (_timeText(context).isNotEmpty) _timeText(context),
-    ].join(" · ");
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -117,15 +100,30 @@ class ArticleRow extends StatelessWidget
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (meta.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        meta,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12.5, color: muted),
-                      ),
-                    ],
+                    // The date is written relative to today, so it has to be
+                    // looked at again when the day turns over.
+                    MidnightRefresh(
+                      builder: (context) {
+                        final meta = [
+                          if ((newsSite ?? "").isNotEmpty) newsSite!,
+                          if (_timeText(context).isNotEmpty) _timeText(context),
+                        ].join(" · ");
+
+                        if (meta.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            meta,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12.5, color: muted),
+                          ),
+                        );
+                      },
+                    ),
                     if (relatedLaunch != null) ...[
                       const SizedBox(height: 6),
                       _RelatedChip(

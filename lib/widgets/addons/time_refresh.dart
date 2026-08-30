@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+
 import 'package:rockit/time/precision_time.dart';
 
 /// How often a piece of time-dependent text actually goes out of date.
@@ -75,4 +77,40 @@ class TimeRefresh {
     _timer = null;
     _rate = TimeRefreshRate.none;
   }
+}
+
+/// Rebuilds its subtree when the day turns over.
+///
+/// For text that is phrased relative to today but has no clock in it, so it is
+/// wrong for at most the hours between midnight and the next time anything
+/// happens to rebuild the page.
+class MidnightRefresh extends StatefulWidget {
+  const MidnightRefresh({required this.builder, super.key});
+
+  final WidgetBuilder builder;
+
+  @override
+  State<MidnightRefresh> createState() => _MidnightRefreshState();
+}
+
+class _MidnightRefreshState extends State<MidnightRefresh> {
+  late final TimeRefresh _refresh = TimeRefresh(() {
+    setState(() {});
+    _refresh.sync(TimeRefreshRate.atMidnight);
+  })..mounted = (() => mounted);
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh.sync(TimeRefreshRate.atMidnight);
+  }
+
+  @override
+  void dispose() {
+    _refresh.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
 }
