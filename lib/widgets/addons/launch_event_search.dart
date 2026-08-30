@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/error_details.dart';
+import 'package:rockit/apis/paging.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
@@ -9,6 +10,7 @@ import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/util/keyboard.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
+import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/sort.dart';
 
 class LaunchEventSearchDelegate extends SearchDelegate {
@@ -19,6 +21,14 @@ class LaunchEventSearchDelegate extends SearchDelegate {
          searchFieldLabel: searchLabel,
          searchFieldStyle: TextStyle(color: searchTextColor),
        );
+
+  /// Identity across both kinds, so a launch and an event cannot collide.
+  static String _idOf(dynamic item) {
+    if (item is Launch) return "launch:${item.id}";
+    if (item is Event) return "event:${item.id}";
+
+    return "other:${identityHashCode(item)}";
+  }
 
   /// Everything searchable, rebuilt as pages arrive.
   final entries = ValueNotifier<List<_Entry>>([]);
@@ -61,6 +71,13 @@ class LaunchEventSearchDelegate extends SearchDelegate {
       final api = LaunchLibraryAPI();
       final found = <dynamic>[];
 
+      /// Offset paging over a list that moves underneath it repeats items: a
+      /// launch inserted before the page boundary pushes the last entry of
+      /// page one onto page two, and page one here is often cached from an
+      /// earlier snapshot than page two was fetched in. The same `mergePages`
+      /// the listings use, so there is one rule for it.
+      void add(List<dynamic> items) => mergePages(found, items, _idOf);
+
       void publish() {
         entries.value = sortLaunchesAndEvents(
           List.of(found),
@@ -84,7 +101,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
             return (complete: false, from: next);
           }
 
-          found.addAll(resp.results as List<dynamic>);
+          add(resp.results as List<dynamic>);
           next = resp.next as String?;
           publish();
         } while (next != null);
@@ -132,7 +149,7 @@ class LaunchEventSearchDelegate extends SearchDelegate {
             return;
           }
 
-          found.addAll(data.results as List<dynamic>);
+          add(data.results as List<dynamic>);
           next = data.next as String?;
           more = next != null;
           publish();
@@ -334,6 +351,9 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
+  /// Only for when there is nothing to show yet. Once anything matches, the
+  /// slim bar over the results says the same thing without taking the screen
+  /// away from what the user came for.
   Widget _stillLoading(BuildContext context) {
     return Center(
       child: Padding(
@@ -341,14 +361,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(strokeWidth: 3),
-            ),
-            const SizedBox(height: 16),
+            const PlanetLoadingAnimation(),
+            const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!.searchStillLoading,
+              AppLocalizations.of(context)!.loadingMore,
               textAlign: TextAlign.center,
             ),
           ],

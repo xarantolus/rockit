@@ -119,8 +119,8 @@
   "clearSearch": "Clear",
   "close": "Close",
   "emptyResults": "No results for this query",
-  "searchStillLoading": "Still loading launches and events\u2026",
-  "@searchStillLoading": {
+  "loadingMore": "Loading more\u2026",
+  "@loadingMore": {
     "description": "Shown in place of the no-results message while the search index is still being fetched, so an empty list is not mistaken for an answer"
   },
   "unknownError": "Unknown error",
