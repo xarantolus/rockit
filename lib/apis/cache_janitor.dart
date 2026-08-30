@@ -19,14 +19,25 @@ import 'package:path_provider/path_provider.dart';
 /// safe — the store checks that a file exists before serving it, drops the
 /// entry when it does not, and refetches.
 class CacheJanitor {
-  /// Launch and event photography: shown large, the same picture every time,
-  /// and a bounded set.
-  static const imageBudget = 96 * 1024 * 1024;
+  /// Both budgets are set so the *stores'* own least-recently-used caps bite
+  /// first and this only ever catches a runaway. Sized from what the files
+  /// actually weigh rather than a round number:
+  ///
+  /// - Launch and event photos are **163 KB** on average and 473 KB at worst
+  ///   (measured across 37 of them), and none is over the 2 MB threshold at
+  ///   which `BoundedImageFileService` would shrink one — so they are stored
+  ///   exactly as the API serves them. At 300 objects the store tops out
+  ///   around 49 MB.
+  /// - Article thumbnails are the shrunk-down press photos, ~350 KB each. At
+  ///   150 objects that is about 52 MB.
+  ///
+  /// The old split gave launch photos 96 MB they could never use while
+  /// capping thumbnails below what their own object limit allows, which had
+  /// the byte budget doing the evicting for one store and the LRU for the
+  /// other.
+  static const imageBudget = 64 * 1024 * 1024;
 
-  /// Article and link-preview thumbnails, which are the biggest files in the
-  /// cache and the least revisited. Its own store, so it can expire on its own
-  /// seven-day clock without taking the launch photos with it.
-  static const articleImageBudget = 32 * 1024 * 1024;
+  static const articleImageBudget = 56 * 1024 * 1024;
 
   /// Enough for the deepest the background job can read — seven listing pages
   /// at ~3 MB, plus a per-launch copy of each entry — with room to spare.
