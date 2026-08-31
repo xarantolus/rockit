@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:rockit/apis/cache_janitor.dart';
+import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/notifications/create.dart';
 import 'package:rockit/pages/home_page.dart';
@@ -53,9 +55,61 @@ void main() async {
     // Nothing waits on this: it only reads directory entries and deletes, and
     // a start should not be held up to tidy a cache.
     unawaited(CacheJanitor().sweep());
+
+    await _wireHomeWidget(appPayloadNotifier);
   }
 
   runApp(RockItApp(appPayloadNotifier));
+}
+
+/// Makes a tap on the home-screen widget open the thing it names.
+///
+/// Both paths are needed, and wiring only the first is the usual reason taps
+/// "do nothing": [HomeWidget.initiallyLaunchedFromHomeWidget] answers once, for
+/// a cold start, while the [HomeWidget.widgetClicked] stream carries taps that
+/// arrive when the app is already running.
+///
+/// The payload is the same string a notification carries, so both end up in the
+/// same notifier and the same handler in `home_page.dart`.
+Future<void> _wireHomeWidget(ValueNotifier<String> payloads) async {
+  void handle(Uri? uri) {
+    final payload = uri?.queryParameters["payload"];
+    if (payload != null && payload.isNotEmpty) {
+      payloads.value = payload;
+    }
+  }
+
+  try {
+    HomeWidget.widgetClicked.listen(handle);
+    handle(await HomeWidget.initiallyLaunchedFromHomeWidget());
+  } catch (err) {
+    debugPrint("Could not wire up the home screen widget: $err");
+  }
+
+  WidgetsBinding.instance.addObserver(_RefreshWidgetOnResume());
+
+  unawaited(refreshHomeWidget());
+}
+
+/// Rewrites the home-screen widget whenever the app comes back to the front.
+///
+/// Its rows answer "when is this, here, now" — "Tomorrow, 02:00 AM" — so they
+/// go wrong when the device's timezone, locale or 12/24-hour setting changes,
+/// and the app is told about none of that while it is closed. Flying to
+/// another timezone also aims the scheduled midnight refresh at the wrong
+/// moment.
+///
+/// The hourly subscription job rewrites the rows and reschedules that refresh
+/// regardless, so the widget is never wrong for longer than an hour on its
+/// own. This covers the case anyone would actually catch: landing, unlocking
+/// the phone, and looking at the widget.
+class _RefreshWidgetOnResume with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(refreshHomeWidget());
+    }
+  }
 }
 
 class RockItApp extends StatelessWidget {

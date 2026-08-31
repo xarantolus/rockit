@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#FF1B1F24</color>
+    <color name="widget_text">#FFF3F5F7</color>
+    <color name="widget_muted">#99F3F5F7</color>
+    <!-- The app's dark-theme blue, which holds up against the dark surface. -->
+    <color name="widget_accent">#FF6BA5FF</color>
+    <color name="widget_divider">#1FF3F5F7</color>
+</resources>

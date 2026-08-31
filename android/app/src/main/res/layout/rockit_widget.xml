@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  RemoteViews accepts only a fixed set of views: LinearLayout, TextView and
+  ImageView are fine, ConstraintLayout and a plain View are not and would fail
+  at inflate time on the device rather than at build time.
+
+  All ten rows are declared here and hidden by default. A RemoteViews tree
+  cannot be built at runtime, so the maximum has to exist in the layout; the
+  provider shows as many as the widget's current height has room for.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="@dimen/widget_padding">
+
+    <LinearLayout
+        android:id="@+id/widget_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="6dp">
+
+        <!--
+          The notification glyph, not the launcher icon: it is already a
+          monochrome silhouette drawn to stay legible at this size, where the
+          full icon turns to mush.
+        -->
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_marginEnd="6dp"
+            android:src="@drawable/notification_icon"
+            android:tint="@color/widget_accent"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_title"
+            android:textColor="@color/widget_muted"
+            android:textSize="11sp"
+            android:letterSpacing="0.08"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/widget_muted"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <LinearLayout android:id="@+id/row_0" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_0" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_0" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_1" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_1" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_1" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_2" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_2" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_2" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_3" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_3" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_3" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_4" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_4" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_4" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_5" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_5" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_5" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_6" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_6" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_6" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_7" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_7" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_7" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_8" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_8" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_8" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/row_9" style="@style/RockItWidgetRow">
+        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
+        <LinearLayout style="@style/RockItWidgetRowText">
+            <TextView android:id="@+id/title_9" style="@style/RockItWidgetTitle" />
+            <TextView android:id="@+id/subtitle_9" style="@style/RockItWidgetWhen" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

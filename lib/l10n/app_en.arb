@@ -91,6 +91,8 @@
   "search": "Search launches and events",
   "searchNews": "Search news",
   "clearSearch": "Clear",
+  "widgetNothingUpcoming": "Nothing upcoming yet",
+  "widgetTitle": "Next launches",
   "keywords": "Keywords",
   "keyword": "Keyword",
   "keywordsExplainer": "Watch for a word in a launch name or rocket. Anything new that matches is subscribed to for you, so you get the same reminders as if you had added it yourself.",

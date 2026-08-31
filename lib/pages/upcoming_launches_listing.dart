@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/apis/paging.dart';
+import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingLaunchesPage extends StatefulWidget {
@@ -28,6 +31,15 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
       },
       nextFunc: (nextItemArg, current) async {
         final res = await widget.service.upcomingLaunches(next: nextItemArg);
+
+        // This listing is where the home-screen widget's rows come from, and
+        // startup writes the widget before the first one has arrived — so on a
+        // fresh install it would otherwise say "nothing upcoming" until an
+        // hourly job got round to it. Only the first page: a later page adds
+        // nothing the widget shows. Cache-only, so it costs no request.
+        if (nextItemArg == null) {
+          unawaited(refreshHomeWidget());
+        }
 
         return NextFuncResult(
           mergePages(current, res.data.results, (launch) => launch.id),

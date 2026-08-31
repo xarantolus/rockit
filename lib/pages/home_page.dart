@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/apis/spaceflightnews/api.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/mixins/url_launcher.dart';
@@ -245,6 +246,18 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           label: AppLocalizations.of(context)!.news,
         ),
       ],
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // The widget's text is written by whichever isolate refreshes it, and the
+    // background one has no MediaQuery to read the clock preference from — so
+    // it is saved here, where there is one.
+    unawaited(
+      rememberClockPreference(MediaQuery.of(context).alwaysUse24HourFormat),
     );
   }
 

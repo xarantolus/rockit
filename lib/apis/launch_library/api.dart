@@ -102,11 +102,47 @@ class LaunchLibraryAPI extends APIClient {
     );
   }
 
+  /// The URLs a cache-only listing read tries, newest cutoff first.
+  ///
+  /// The cutoff is part of the query string and the query string is the cache
+  /// key, so the moment it rolls over at midnight UTC every stored listing
+  /// becomes unreachable under its new key. Measured: at 00:00 the widget
+  /// emptied itself and the listings' first paint dropped to a spinner, once a
+  /// night, until something refetched. Yesterday's page is the same query
+  /// starting a day earlier, so falling back to it is a correct answer rather
+  /// than a degraded one — `recentPastWindow` already means a listing carries
+  /// some past.
+  @visibleForTesting
+  static List<Uri> listingCacheCandidates(
+    Uri Function({String? next, DateTime? now}) uriFor,
+    DateTime now,
+  ) => [uriFor(now: now), uriFor(now: now.subtract(const Duration(days: 1)))];
+
+  Future<Object?> _readCachedListing(
+    String? next,
+    Uri Function({String? next, DateTime? now}) uriFor,
+  ) async {
+    // A `next` page URL is absolute and already carries the cutoff it was
+    // built with, so there is nothing to roll over.
+    if (next != null) {
+      return readCacheJSON(Uri.parse(next));
+    }
+
+    for (final uri in listingCacheCandidates(uriFor, DateTime.now())) {
+      final json = await readCacheJSON(uri);
+      if (json != null) {
+        return json;
+      }
+    }
+
+    return null;
+  }
+
   /// The stored page of launches, without touching the network.
   Future<UpcomingLaunchesResponse?> cachedUpcomingLaunches({
     String? next,
   }) async {
-    var json = await readCacheJSON(upcomingLaunchesUri(next: next));
+    var json = await _readCachedListing(next, upcomingLaunchesUri);
 
     return json == null
         ? null
@@ -192,7 +228,7 @@ class LaunchLibraryAPI extends APIClient {
 
   /// The stored page of events, without touching the network.
   Future<UpcomingEventsResponse?> cachedUpcomingEvents({String? next}) async {
-    var json = await readCacheJSON(upcomingEventsUri(next: next));
+    var json = await _readCachedListing(next, upcomingEventsUri);
 
     return json == null
         ? null

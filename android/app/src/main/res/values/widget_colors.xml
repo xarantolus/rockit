@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A widget does not inherit the app's theme, so it carries its own. -->
+<resources>
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_text">#FF101418</color>
+    <color name="widget_muted">#99101418</color>
+    <!-- RockItApp._themeColor, so the widget reads as part of the app. -->
+    <color name="widget_accent">#FF3A88FF</color>
+    <color name="widget_divider">#14101418</color>
+</resources>

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/paging.dart';
+import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingEventsPage extends StatefulWidget {
@@ -28,6 +31,12 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
       },
       nextFunc: (nextItemArg, current) async {
         final res = await widget.service.upcomingEvents(next: nextItemArg);
+
+        // Subscribed events are resolved out of the per-event cache this
+        // listing seeds, so the widget can only show them once it has landed.
+        if (nextItemArg == null) {
+          unawaited(refreshHomeWidget());
+        }
 
         return NextFuncResult(
           mergePages(current, res.data.results, (event) => event.id),

@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/apis/launch_library/api.dart';
+import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/background/imminent_check.dart';
 import 'package:rockit/background/reminders.dart';
 import 'package:rockit/background/keywords.dart';
@@ -98,6 +99,28 @@ class BackgroundHandler {
   /// than [_imminentWindow] gets its own one-off check instead.
   static const subscriptionRefreshInterval = Duration(hours: 1);
 
+  /// A single one-off task that redraws the home-screen widget when what it
+  /// says stops being true — the turn of the day, or the top entry passing.
+  ///
+  /// One-off rather than periodic because the moment is not a fixed interval,
+  /// and `updatePeriodMillis` cannot go below half an hour anyway. It
+  /// re-registers itself each time it runs.
+  static const widgetRefreshTaskName = "widget:refresh";
+  static const _widgetRefreshTaskId = "widget-refresh";
+
+  Future<void> scheduleWidgetRefresh(Duration delay) async {
+    try {
+      await Workmanager().registerOneOffTask(
+        _widgetRefreshTaskId,
+        widgetRefreshTaskName,
+        initialDelay: delay,
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+      );
+    } catch (err) {
+      debugPrint("Could not schedule the widget refresh: $err");
+    }
+  }
+
   static const periodicCacheWarmTaskName = "cache:warm:periodic";
   static const _cacheWarmTaskId = "cache-warm";
 
@@ -156,6 +179,9 @@ class BackgroundHandler {
           return await handleEventUpdatePeriodic(inputData);
         case periodicSubscriptionRefreshTaskName:
           return await handleSubscriptionRefresh();
+        case widgetRefreshTaskName:
+          await refreshHomeWidget();
+          return true;
         case periodicCacheWarmTaskName:
           return await handleCacheWarm();
         case periodicCacheDeepenTaskName:
@@ -248,6 +274,10 @@ class BackgroundHandler {
   /// Returning false asks WorkManager to run the whole thing again, so it is
   /// only for "nothing worked at all".
   Future<bool> handleSubscriptionRefresh() async {
+    // Before the early return: a user with no subscriptions still has a widget
+    // to keep current, and this costs nothing — it reads the cache.
+    await refreshHomeWidget();
+
     final launchIDs = await _loadIDs(launchesKey);
     final eventIDs = await _loadIDs(eventsKey);
 
@@ -384,6 +414,9 @@ class BackgroundHandler {
     // After the writes, so what this run just stored counts towards the budget
     // rather than being swept on the next one.
     await CacheJanitor().sweep();
+
+    // The listing it just refreshed is what the widget reads.
+    await refreshHomeWidget();
 
     // Returning false asks WorkManager to run the whole task again, which is
     // only right when nothing worked at all.
@@ -1025,6 +1058,8 @@ class BackgroundHandler {
     // Remember it, so no keyword ever puts it back.
     await _decline(launchId);
 
+    await refreshHomeWidget();
+
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
       await _deleteKey(_getDisplayedTimeKey("launch", launchId));
@@ -1274,6 +1309,8 @@ class BackgroundHandler {
 
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForEvent(eventId));
+
+    await refreshHomeWidget();
   }
 
   String _taskNameForEvent(String eventId) {
@@ -1307,6 +1344,8 @@ class BackgroundHandler {
     } catch (err) {
       debugPrint("Could not set up reminders for event $eventId yet: $err");
     }
+
+    await refreshHomeWidget();
   }
 
   Future<bool> handleEventUpdatePeriodic(

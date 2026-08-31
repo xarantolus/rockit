@@ -60,6 +60,38 @@ void main() {
     });
   });
 
+  group('a cache-only listing read survives the cutoff rolling over', () {
+    // Measured on device: at 00:00 UTC the home-screen widget emptied itself
+    // and the listings' first paint fell back to a spinner, because the new
+    // day's URL had nothing stored under it yet.
+    final api = LaunchLibraryAPI();
+
+    test('it falls back to the URL that was current a minute ago', () {
+      final justBefore = DateTime.utc(2026, 8, 31, 23, 59);
+      final justAfter = DateTime.utc(2026, 9, 1, 0, 1);
+
+      final candidates = LaunchLibraryAPI.listingCacheCandidates(
+        api.upcomingLaunchesUri,
+        justAfter,
+      );
+
+      expect(candidates.first, api.upcomingLaunchesUri(now: justAfter));
+      expect(candidates, contains(api.upcomingLaunchesUri(now: justBefore)));
+    });
+
+    test('the newer cutoff is tried first, so a fresh page wins', () {
+      final now = DateTime.utc(2026, 9, 1, 12);
+
+      expect(
+        LaunchLibraryAPI.listingCacheCandidates(
+          api.upcomingEventsUri,
+          now,
+        ).first,
+        api.upcomingEventsUri(now: now),
+      );
+    });
+  });
+
   group('cache warm schedule', () {
     test('runs twice a day', () {
       // Two Launch Library requests a run, against fifteen an hour.

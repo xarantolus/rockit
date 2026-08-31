@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_corner_radius">16dp</dimen>
+
+    <!--
+      The provider works out how many rows fit from these, so they must stay in
+      step with the layout. The text blocks are declared in sp on purpose:
+      Resources.getDimension applies the user's font scale to sp and not to dp,
+      so a large-text device gets fewer rows instead of a clipped last one.
+    -->
+    <dimen name="widget_padding">12dp</dimen>
+    <dimen name="widget_header_block">21sp</dimen>
+    <dimen name="widget_row_text">32sp</dimen>
+    <dimen name="widget_row_spacing">8dp</dimen>
+</resources>

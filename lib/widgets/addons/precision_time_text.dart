@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
+import 'package:rockit/time/friendly_dates.dart';
 import 'package:rockit/time/precision_time.dart';
 import 'package:rockit/widgets/addons/time_refresh.dart';
 
@@ -88,77 +88,31 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
     );
   }
 
-  String _monthYear(BuildContext context, DateTime date) {
-    final localizations = AppLocalizations.of(context)!;
-
-    return DateFormat(
-      localizations.monthYearFormat,
-      localizations.localeName,
-    ).format(date);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
     final date = widget.date;
     final display = timeDisplayFor(date, widget.precision);
 
-    if (date == null || display == TimeDisplay.unknown) {
-      return Text(localizations.launchTimeUnknown, style: widget.style);
+    // The one case that cannot be a plain string: it ticks.
+    if (display == TimeDisplay.countdown && widget.showCountdown) {
+      return Text(
+        Countdown.between(date!.toLocal(), DateTime.now()).clock,
+        style: (widget.countdownStyle ?? widget.style)?.copyWith(
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
     }
 
-    final local = date.toLocal();
-
-    switch (display) {
-      case TimeDisplay.countdown:
-        if (!widget.showCountdown) {
-          return Text(
-            formatDateTimeFriendlyText(context, local),
-            style: widget.style,
-          );
-        }
-
-        return Text(
-          Countdown.between(local, DateTime.now()).clock,
-          style: (widget.countdownStyle ?? widget.style)?.copyWith(
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        );
-
-      case TimeDisplay.day:
-        return Text(formatDate(context, local), style: widget.style);
-
-      case TimeDisplay.pastDateTime:
-        return Text(formatDateTime(context, local), style: widget.style);
-
-      case TimeDisplay.month:
-        return Text(
-          "${localizations.netPrefix} ${_monthYear(context, local)}",
-          style: widget.style,
-        );
-
-      case TimeDisplay.quarter:
-        return Text(
-          "${localizations.netPrefix} "
-          "${localizations.quarterWindow(quarterOf(local), '${local.year}')}",
-          style: widget.style,
-        );
-
-      case TimeDisplay.year:
-        return Text(
-          "${localizations.netPrefix} ${local.year}",
-          style: widget.style,
-        );
-
-      case TimeDisplay.decade:
-        // Floored, so a date in 2031 known only to the decade reads "2030s".
-        return Text(
-          "${localizations.netPrefix} ${local.year ~/ 10 * 10}s",
-          style: widget.style,
-        );
-
-      case TimeDisplay.unknown:
-        return Text(localizations.launchTimeUnknown, style: widget.style);
-    }
+    return Text(
+      precisionTimeText(
+        FriendlyDates(
+          AppLocalizations.of(context)!,
+          use24h: MediaQuery.of(context).alwaysUse24HourFormat,
+        ),
+        date,
+        widget.precision,
+      ),
+      style: widget.style,
+    );
   }
 }
