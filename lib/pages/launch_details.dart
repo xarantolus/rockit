@@ -19,7 +19,7 @@ import 'package:rockit/util/ordinal.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/readable_width.dart';
-import 'package:rockit/widgets/article.dart';
+import 'package:rockit/widgets/addons/content_url_card.dart';
 import 'package:rockit/widgets/image.dart';
 
 class LaunchDetailsPage extends StatefulWidget {
@@ -259,30 +259,6 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
           Center(child: ImageWidget(patch.image?.imageUrl)),
         ],
       ),
-    );
-  }
-
-  Widget _urlInfoArticleWidget(
-    BuildContext context,
-    ContentUrl info, [
-    bool customTab = true,
-    Icon? icon,
-  ]) {
-    return ArticleCardWidget(
-      title: info.title,
-      link: info.url,
-      imageUrl: info.featureImage,
-      newsSite: urlHost(info.url),
-      // The API often repeats the title as the description, and a card that
-      // says the same thing twice just looks broken.
-      summary: info.description?.trim() == info.title?.trim()
-          ? null
-          : info.description,
-      customTab: customTab,
-      icon: icon,
-      // Flat: these sit inside a DetailCard already, and a card inside a
-      // card just draws two edges around the same thing.
-      flat: true,
     );
   }
 
@@ -801,11 +777,10 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: widget.launch.vidUrls
                         .map(
-                          (vid) => _urlInfoArticleWidget(
-                            context,
+                          (vid) => ContentUrlCard(
                             vid,
-                            false,
-                            const Icon(Icons.play_arrow, size: 72),
+                            customTab: false,
+                            icon: const Icon(Icons.play_arrow, size: 72),
                           ),
                         )
                         .toList(),
@@ -822,7 +797,7 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: widget.launch.infoUrls
-                        .map((info) => _urlInfoArticleWidget(context, info))
+                        .map((info) => ContentUrlCard(info))
                         .toList(),
                   ),
                 ),

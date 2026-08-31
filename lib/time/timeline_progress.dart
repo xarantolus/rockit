@@ -43,13 +43,10 @@ int? activeTimelineIndex({
 
 /// How long until the highlight moves, or null when it never will again.
 ///
-/// The rows themselves are fixed offsets — only which one is lit changes — so
-/// there is nothing to redraw between milestones. A timer per second spent the
-/// whole countdown rebuilding the list to show the same thing.
-///
-/// Returns a wait even when the timeline has not started, which is the case
-/// that used to be missed entirely: with nothing scheduled, a page opened an
-/// hour early never lit up at all, however long it was left open.
+/// The rows are fixed offsets and only the highlight changes, so there is
+/// nothing to redraw between milestones. Returns a wait even before the
+/// timeline starts: with nothing scheduled, a page opened early never lights
+/// up at all.
 Duration? untilNextTimelineChange({
   required List<Duration> offsets,
   required Duration elapsed,
@@ -63,10 +60,8 @@ Duration? untilNextTimelineChange({
   return null;
 }
 
-/// The offset a row is labelled with, e.g. `T-1h 30m` or `T+5m`.
-///
-/// Trailing zeroes are dropped: a milestone exactly five minutes after liftoff
-/// reads `T+5m`, not `T+5m 0s`.
+/// The offset a row is labelled with, e.g. `T-1h 30m` or `T+5m`. Trailing
+/// zeroes are dropped, so five minutes past liftoff is not `T+5m 0s`.
 String timelineOffsetLabel(Duration offset) {
   if (offset == Duration.zero) {
     return "T-0";

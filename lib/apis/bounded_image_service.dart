@@ -8,27 +8,17 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 /// The longest edge worth keeping on disk.
 ///
 /// Only downloads over [reencodeAbove] are re-encoded at all, and in this app
-/// those are exclusively news press photos — sites publish the originals, one
-/// NASA article photo measuring 8256x5504 and 16.6 MB — which are only ever
-/// drawn in a 96 dp row, about 288 physical pixels. So this leaves better than
-/// three times the headroom they need.
-///
-/// It is deliberately far below `decodeBucketFor`'s 2048 px ceiling, which is
-/// the point beyond which *nothing* in the app can draw a pixel. Choosing 2048
-/// instead costs about 3.5x the bytes for the same rows: measured over one run
-/// of the news feed, 72 MB against 39 MB. The pathological case — an oversized
-/// image drawn full width — is a 5% upscale on a 1080 px phone, and no Launch
-/// Library image comes close to the threshold anyway.
+/// those are exclusively news press photos, drawn in a 96 dp row — so this is
+/// still three times the pixels they need. The worst case, an oversized image
+/// drawn full width, is a 5% upscale on a 1080 px phone.
 const maxStoredEdge = 1024;
 
 /// Below this, leave the download alone.
 ///
-/// Re-encoding a small image is pure loss — the engine can only write PNG, and
-/// PNG of a photograph is usually larger than the JPEG it came from. That is
-/// the trap `maxWidthDiskCache` falls into: it keeps the original *and* a PNG
-/// copy, which measured 73.9 MB to 81.0 MB over one run of the news feed. So
-/// only genuinely oversized downloads are touched, and even then the result is
-/// kept only if it is smaller.
+/// The engine can only write PNG, and PNG of a photograph is usually larger
+/// than the JPEG it came from — so re-encoding a small image loses. Only
+/// genuinely oversized downloads are touched, and the result is kept only if
+/// it is smaller.
 const reencodeAbove = 2 * 1024 * 1024;
 
 /// Stores a bounded copy of an oversized image instead of the original.
@@ -84,9 +74,9 @@ class BoundedImageFileService extends FileService {
 /// Re-encodes [bytes] so its longest edge is at most [maxStoredEdge], or
 /// returns null when it is already small enough or cannot be read.
 ///
-/// Deliberately goes through [ui.ImageDescriptor] rather than decoding first:
-/// the descriptor reports the size without decoding, so a 45-megapixel photo
-/// never becomes 180 MB of RGBA just to find out it is too big.
+/// Through [ui.ImageDescriptor] rather than a decode: it reports the size
+/// without decoding, so a 45-megapixel photo never becomes 180 MB of RGBA just
+/// to find out it is too big.
 Future<Uint8List?> shrinkToBound(Uint8List bytes) async {
   ui.ImmutableBuffer? buffer;
   ui.ImageDescriptor? descriptor;

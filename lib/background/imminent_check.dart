@@ -1,9 +1,7 @@
 /// Deciding when a subscribed launch needs looking at again close to liftoff.
 library;
 
-/// When the reminders fire, and therefore what the checks are for.
-///
-/// Kept in step with `processLaunch`'s own list; a check exists for each of
+/// Kept in step with `processLaunch`'s own list: a check exists for each of
 /// these and nothing else.
 const reminderOffsets = [
   Duration(hours: 1),
@@ -13,27 +11,19 @@ const reminderOffsets = [
 
 /// How long before a reminder its check runs.
 ///
-/// The point of the check is to catch a slip *before* the reminder goes out.
-/// A launch that has moved an hour should not announce "5 minutes" first and
-/// be corrected afterwards, so the refresh has to land while there is still
-/// time to cancel or move it — but only just, or it is looking at a stale
-/// answer by the time the reminder is due.
+/// It has to land while the reminder can still be moved or cancelled, or a
+/// launch that slipped announces "5 minutes" and is corrected afterwards.
 const checkLead = Duration(minutes: 1);
 
-/// Below this, a launch is close enough to be worth checks of its own. Further
-/// out, the hourly batched refresh is enough and will schedule these when the
-/// launch comes into range.
+/// Nearer than this, a launch is worth checks of its own; further out the
+/// hourly batched refresh schedules them when it comes into range.
 const imminentWindow = Duration(hours: 6);
 
-/// How long to wait before each near-liftoff check of [net], soonest first.
+/// How long to wait before each near-liftoff check of [net], soonest first,
+/// each carrying the reminder it guards.
 ///
-/// Empty for a launch with no date, one already gone, and one still further
-/// out than [imminentWindow].
-///
-/// A reminder that is already in the past gets no check — there is nothing
-/// left to correct — which is also what keeps this from scheduling work in the
-/// past when a launch is picked up late.
-/// Each carries the reminder it guards, which is what names its task.
+/// A reminder already in the past gets no check, which is what stops work
+/// being scheduled in the past for a launch picked up late.
 List<({Duration delay, Duration offset})> imminentCheckDelays(
   DateTime? net,
   DateTime now, {
@@ -65,10 +55,10 @@ List<({Duration delay, Duration offset})> imminentCheckDelays(
 }
 
 /// A stable name per check, so registering one twice replaces it rather than
-/// piling them up, and unsubscribing can cancel every one.
+/// piling them up.
 String imminentCheckTaskName(String launchId, Duration offset) =>
     "update:launch:$launchId:check:${offset.inMinutes}";
 
-/// Every name [imminentCheckDelays] could have produced for [launchId].
+/// Every name [imminentCheckDelays] could produce, for cancelling them all.
 Iterable<String> imminentCheckTaskNames(String launchId) =>
     reminderOffsets.map((offset) => imminentCheckTaskName(launchId, offset));

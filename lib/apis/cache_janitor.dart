@@ -3,38 +3,20 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Keeps the on-disk caches inside a byte budget.
+/// Keeps the on-disk caches inside a byte budget, which
+/// `flutter_cache_manager` does not: it bounds a store by object count only.
 ///
-/// `flutter_cache_manager` bounds a store by *object count* — 200 by default —
-/// and never by size, so a store of news photos is unbounded in practice: the
-/// originals run to 16 MB each. It also only ever deletes files its own index
-/// lists, and that index is a whole-file write debounced by three seconds
-/// which the UI and background isolates both rewrite; whatever one of them
-/// loses becomes a file nothing will ever reclaim. Measured on a test device:
-/// 459 files against 200 index entries, so 259 were unreachable *and*
-/// undeletable.
-///
-/// Sweeping by mtime handles both without reading either index: orphans are
-/// old, so they go first, and deleting a file the index still knows about is
-/// safe — the store checks that a file exists before serving it, drops the
-/// entry when it does not, and refetches.
+/// It also collects the files the stores cannot. Cleanup only deletes what the
+/// index lists, and that index is a debounced whole-file write both isolates
+/// rewrite, so anything one of them loses is unreachable *and* undeletable.
+/// Sweeping by mtime catches both without reading either index — orphans are
+/// old — and evicting a live file is safe, because the store checks a file
+/// exists before serving it and refetches when it does not.
 class CacheJanitor {
-  /// Both budgets are set so the *stores'* own least-recently-used caps bite
-  /// first and this only ever catches a runaway. Sized from what the files
-  /// actually weigh rather than a round number:
-  ///
-  /// - Launch and event photos are **163 KB** on average and 473 KB at worst
-  ///   (measured across 37 of them), and none is over the 2 MB threshold at
-  ///   which `BoundedImageFileService` would shrink one — so they are stored
-  ///   exactly as the API serves them. At 300 objects the store tops out
-  ///   around 49 MB.
-  /// - Article thumbnails are the shrunk-down press photos, ~350 KB each. At
-  ///   150 objects that is about 52 MB.
-  ///
-  /// The old split gave launch photos 96 MB they could never use while
-  /// capping thumbnails below what their own object limit allows, which had
-  /// the byte budget doing the evicting for one store and the LRU for the
-  /// other.
+  /// Both budgets sit above what each store's own object cap allows, so the
+  /// stores' least-recently-used eviction bites first and this only ever
+  /// catches a runaway. Setting either below its cap hands the eviction back
+  /// here. See CLAUDE.md for the measured file sizes behind the numbers.
   static const imageBudget = 64 * 1024 * 1024;
 
   static const articleImageBudget = 56 * 1024 * 1024;
@@ -45,16 +27,12 @@ class CacheJanitor {
 
   /// How long a stored *response* may go without being refetched.
   ///
-  /// Nothing else expires one. The store's `stalePeriod` counts from the last
-  /// *read*, not the last write, so an entry that keeps being read is kept
-  /// forever, and the cache-only reads never fall through to the network. A
-  /// launch that has since flown drops out of the listings — they start at
-  /// `net__gte` yesterday — so it is never re-seeded either: whatever it said
-  /// the last time it was fetched is what it would say for good, including a
-  /// status frozen at "Go for Launch" for a rocket that has long since landed.
+  /// Nothing else expires one: `stalePeriod` counts from the last read rather
+  /// than the last write, and a launch that has flown leaves the listings and
+  /// is never re-seeded, so it would keep whatever it last said — a status
+  /// frozen at "Go for Launch" for a rocket that landed weeks ago.
   ///
-  /// Only responses age out. An image at a URL does not change, so evicting a
-  /// good one only means downloading it again.
+  /// Images are exempt: one at a URL does not change.
   static const maxResponseAge = Duration(days: 7);
 
   /// Names match the `Config` keys the two stores are created with, because

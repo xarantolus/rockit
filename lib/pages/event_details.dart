@@ -22,6 +22,7 @@ import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/readable_width.dart';
+import 'package:rockit/widgets/addons/content_url_card.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/launch.dart';
 
@@ -173,28 +174,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
     );
   }
 
-  Widget _urlInfoArticleWidget(
-    BuildContext context,
-    ContentUrl info, [
-    bool customTab = true,
-    Icon? icon,
-  ]) {
-    return ArticleCardWidget(
-      title: info.title,
-      link: info.url,
-      imageUrl: info.featureImage,
-      newsSite: urlHost(info.url),
-      // The API often repeats the title as the description, and a card that
-      // says the same thing twice just looks broken.
-      summary: info.description?.trim() == info.title?.trim()
-          ? null
-          : info.description,
-      customTab: customTab,
-      icon: icon,
-      flat: true,
-    );
-  }
-
   /// "3 hours 32 minutes", or null when there is nothing worth saying.
   String? _durationLabel(BuildContext context, Duration? duration) {
     if (duration == null) {
@@ -314,11 +293,10 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: widget.event.vidUrls
                         .map(
-                          (vid) => _urlInfoArticleWidget(
-                            context,
+                          (vid) => ContentUrlCard(
                             vid,
-                            false,
-                            const Icon(Icons.play_arrow, size: 72),
+                            customTab: false,
+                            icon: const Icon(Icons.play_arrow, size: 72),
                           ),
                         )
                         .toList(),
@@ -332,7 +310,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: widget.event.infoUrls
-                        .map((info) => _urlInfoArticleWidget(context, info))
+                        .map((info) => ContentUrlCard(info))
                         .toList(),
                   ),
                 ),

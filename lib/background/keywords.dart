@@ -13,11 +13,8 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 class LaunchKeyword {
   const LaunchKeyword({required this.text, this.days = defaultDays});
 
-  /// How far ahead to look by default.
-  ///
-  /// Half a year: far enough that a keyword set today catches the next few
-  /// launches of a programme, near enough that it does not subscribe to
-  /// something two years out whose date is still a guess.
+  /// Half a year: enough to catch the next few launches of a programme,
+  /// without reaching launches whose date is still a guess.
   static const defaultDays = 180;
 
   final String text;
@@ -89,10 +86,8 @@ class LaunchKeyword {
 
 /// Whether [launch] is one [keyword] is asking about.
 ///
-/// Deliberately the launch name and the rocket, and *not* the provider: a
-/// keyword is meant to follow a programme or a vehicle. Matching the provider
-/// would make "spacex" mean every SpaceX launch there is, which is not a
-/// watchlist, it is the whole listing.
+/// Name and rocket, never the provider: "spacex" would otherwise mean the
+/// whole listing rather than a watchlist.
 bool keywordMatches(LaunchKeyword keyword, Launch launch) {
   final needle = keyword.needle;
   if (needle.isEmpty) {
@@ -108,10 +103,8 @@ bool keywordMatches(LaunchKeyword keyword, Launch launch) {
   return false;
 }
 
-/// Whether the API knows when this launch is well enough to act on it.
-///
-/// A month or a quarter is a guess, and subscribing to a guess means reminders
-/// for a date nobody has set yet.
+/// Whether the API knows when this launch is, well enough to act on it: a
+/// month or a quarter means reminders for a date nobody has set yet.
 bool _dateIsFirmEnough(DatePrecision? precision) {
   switch (precision?.kind) {
     case DatePrecisionKind.second:
@@ -126,16 +119,10 @@ bool _dateIsFirmEnough(DatePrecision? precision) {
 
 /// The launches out of [launches] that should be subscribed to now.
 ///
-/// The rules, in the order they matter:
-///
-/// - **[declined] is final.** Every unsubscribe writes into it, so a launch the
-///   user has taken off the list is never put back, whatever the keywords say.
-///   This is the invariant the whole feature rests on.
-/// - Already subscribed, so nothing to do — which is also what stops a second
-///   notification about the same launch.
-/// - The date has to be real ([_dateIsFirmEnough]) and still ahead.
-/// - It has to fall inside the window of the keyword that matched, and each
-///   keyword carries its own.
+/// **[declined] is final**: every unsubscribe writes into it, so a launch taken
+/// off the list is never put back whatever the keywords say. That is the
+/// invariant the feature rests on. Already-subscribed is skipped, which also
+/// stops a second notification about the same launch.
 List<Launch> launchesToAutoSubscribe({
   required Iterable<Launch> launches,
   required Iterable<LaunchKeyword> keywords,

@@ -46,11 +46,9 @@ const staleAfterLaunch = Duration(days: 7);
 
 /// Picks the presentation for [date] at [precision].
 ///
-/// An unknown precision degrades to [TimeDisplay.day] rather than a countdown:
-/// if the API adds a vocabulary entry we do not recognise, showing a date
-/// without a clock is the safe way to be wrong.
-///
-/// [now] is a parameter so the rules can be tested without waiting.
+/// An unrecognised precision degrades to [TimeDisplay.day]: showing a date
+/// without a clock is the safe way to be wrong. [now] is a parameter so the
+/// rules can be tested without waiting.
 TimeDisplay timeDisplayFor(
   DateTime? date,
   DatePrecision? precision, {
@@ -104,13 +102,11 @@ bool hasUsableTime(DatePrecision? precision) {
   return timeDisplayFor(now, precision, now: now) == TimeDisplay.countdown;
 }
 
-/// How long until the next local midnight.
+/// How long until the next local midnight, which is when every friendly label
+/// — "Today", "Tomorrow", a weekday, a month — needs looking at again.
 ///
-/// Every friendly label is relative to *today* — "Today", "Tomorrow",
-/// "Yesterday", a weekday name — and a month label turns over on a midnight
-/// too, so this is when anything showing a date needs looking at again. A
-/// screen left open across midnight otherwise keeps saying "Tomorrow" about a
-/// launch happening today.
+/// A screen left open across midnight otherwise keeps saying "Tomorrow" about
+/// a launch happening today.
 Duration untilNextLocalMidnight(DateTime now) {
   final local = now.toLocal();
   final midnight = DateTime(local.year, local.month, local.day + 1);
@@ -118,16 +114,12 @@ Duration untilNextLocalMidnight(DateTime now) {
   return midnight.difference(local);
 }
 
-/// A stable identity for the time a user actually sees, at the precision the
-/// API claims to know it.
+/// A stable identity for the time a user actually sees, so a change in this is
+/// exactly a change on screen.
 ///
-/// Two values that render the same produce the same key, so a change in this is
-/// exactly a change on screen. It cannot be the rendered string itself: that is
-/// relative to *now*, so "Tomorrow, 11:26" becomes "Today, 11:26" overnight
-/// with nothing about the launch having moved.
-///
-/// Local time deliberately — a day or month boundary is wherever the viewer is,
-/// which is the same rule the cards render by.
+/// Not the rendered string, which is relative to *now*: "Tomorrow, 11:26"
+/// becomes "Today, 11:26" overnight with nothing having moved. Local time,
+/// because that is where the viewer's day and month boundaries are.
 String? displayedTimeKey(DateTime? date, DatePrecision? precision) {
   if (date == null) {
     return null;
