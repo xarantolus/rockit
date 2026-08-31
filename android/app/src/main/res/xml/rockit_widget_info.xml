@@ -6,8 +6,7 @@
   passing. Letting the system poll as well would redraw for nothing.
 
   The resize range is what makes the row count worth deciding at draw time:
-  the provider fills whatever height the user drags it to, up to the ten rows
-  the layout declares.
+  the provider appends as many rows as the height it was dragged to will hold.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialLayout="@layout/rockit_widget"

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rockit/apis/launch_library/common.dart';
-import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/time/friendly_dates.dart';
 import 'package:rockit/time/precision_time.dart';
@@ -104,14 +103,10 @@ class _PrecisionTimeTextState extends State<PrecisionTimeText>
     }
 
     return Text(
-      precisionTimeText(
-        FriendlyDates(
-          AppLocalizations.of(context)!,
-          use24h: MediaQuery.of(context).alwaysUse24HourFormat,
-        ),
-        date,
-        widget.precision,
-      ),
+      // `alwaysUse24HourFormatOf`, not `MediaQuery.of`: this sits on every
+      // card, and the unaspected getter would rebuild all of them on any
+      // metrics change — a keyboard animation, a rotation.
+      precisionTimeText(datesOf(context), date, widget.precision),
       style: widget.style,
     );
   }

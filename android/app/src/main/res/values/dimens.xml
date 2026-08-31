@@ -18,5 +18,7 @@
     <dimen name="widget_padding">12dp</dimen>
     <dimen name="widget_header_block">26sp</dimen>
     <dimen name="widget_row_text">36sp</dimen>
-    <dimen name="widget_row_spacing">8dp</dimen>
+    <!-- Referenced by the row layout, so the provider's arithmetic and the
+         padding it is dividing by cannot drift apart. -->
+    <dimen name="widget_row_padding">4dp</dimen>
 </resources>

@@ -199,6 +199,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   /// bar down to whichever list is on that tab.
   final _reselections = ReselectionNotifier();
 
+  /// Last value handed to [rememberClockPreference], so an unchanged one is
+  /// not written again.
+  bool? _use24h;
+
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
     return CustomAppBar.create(
       context,
@@ -267,12 +271,23 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // The widget's text is written by whichever isolate refreshes it, and the
-    // background one has no MediaQuery to read the clock preference from — so
-    // it is saved here, where there is one.
-    unawaited(
-      rememberClockPreference(MediaQuery.of(context).alwaysUse24HourFormat),
-    );
+    // The widget's text is written by whichever isolate refreshes it, and a
+    // WorkManager isolate has no MediaQuery to read the clock preference from
+    // — so it is saved here, where there is one. Deliberately not read from
+    // `PlatformDispatcher` like the locale two lines away in
+    // `home_screen_widget.dart`: the platform pushes `alwaysUse24HourFormat`
+    // over `flutter/settings` from the activity, which a headless isolate
+    // never has.
+    //
+    // The aspect getter, not `MediaQuery.of`: the unaspected one makes this
+    // page depend on *every* metrics change — keyboard animations, rotation —
+    // which would rebuild the whole Scaffold and rewrite this preference on
+    // each frame of them.
+    final use24h = MediaQuery.alwaysUse24HourFormatOf(context);
+    if (use24h != _use24h) {
+      _use24h = use24h;
+      unawaited(rememberClockPreference(use24h));
+    }
   }
 
   @override

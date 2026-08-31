@@ -60,7 +60,11 @@ void main() async {
     // a start should not be held up to tidy a cache.
     unawaited(CacheJanitor().sweep());
 
-    await _wireHomeWidget(appPayloadNotifier);
+    // Not awaited: this ends in a channel round-trip and a cache read, and
+    // holding the first frame for them buys nothing. A payload that arrives
+    // after the home page is up still lands, because the page listens to the
+    // notifier as well as reading it once.
+    unawaited(_wireHomeWidget(appPayloadNotifier));
   }
 
   runApp(RockItApp(appPayloadNotifier));

@@ -1058,8 +1058,9 @@ class BackgroundHandler {
     // Remember it, so no keyword ever puts it back.
     await _decline(launchId);
 
-    await refreshHomeWidget();
-
+    // No widget refresh here: the rows are every upcoming launch plus the
+    // *subscribed events*, so which launches you follow is not an input to
+    // them. Its mirror, subscribeToLaunch, correctly has no refresh either.
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
       await _deleteKey(_getDisplayedTimeKey("launch", launchId));

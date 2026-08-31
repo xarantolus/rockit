@@ -4,6 +4,7 @@
 /// testable without a widget, a channel or a device.
 library;
 
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -50,6 +51,14 @@ class WidgetEntry {
 
   /// Kept for scheduling the next refresh; not shown.
   final DateTime at;
+
+  /// What the provider reads. [at] is deliberately absent: it decides when to
+  /// look again, and the native side neither needs it nor could use it.
+  Map<String, String> toJson() => {
+    "title": title,
+    "subtitle": subtitle,
+    "payload": payload,
+  };
 }
 
 /// The most rows the widget will ever draw, and so how many are written.
@@ -61,7 +70,8 @@ class WidgetEntry {
 /// already there. It is far more than a phone can show; the ceiling is for a
 /// tablet, and the cost of the unused ones is a few dozen short strings.
 ///
-/// Must match `MAX_ROWS` in `RockItWidgetProvider.kt`.
+/// The provider needs no matching constant: it draws whatever it was handed,
+/// so this is the only place the ceiling is written down.
 const homeWidgetRows = 25;
 
 /// The next few things worth showing: every upcoming launch, and only the
@@ -108,7 +118,9 @@ List<WidgetEntry> nextEntries({
       launch.mission?.name ?? launch.name,
       launch.net,
       launch.netPrecision,
-      launch.id == null ? null : "launch-details::${launch.id}",
+      launch.id == null
+          ? null
+          : "${BackgroundHandler.actionLaunchDetails}::${launch.id}",
       rocket: launch.mission?.name == null ? null : launch.rocketName,
     );
   }
@@ -118,7 +130,9 @@ List<WidgetEntry> nextEntries({
       event.name,
       event.date,
       event.datePrecision,
-      event.id == null ? null : "event-details::${event.id}",
+      event.id == null
+          ? null
+          : "${BackgroundHandler.actionEventDetails}::${event.id}",
     );
   }
 
@@ -155,39 +169,54 @@ Duration nextRefreshDelay(List<WidgetEntry> entries, DateTime now) {
   return soonest;
 }
 
+/// Serialises overlapping refreshes.
+///
+/// Startup fires three of these in quick succession — `main`, then each
+/// listing as its first page lands — and each one reads and parses the whole
+/// cached launches page. Joining them means the burst costs one pass.
+Future<void>? _inFlight;
+
 /// Writes the widget's rows and asks Android to redraw it.
 ///
 /// Cache only: the widget never causes a request. Everything it shows was
 /// already fetched by the listings or the background jobs.
-Future<void> refreshHomeWidget() async {
+Future<void> refreshHomeWidget() {
+  return _inFlight ??= _refreshHomeWidget().whenComplete(() {
+    _inFlight = null;
+  });
+}
+
+Future<void> _refreshHomeWidget() async {
   try {
     final api = LaunchLibraryAPI();
     final handler = BackgroundHandler();
-
-    final cached = await api.cachedUpcomingLaunches();
-
-    final events = <Event>[];
-    for (final id in await handler.loadSubscribedEventIDs()) {
-      final parsed = int.tryParse(id);
-      final event = parsed == null ? null : await api.cachedEvent(parsed);
-      if (event != null) {
-        events.add(event);
-      }
-    }
-
     final locale = _locale();
 
-    // Without this every DateFormat here throws LocaleDataException, and the
-    // catch below turns that into a widget that silently stops updating
-    // whenever the app is closed. The UI isolate never needs it because
-    // GlobalMaterialLocalizations loads the symbols on the way up; a
-    // WorkManager isolate builds no MaterialApp, so nothing does it there.
-    await initializeDateFormatting(locale.languageCode);
+    // Independent, so they go together rather than one after another. All of
+    // it is cache and preferences reads — no request is possible here.
+    //
+    // initializeDateFormatting is not optional: without it every DateFormat
+    // below throws LocaleDataException, and the catch at the bottom turns that
+    // into a widget that silently stops updating whenever the app is closed.
+    // The UI isolate never needs it because GlobalMaterialLocalizations loads
+    // the symbols on the way up; a WorkManager isolate builds no MaterialApp.
+    final (cached, subscribedEvents, l10n, use24h, _) = await (
+      api.cachedUpcomingLaunches(),
+      handler.loadSubscribedEventIDs(),
+      AppLocalizations.delegate.load(locale),
+      _use24h(),
+      initializeDateFormatting(locale.languageCode),
+    ).wait;
 
-    // The same strings the app shows. Loaded rather than read off a
-    // BuildContext, because this also runs in the background isolate.
-    final l10n = await AppLocalizations.delegate.load(locale);
-    final dates = FriendlyDates(l10n, use24h: await _use24h());
+    final events = (await Future.wait(
+      subscribedEvents.map((id) async {
+        final parsed = int.tryParse(id);
+
+        return parsed == null ? null : await api.cachedEvent(parsed);
+      }),
+    )).nonNulls.toList();
+
+    final dates = FriendlyDates(l10n, use24h: use24h);
 
     final entries = nextEntries(
       launches: cached?.results ?? const [],
@@ -196,13 +225,11 @@ Future<void> refreshHomeWidget() async {
       format: (at, precision) => precisionTimeText(dates, at, precision),
     );
 
-    for (var i = 0; i < homeWidgetRows; i++) {
-      final entry = i < entries.length ? entries[i] : null;
-
-      await HomeWidget.saveWidgetData("title_$i", entry?.title ?? "");
-      await HomeWidget.saveWidgetData("subtitle_$i", entry?.subtitle ?? "");
-      await HomeWidget.saveWidgetData("payload_$i", entry?.payload ?? "");
-    }
+    // One key for the whole list, not three per row. `saveWidgetData` is a
+    // method channel call whose handler ends in `prefs.commit()` — a
+    // synchronous write of the entire preferences file — so a key per slot
+    // meant 76 of them, on every resume, for a few dozen short strings.
+    await HomeWidget.saveWidgetData("rows", jsonEncode(entries));
 
     await HomeWidget.saveWidgetData(
       "empty",

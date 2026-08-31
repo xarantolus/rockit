@@ -1,11 +1,13 @@
 package io.github.xarantolus.rockit
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
@@ -13,6 +15,7 @@ import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
 import kotlin.math.floor
+import org.json.JSONArray
 
 /**
  * Draws the next few launches and subscribed events.
@@ -28,9 +31,16 @@ import kotlin.math.floor
  *
  * How *many* rows appear is decided here rather than in Dart, so resizing the
  * widget takes effect immediately: every row's strings are already stored, and
- * a resize only changes how many of them are built.
+ * a resize only changes how many of them are drawn.
  */
 class RockItWidgetProvider : HomeWidgetProvider() {
+
+    /** One row, with its tap target already built. */
+    private class Row(
+        val title: String,
+        val subtitle: String,
+        val onTap: PendingIntent?,
+    )
 
     override fun onUpdate(
         context: Context,
@@ -67,6 +77,12 @@ class RockItWidgetProvider : HomeWidgetProvider() {
         val options = appWidgetManager.getAppWidgetOptions(widgetId)
         val sizes = reportedSizes(options)
 
+        // Parsed once, not once per size: each row's PendingIntent is a binder
+        // call into system_server, and the trees below differ only in how many
+        // of the same rows they contain.
+        val rows = readRows(context, widgetData)
+        val empty = widgetData.getString("empty", null).orEmpty()
+
         // From Android 12 the launcher can be handed one tree per size and
         // picks between them itself. That matters here because a widget's
         // portrait and landscape heights differ by about half a row: with a
@@ -75,27 +91,74 @@ class RockItWidgetProvider : HomeWidgetProvider() {
         val views = if (sizes != null && sizes.isNotEmpty()) {
             RemoteViews(
                 sizes.associateWith { size ->
-                    build(context, widgetData, rowsFor(context, size.height))
+                    build(context, rows, empty, rowsFor(context, size.height))
                 },
             )
         } else {
             // MIN_HEIGHT is the *lower* bound — the landscape height. Sizing
             // to it wastes some portrait space, which is the right way round:
             // the alternative clips the last row.
-            build(context, widgetData, rowsFor(context, legacyHeightDp(options)))
+            build(context, rows, empty, rowsFor(context, legacyHeightDp(options)))
         }
 
         appWidgetManager.updateAppWidget(widgetId, views)
     }
 
+    /**
+     * The rows Dart last wrote.
+     *
+     * One JSON string rather than three preference keys per row: every
+     * `saveWidgetData` ends in a synchronous `commit()` of the whole
+     * preferences file, so a key per slot made a refresh 76 of them.
+     */
+    private fun readRows(context: Context, widgetData: SharedPreferences): List<Row> {
+        val raw = widgetData.getString("rows", null).orEmpty()
+        if (raw.isEmpty()) {
+            return emptyList()
+        }
+
+        return try {
+            val array = JSONArray(raw)
+
+            (0 until array.length()).mapNotNull { i ->
+                val item = array.optJSONObject(i) ?: return@mapNotNull null
+                val title = item.optString("title")
+                if (title.isEmpty()) return@mapNotNull null
+
+                val payload = item.optString("payload")
+
+                Row(
+                    title = title,
+                    subtitle = item.optString("subtitle"),
+                    // The same payload a notification carries, so the app opens
+                    // this launch through the deep link it already has rather
+                    // than a second route in.
+                    onTap = if (payload.isEmpty()) {
+                        null
+                    } else {
+                        HomeWidgetLaunchIntent.getActivity(
+                            context,
+                            MainActivity::class.java,
+                            Uri.parse("rockit://widget?payload=$payload"),
+                        )
+                    },
+                )
+            }
+        } catch (err: Exception) {
+            // A widget showing nothing is better than a launcher-side crash.
+            Log.w("RockItWidget", "Could not read the widget rows", err)
+            emptyList()
+        }
+    }
+
     private fun build(
         context: Context,
-        widgetData: SharedPreferences,
-        rows: Int,
+        rows: List<Row>,
+        empty: String,
+        fits: Int,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.rockit_widget)
 
-        val empty = widgetData.getString("empty", null).orEmpty()
         views.setTextViewText(R.id.widget_empty, empty)
         views.setViewVisibility(
             R.id.widget_empty,
@@ -109,38 +172,13 @@ class RockItWidgetProvider : HomeWidgetProvider() {
         // repeating at the bottom, half clipped.
         views.removeAllViews(R.id.widget_rows)
 
-        for (index in 0 until rows) {
-            val title = widgetData.getString("title_$index", null).orEmpty()
+        rows.take(fits).forEach { row ->
+            val view = RemoteViews(context.packageName, R.layout.rockit_widget_row)
+            view.setTextViewText(R.id.row_title, row.title)
+            view.setTextViewText(R.id.row_subtitle, row.subtitle)
+            row.onTap?.let { view.setOnClickPendingIntent(R.id.row_root, it) }
 
-            // Dart always writes every slot, so an empty one means the list
-            // ran out rather than that this particular row is blank.
-            if (title.isEmpty()) {
-                break
-            }
-
-            val row = RemoteViews(context.packageName, R.layout.rockit_widget_row)
-            row.setTextViewText(R.id.row_title, title)
-            row.setTextViewText(
-                R.id.row_subtitle,
-                widgetData.getString("subtitle_$index", null).orEmpty(),
-            )
-
-            val payload = widgetData.getString("payload_$index", null).orEmpty()
-            if (payload.isNotEmpty()) {
-                // The same payload a notification carries, so the app opens
-                // this launch through the deep link it already has rather
-                // than a second route in.
-                row.setOnClickPendingIntent(
-                    R.id.row_root,
-                    HomeWidgetLaunchIntent.getActivity(
-                        context,
-                        MainActivity::class.java,
-                        Uri.parse("rockit://widget?payload=$payload"),
-                    ),
-                )
-            }
-
-            views.addView(R.id.widget_rows, row)
+            views.addView(R.id.widget_rows, view)
         }
 
         // Tapping anywhere else just opens the app.
@@ -172,9 +210,9 @@ class RockItWidgetProvider : HomeWidgetProvider() {
             res.getDimension(R.dimen.widget_header_block)
 
         val perRow = res.getDimension(R.dimen.widget_row_text) +
-            res.getDimension(R.dimen.widget_row_spacing)
+            2 * res.getDimension(R.dimen.widget_row_padding)
 
-        return floor(available / perRow).toInt().coerceIn(1, MAX_ROWS)
+        return floor(available / perRow).toInt().coerceAtLeast(1)
     }
 
     @Suppress("DEPRECATION")
@@ -203,8 +241,5 @@ class RockItWidgetProvider : HomeWidgetProvider() {
          * what the very first draw after placement can look like.
          */
         const val DEFAULT_ROWS = 3
-
-        /** Must match `homeWidgetRows` in `lib/background/home_screen_widget.dart`. */
-        const val MAX_ROWS = 25
     }
 }

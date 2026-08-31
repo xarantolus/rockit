@@ -13,8 +13,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp">
+    android:paddingTop="@dimen/widget_row_padding"
+    android:paddingBottom="@dimen/widget_row_padding">
 
     <!--
       An ImageView and not a View: RemoteViews accepts only a fixed set of

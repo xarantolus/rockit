@@ -17,15 +17,21 @@ class ReselectionNotifier extends ChangeNotifier {
   }
 }
 
-class Reselections extends InheritedNotifier<ReselectionNotifier> {
-  const Reselections({
-    required ReselectionNotifier super.notifier,
-    required super.child,
-    super.key,
-  });
+/// A plain [InheritedWidget] and not an [InheritedNotifier]: the listings
+/// subscribe to the notifier themselves and scroll in response, so the rebuild
+/// an InheritedNotifier does on every notify would be three whole listings
+/// rebuilt to produce exactly the same tree.
+class Reselections extends InheritedWidget {
+  const Reselections({required this.notifier, required super.child, super.key});
+
+  final ReselectionNotifier notifier;
 
   static ReselectionNotifier? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<Reselections>()?.notifier;
+
+  @override
+  bool updateShouldNotify(Reselections oldWidget) =>
+      notifier != oldWidget.notifier;
 }
 
 /// Scrolls [controller] back to the top when destination [index] is tapped

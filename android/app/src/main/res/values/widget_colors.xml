@@ -6,5 +6,4 @@
     <color name="widget_muted">#99101418</color>
     <!-- RockItApp._themeColor, so the widget reads as part of the app. -->
     <color name="widget_accent">#FF3A88FF</color>
-    <color name="widget_divider">#14101418</color>
 </resources>

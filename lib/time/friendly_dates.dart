@@ -3,18 +3,6 @@ import 'package:rockit/apis/launch_library/common.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/time/precision_time.dart';
 
-class FriendlyDateResult {
-  FriendlyDateResult(this.text, {this.isFriendly = false});
-
-  factory FriendlyDateResult.no(String t) => FriendlyDateResult(t);
-
-  factory FriendlyDateResult.yes(String t) =>
-      FriendlyDateResult(t, isFriendly: true);
-
-  final String text;
-  final bool isFriendly;
-}
-
 /// Every way the app writes a date, given only the strings and the clock
 /// preference.
 ///
@@ -31,8 +19,6 @@ class FriendlyDates {
 
   String _format(DateTime d, String layout) =>
       DateFormat(layout, l10n.localeName).format(d);
-
-  String dateTimeLocal(DateTime d) => dateTime(d.toLocal());
 
   String dateTime(DateTime d) =>
       _format(d, use24h ? l10n.dateTimeFormat24h : l10n.dateTimeFormat);
@@ -52,45 +38,39 @@ class FriendlyDates {
 
   /// "Today, 12:05" and the like, falling back to [full] when the date is far
   /// enough out that naming the day says more than the weekday would.
-  FriendlyDateResult friendly(DateTime at, String Function(DateTime) full) {
+  String friendly(DateTime at, String Function(DateTime) full) {
     final d = at.toLocal();
     final now = DateTime.now().toLocal();
 
     if (_sameDay(d, now)) {
-      return FriendlyDateResult.yes("${l10n.today}, ${time(d)}");
+      return "${l10n.today}, ${time(d)}";
     }
 
     if (_sameDay(d, now.subtract(const Duration(days: 1)))) {
-      return FriendlyDateResult.yes("${l10n.yesterday}, ${time(d)}");
+      return "${l10n.yesterday}, ${time(d)}";
     }
 
     if (_sameDay(d, now.add(const Duration(days: 1)))) {
-      return FriendlyDateResult.yes("${l10n.tomorrow}, ${time(d)}");
+      return "${l10n.tomorrow}, ${time(d)}";
     }
 
     // Inside the next week the weekday alone locates it.
-    final days = daysBetween(now, d);
+    final days = _daysBetween(now, d);
     if (days > 0 && days < 7) {
-      return FriendlyDateResult.yes(
-        _format(
-          d,
-          use24h ? l10n.currentWeekDateFormat24h : l10n.currentWeekDateFormat,
-        ),
+      return _format(
+        d,
+        use24h ? l10n.currentWeekDateFormat24h : l10n.currentWeekDateFormat,
       );
     }
 
-    return FriendlyDateResult.no(full(d));
+    return full(d);
   }
 
-  String friendlyDateTimeText(DateTime d) => friendly(d, dateTime).text;
-
-  FriendlyDateResult friendlyDateTime(DateTime d) => friendly(d, dateTime);
-
-  String friendlyDateText(DateTime d) => friendly(d, date).text;
+  String friendlyDateTimeText(DateTime d) => friendly(d, dateTime);
 }
 
 // https://stackoverflow.com/a/67679455
-int daysBetween(DateTime from, DateTime to) {
+int _daysBetween(DateTime from, DateTime to) {
   from = DateTime(from.year, from.month, from.day);
   to = DateTime(to.year, to.month, to.day);
 
