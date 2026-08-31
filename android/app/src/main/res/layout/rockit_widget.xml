@@ -4,9 +4,9 @@
   ImageView are fine, ConstraintLayout and a plain View are not and would fail
   at inflate time on the device rather than at build time.
 
-  All ten rows are declared here and hidden by default. A RemoteViews tree
-  cannot be built at runtime, so the maximum has to exist in the layout; the
-  provider shows as many as the widget's current height has room for.
+  The rows are not here. The provider appends them one at a time into
+  widget_rows with RemoteViews.addView, so how many exist follows the widget's
+  height instead of however many were worth writing out by hand.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -55,83 +55,18 @@
         android:textSize="13sp"
         android:visibility="gone" />
 
-    <LinearLayout android:id="@+id/row_0" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_0" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_0" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_1" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_1" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_1" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_2" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_2" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_2" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_3" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_3" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_3" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_4" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_4" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_4" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_5" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_5" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_5" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_6" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_6" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_6" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_7" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_7" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_7" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_8" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_8" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_8" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout android:id="@+id/row_9" style="@style/RockItWidgetRow">
-        <ImageView style="@style/RockItWidgetAccent" android:contentDescription="@null" />
-        <LinearLayout style="@style/RockItWidgetRowText">
-            <TextView android:id="@+id/title_9" style="@style/RockItWidgetTitle" />
-            <TextView android:id="@+id/subtitle_9" style="@style/RockItWidgetWhen" />
-        </LinearLayout>
-    </LinearLayout>
+    <!--
+      The rows take the rest of the height and sit centred in it, so the space
+      left over by a row that did not fit is split above and below rather than
+      piling up at the bottom, where it read as the list having been cut off.
+      The header stays pinned at the top, which is why this is a container of
+      its own rather than a gravity on the root.
+    -->
+    <LinearLayout
+        android:id="@+id/widget_rows"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical" />
 </LinearLayout>

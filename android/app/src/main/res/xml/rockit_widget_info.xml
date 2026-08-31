@@ -20,7 +20,7 @@
     android:minResizeWidth="180dp"
     android:minResizeHeight="70dp"
     android:maxResizeWidth="512dp"
-    android:maxResizeHeight="620dp"
+    android:maxResizeHeight="1200dp"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:updatePeriodMillis="0" />

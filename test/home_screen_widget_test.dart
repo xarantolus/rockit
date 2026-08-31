@@ -67,10 +67,10 @@ void main() {
       expect(picked.map((e) => e.payload), ['launch-details::soon']);
     });
 
-    test('stops at the number of rows the layout has', () {
+    test('stops at the most rows the widget can draw', () {
       final picked = pick(
         launches: List.generate(
-          10,
+          homeWidgetRows + 5,
           (i) => launch('l$i', Duration(hours: i + 1)),
         ),
       );

@@ -27,8 +27,8 @@ import kotlin.math.floor
  * would find nothing.
  *
  * How *many* rows appear is decided here rather than in Dart, so resizing the
- * widget takes effect immediately: all ten strings are already stored, and a
- * resize only changes how many of them are shown.
+ * widget takes effect immediately: every row's strings are already stored, and
+ * a resize only changes how many of them are built.
  */
 class RockItWidgetProvider : HomeWidgetProvider() {
 
@@ -102,28 +102,36 @@ class RockItWidgetProvider : HomeWidgetProvider() {
             if (empty.isEmpty()) View.GONE else View.VISIBLE,
         )
 
-        ROWS.forEachIndexed { index, (rowId, titleId, subtitleId) ->
-            val title = widgetData.getString("title_$index", null).orEmpty()
-            val payload = widgetData.getString("payload_$index", null).orEmpty()
+        // Not redundant, however empty the container is in the layout: when the
+        // launcher *reapplies* a RemoteViews onto a hierarchy it already has,
+        // the addView actions below run again on the children still there and
+        // append a second copy of the list. It shows up as the first launch
+        // repeating at the bottom, half clipped.
+        views.removeAllViews(R.id.widget_rows)
 
-            // Hidden rather than left blank, so two upcoming launches do not
-            // leave a gap where a third would have been.
-            views.setViewVisibility(
-                rowId,
-                if (index < rows && title.isNotEmpty()) View.VISIBLE else View.GONE,
-            )
-            views.setTextViewText(titleId, title)
-            views.setTextViewText(
-                subtitleId,
+        for (index in 0 until rows) {
+            val title = widgetData.getString("title_$index", null).orEmpty()
+
+            // Dart always writes every slot, so an empty one means the list
+            // ran out rather than that this particular row is blank.
+            if (title.isEmpty()) {
+                break
+            }
+
+            val row = RemoteViews(context.packageName, R.layout.rockit_widget_row)
+            row.setTextViewText(R.id.row_title, title)
+            row.setTextViewText(
+                R.id.row_subtitle,
                 widgetData.getString("subtitle_$index", null).orEmpty(),
             )
 
+            val payload = widgetData.getString("payload_$index", null).orEmpty()
             if (payload.isNotEmpty()) {
                 // The same payload a notification carries, so the app opens
                 // this launch through the deep link it already has rather
                 // than a second route in.
-                views.setOnClickPendingIntent(
-                    rowId,
+                row.setOnClickPendingIntent(
+                    R.id.row_root,
                     HomeWidgetLaunchIntent.getActivity(
                         context,
                         MainActivity::class.java,
@@ -131,6 +139,8 @@ class RockItWidgetProvider : HomeWidgetProvider() {
                     ),
                 )
             }
+
+            views.addView(R.id.widget_rows, row)
         }
 
         // Tapping anywhere else just opens the app.
@@ -143,11 +153,13 @@ class RockItWidgetProvider : HomeWidgetProvider() {
     }
 
     /**
-     * How many rows fit in [heightDp].
+     * How many whole rows fit in [heightDp].
      *
      * Everything is measured in pixels because [android.content.res.Resources.getDimension]
      * applies the user's font scale to sp and not to dp, so a large-text
-     * device gets fewer rows rather than a clipped last one.
+     * device gets fewer rows rather than a clipped last one. Rounding down is
+     * the point: a row that only half fits is worse than the space it would
+     * have taken, because the widget does not scroll.
      */
     private fun rowsFor(context: Context, heightDp: Float?): Int {
         if (heightDp == null || heightDp <= 0f) {
@@ -162,7 +174,7 @@ class RockItWidgetProvider : HomeWidgetProvider() {
         val perRow = res.getDimension(R.dimen.widget_row_text) +
             res.getDimension(R.dimen.widget_row_spacing)
 
-        return floor(available / perRow).toInt().coerceIn(1, ROWS.size)
+        return floor(available / perRow).toInt().coerceIn(1, MAX_ROWS)
     }
 
     @Suppress("DEPRECATION")
@@ -192,17 +204,7 @@ class RockItWidgetProvider : HomeWidgetProvider() {
          */
         const val DEFAULT_ROWS = 3
 
-        val ROWS = listOf(
-            Triple(R.id.row_0, R.id.title_0, R.id.subtitle_0),
-            Triple(R.id.row_1, R.id.title_1, R.id.subtitle_1),
-            Triple(R.id.row_2, R.id.title_2, R.id.subtitle_2),
-            Triple(R.id.row_3, R.id.title_3, R.id.subtitle_3),
-            Triple(R.id.row_4, R.id.title_4, R.id.subtitle_4),
-            Triple(R.id.row_5, R.id.title_5, R.id.subtitle_5),
-            Triple(R.id.row_6, R.id.title_6, R.id.subtitle_6),
-            Triple(R.id.row_7, R.id.title_7, R.id.subtitle_7),
-            Triple(R.id.row_8, R.id.title_8, R.id.subtitle_8),
-            Triple(R.id.row_9, R.id.title_9, R.id.subtitle_9),
-        )
+        /** Must match `homeWidgetRows` in `lib/background/home_screen_widget.dart`. */
+        const val MAX_ROWS = 25
     }
 }

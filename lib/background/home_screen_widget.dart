@@ -52,13 +52,17 @@ class WidgetEntry {
   final DateTime at;
 }
 
-/// How many rows the layout has.
+/// The most rows the widget will ever draw, and so how many are written.
 ///
 /// All of them are written every time. Which of them are *shown* is the
 /// provider's decision, taken from the widget's current height, so dragging
 /// the widget taller fills the new space straight away instead of waiting for
-/// the next refresh to notice.
-const homeWidgetRows = 10;
+/// the next refresh to notice — which is only possible because the strings are
+/// already there. It is far more than a phone can show; the ceiling is for a
+/// tablet, and the cost of the unused ones is a few dozen short strings.
+///
+/// Must match `MAX_ROWS` in `RockItWidgetProvider.kt`.
+const homeWidgetRows = 25;
 
 /// The next few things worth showing: every upcoming launch, and only the
 /// events the user subscribed to.
