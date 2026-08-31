@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rockit/apis/cache_janitor.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/background/imminent_check.dart';
+import 'package:rockit/background/reminders.dart';
 import 'package:rockit/background/keywords.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
@@ -38,13 +39,6 @@ void backgroundTaskCallback() {
 
     return await handler.callback(task, inputData);
   });
-}
-
-class _NotifSetting {
-  final Duration offset;
-  final String displayed;
-
-  const _NotifSetting(this.offset, this.displayed);
 }
 
 class BackgroundHandler {
@@ -786,48 +780,63 @@ class BackgroundHandler {
       return true;
     }
 
-    // Now we can just register all notifications for this launch
-    const notificationSettings = [
-      _NotifSetting(Duration(hours: -1), "one hour"),
-      _NotifSetting(Duration(minutes: -15), "15 minutes"),
-      _NotifSetting(Duration(minutes: -5), "5 minutes"),
-    ];
+    await _scheduleReminders(
+      at: launchTime,
+      title: launchTitle,
+      noun: "launch",
+      tag: tag,
+      details: _getLaunchNotifDetails(tag),
+      payload: "$actionLaunchDetails::$launchId",
+      idFor: (i) => ((launch.id ?? launchId).hashCode.abs()) + i,
+    );
 
-    var notifBaseTime = tz.TZDateTime.from(launchTime.toUtc(), tz.UTC);
+    return true;
+  }
 
-    var now = DateTime.now();
-    // Register notifications with their offsets
-    for (var i = 0; i < notificationSettings.length; i++) {
-      Duration offset = notificationSettings[i].offset;
+  /// Schedules the reminders for one subscription, replacing any already set.
+  ///
+  /// Identical for launches and events but for the wording and how each
+  /// numbers its notifications, which is why [idFor] is a callback: the two
+  /// schemes have to stay distinct or one would cancel the other's.
+  ///
+  /// A reminder whose moment has passed is skipped rather than fired late.
+  Future<void> _scheduleReminders({
+    required DateTime at,
+    required String title,
+    required String noun,
+    required String tag,
+    required NotificationDetails details,
+    required String payload,
+    required int Function(int index) idFor,
+  }) async {
+    final base = tz.TZDateTime.from(at.toUtc(), tz.UTC);
+    final now = DateTime.now();
 
-      final notifID = ((launch.id ?? launchId).hashCode.abs()) + i;
-
-      var notifTime = notifBaseTime.add(offset);
-      if (notifTime.isBefore(now)) {
+    for (var i = 0; i < reminders.length; i++) {
+      final when = base.subtract(reminders[i].before);
+      if (when.isBefore(now)) {
         continue;
       }
 
-      // Cancel the previously scheduled notification (if possible)
+      final id = idFor(i);
+
       try {
-        await notifications!.cancel(id: notifID, tag: tag);
+        await notifications!.cancel(id: id, tag: tag);
       } catch (err) {
-        debugPrint("Error cancelling launch notification $notifID: $err");
+        debugPrint("Error cancelling $noun notification $id: $err");
       }
 
       await _schedule(
-        id: notifID,
-        title: launchTitle,
-        body: "This launch will be in ${notificationSettings[i].displayed}",
-        scheduledDate: notifTime,
-        notificationDetails: _getLaunchNotifDetails(tag),
-        payload: "$actionLaunchDetails::$launchId",
+        id: id,
+        title: title,
+        body: "This $noun will be in ${reminders[i].label}",
+        scheduledDate: when,
+        notificationDetails: details,
+        payload: payload,
       );
-      debugPrint(
-        "Scheduled notification for event '$launchTitle' for $notifTime",
-      );
-    }
 
-    return true;
+      debugPrint("Scheduled a reminder for '$title' at $when");
+    }
   }
 
   Future<void> _saveIDs(String key, List<String> values) async {
@@ -1376,50 +1385,16 @@ class BackgroundHandler {
       return true;
     }
 
-    // Now we can just register all notifications for this event
-    const notificationSettings = [
-      _NotifSetting(Duration(hours: -1), "one hour"),
-      _NotifSetting(Duration(minutes: -15), "15 minutes"),
-      _NotifSetting(Duration(minutes: -5), "5 minutes"),
-    ];
-
-    // And now register all notifications
-    var notifBaseTime = tz.TZDateTime.from(startTime.toUtc(), tz.UTC);
-
-    var now = DateTime.now();
-    // Register notifications with their offsets
-    for (var i = 0; i < notificationSettings.length; i++) {
-      Duration offset = notificationSettings[i].offset;
-
-      var notifTime = notifBaseTime.add(offset);
-      if (notifTime.isBefore(now)) {
-        continue;
-      }
-
-      final notifID =
-          eventNotifIDOffset +
-          (notificationSettings.length * (event.id ?? 0)).abs() +
-          i;
-
-      // Cancel the previously scheduled notification (if possible)
-      try {
-        await notifications!.cancel(id: notifID, tag: tag);
-      } catch (err) {
-        debugPrint("Error cancelling event notification $notifID: $err");
-      }
-
-      await _schedule(
-        id: notifID,
-        title: eventTitle,
-        body: "This event will be in ${notificationSettings[i].displayed}",
-        scheduledDate: notifTime,
-        notificationDetails: _getEventNotifDetails(tag),
-        payload: "$actionEventDetails::$eventId",
-      );
-      debugPrint(
-        "Scheduled notification for event '$eventTitle' for $notifTime",
-      );
-    }
+    await _scheduleReminders(
+      at: startTime,
+      title: eventTitle,
+      noun: "event",
+      tag: tag,
+      details: _getEventNotifDetails(tag),
+      payload: "$actionEventDetails::$eventId",
+      idFor: (i) =>
+          eventNotifIDOffset + (reminders.length * (event.id ?? 0)).abs() + i,
+    );
 
     return true;
   }

@@ -1,13 +1,9 @@
 /// Deciding when a subscribed launch needs looking at again close to liftoff.
 library;
 
-/// Kept in step with `processLaunch`'s own list: a check exists for each of
-/// these and nothing else.
-const reminderOffsets = [
-  Duration(hours: 1),
-  Duration(minutes: 15),
-  Duration(minutes: 5),
-];
+import 'package:rockit/background/reminders.dart';
+
+export 'package:rockit/background/reminders.dart' show reminderOffsets;
 
 /// How long before a reminder its check runs.
 ///
