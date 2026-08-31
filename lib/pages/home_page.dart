@@ -44,6 +44,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     unawaited(_warmOtherTabs());
   }
 
+  @override
+  void dispose() {
+    widget.appPayload.removeListener(pushPayloadPage);
+    _reselections.dispose();
+    super.dispose();
+  }
+
   /// Loads the tabs the user is not looking at yet.
   ///
   /// A `TabBarView` only builds the tab on screen, so these sat untouched until

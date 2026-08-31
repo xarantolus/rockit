@@ -240,6 +240,12 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     initialScrollOffset: widget.scrollOffset?.value ?? 0,
   );
 
+  @override
+  void dispose() {
+    listController.dispose();
+    super.dispose();
+  }
+
   Future<bool> _updateItems([bool? refresh]) async {
     if (_currentlyLoading) {
       return true;

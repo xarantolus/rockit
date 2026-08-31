@@ -27,7 +27,15 @@ int? intFromJson(Object? value) {
 
 /// Pulls the `name` out of one of the API's little `{id, name, ...}` objects.
 String? namedFromJson(Object? value) {
-  if (value is Map) return value['name'] as String?;
+  // Checked rather than cast: the point of reading a field through a fromJson
+  // is that an unexpected type becomes null instead of taking the whole
+  // listing down, and `as String?` would throw on a number just the same.
+  if (value is Map) {
+    final name = value['name'];
+
+    return name is String ? name : null;
+  }
+
   return null;
 }
 
