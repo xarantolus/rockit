@@ -41,6 +41,20 @@ class LaunchHero extends StatelessWidget with DateFormatter {
 
   static const _height = 300.0;
 
+  /// Roughly what the overlaid text occupies at the default font scale.
+  ///
+  /// The image is a fixed height but the text over it is not: at a large system
+  /// font scale the block grew past the box and clipped the pad line — an
+  /// overflow stripe in debug, a silently cut-off line in release. Growing by
+  /// the same proportion as the text keeps them together.
+  static const _textBlock = 150.0;
+
+  double _heightFor(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+
+    return _height + (scale - 1.0) * _textBlock;
+  }
+
   /// The launch time where the rocket is, which is often the number people
   /// actually discuss. Returns null when the zone database is unavailable —
   /// it is initialised by the notification handler, not guaranteed here.
@@ -84,7 +98,7 @@ class LaunchHero extends StatelessWidget with DateFormatter {
         timeDisplayFor(date, precision) == TimeDisplay.countdown;
 
     return SizedBox(
-      height: _height,
+      height: _heightFor(context),
       child: SharedImageHero(
         tag: heroTag == null || heroId == null ? null : "$heroTag-$heroId",
         image: _backdrop(context),
