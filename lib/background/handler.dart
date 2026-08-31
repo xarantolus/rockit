@@ -784,6 +784,7 @@ class BackgroundHandler {
       at: launchTime,
       title: launchTitle,
       noun: "launch",
+      where: launch.pad?.location?.name,
       tag: tag,
       details: _getLaunchNotifDetails(tag),
       payload: "$actionLaunchDetails::$launchId",
@@ -804,6 +805,7 @@ class BackgroundHandler {
     required DateTime at,
     required String title,
     required String noun,
+    required String? where,
     required String tag,
     required NotificationDetails details,
     required String payload,
@@ -829,7 +831,7 @@ class BackgroundHandler {
       await _schedule(
         id: id,
         title: title,
-        body: "This $noun will be in ${reminders[i].label}",
+        body: _reminderBody(noun, reminders[i].label, where),
         scheduledDate: when,
         notificationDetails: details,
         payload: payload,
@@ -837,6 +839,17 @@ class BackgroundHandler {
 
       debugPrint("Scheduled a reminder for '$title' at $when");
     }
+  }
+
+  /// "This launch will be in 15 minutes · Vandenberg SFB, CA, USA".
+  ///
+  /// The site earns its place because it is the one thing the title does not
+  /// already carry — the title is the rocket and the mission. It is dropped
+  /// rather than shortened when the API does not give one.
+  static String _reminderBody(String noun, String label, String? where) {
+    final body = "This $noun will be in $label";
+
+    return (where ?? "").trim().isEmpty ? body : "$body · $where";
   }
 
   Future<void> _saveIDs(String key, List<String> values) async {
@@ -1389,6 +1402,7 @@ class BackgroundHandler {
       at: startTime,
       title: eventTitle,
       noun: "event",
+      where: event.location,
       tag: tag,
       details: _getEventNotifDetails(tag),
       payload: "$actionEventDetails::$eventId",
