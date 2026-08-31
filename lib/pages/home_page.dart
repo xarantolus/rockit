@@ -18,6 +18,7 @@ import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/floating_nav_bar.dart';
+import 'package:rockit/widgets/addons/reselect.dart';
 import 'package:rockit/widgets/addons/launch_event_search.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -183,7 +184,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
     unawaited(showSearch(context: context, delegate: delegate, query: ''));
   }
 
+  static const _launchesTab = 0;
+  static const _eventsTab = 1;
   static const _newsTab = 2;
+
+  /// Carries "you tapped the destination you are already on" from the bottom
+  /// bar down to whichever list is on that tab.
+  final _reselections = ReselectionNotifier();
 
   AppBar _buildAppBar(BuildContext context, ImageIcon appIcon) {
     return CustomAppBar.create(
@@ -277,45 +284,48 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
     return DefaultTabController(
       length: 3,
-      child: Scaffold(
-        floatingActionButton: kIsWeb
-            ? null
-            // Builder, so the callback gets a context *below* the
-            // DefaultTabController and can read which tab is showing. The
-            // state's own context sits above it.
-            : Builder(
-                builder: (context) => FloatingActionButton(
-                  onPressed: () => _showSearch(context),
-                  tooltip: AppLocalizations.of(context)!.search,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: const Icon(Icons.search, color: Colors.white),
+      child: Reselections(
+        notifier: _reselections,
+        child: Scaffold(
+          floatingActionButton: kIsWeb
+              ? null
+              // Builder, so the callback gets a context *below* the
+              // DefaultTabController and can read which tab is showing. The
+              // state's own context sits above it.
+              : Builder(
+                  builder: (context) => FloatingActionButton(
+                    onPressed: () => _showSearch(context),
+                    tooltip: AppLocalizations.of(context)!.search,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: const Icon(Icons.search, color: Colors.white),
+                  ),
                 ),
-              ),
-        appBar: _buildAppBar(context, appIcon),
-        // The bar floats, so the body runs underneath it and every scrollable
-        // inside has to clear it. Adding the allowance to the inset here means
-        // `bottomSystemBarPadding` keeps working unchanged further down.
-        extendBody: true,
-        bottomNavigationBar: _buildNavigationBar(context, menuRocketIcon),
-        body: Builder(
-          builder: (context) {
-            final media = MediaQuery.of(context);
+          appBar: _buildAppBar(context, appIcon),
+          // The bar floats, so the body runs underneath it and every scrollable
+          // inside has to clear it. Adding the allowance to the inset here means
+          // `bottomSystemBarPadding` keeps working unchanged further down.
+          extendBody: true,
+          bottomNavigationBar: _buildNavigationBar(context, menuRocketIcon),
+          body: Builder(
+            builder: (context) {
+              final media = MediaQuery.of(context);
 
-            return MediaQuery(
-              data: media.copyWith(
-                padding: media.padding.copyWith(
-                  bottom: media.padding.bottom + FloatingNavBar.allowance,
+              return MediaQuery(
+                data: media.copyWith(
+                  padding: media.padding.copyWith(
+                    bottom: media.padding.bottom + FloatingNavBar.allowance,
+                  ),
                 ),
-              ),
-              child: TabBarView(
-                children: [
-                  UpcomingLaunchesPage(),
-                  UpcomingEventsPage(),
-                  ArticleListingPage(),
-                ],
-              ),
-            );
-          },
+                child: TabBarView(
+                  children: [
+                    UpcomingLaunchesPage(tabIndex: _launchesTab),
+                    UpcomingEventsPage(tabIndex: _eventsTab),
+                    ArticleListingPage(tabIndex: _newsTab),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

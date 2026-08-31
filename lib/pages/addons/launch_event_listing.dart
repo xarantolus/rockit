@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rockit/l10n/app_localizations.dart';
+import 'package:rockit/widgets/addons/reselect.dart';
 import 'package:rockit/widgets/infinite_grid_view.dart';
 import 'package:rockit/apis/cache_first.dart';
 import 'package:rockit/apis/error_details.dart';
@@ -46,6 +47,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.cachedFunc,
     this.initialNextItemArg,
     required this.emptyText,
+    this.tabIndex,
     this.refreshOnLeave = false,
     this.scrollOffset,
     this.heroPrefix = "",
@@ -67,6 +69,10 @@ class LaunchEventListing<I, N> extends StatefulWidget {
   final String heroPrefix;
 
   final String emptyText;
+
+  /// Which destination in the bottom bar shows this listing, when it is one of
+  /// them. Null for a listing on a pushed page, which has no bar to re-tap.
+  final int? tabIndex;
 
   final bool refreshOnLeave;
 
@@ -131,6 +137,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
       widget.emptyText,
       widget.heroPrefix,
       scrollOffset: widget.scrollOffset,
+      tabIndex: widget.tabIndex,
     );
   }
 
@@ -178,6 +185,7 @@ class ItemList<I, N> extends StatefulWidget {
     this.emptyText,
     this.heroPrefix, {
     this.scrollOffset,
+    this.tabIndex,
     super.key,
   });
 
@@ -189,6 +197,9 @@ class ItemList<I, N> extends StatefulWidget {
   final String heroPrefix;
 
   final ValueNotifier<double>? scrollOffset;
+
+  /// See [LaunchEventListing.tabIndex].
+  final int? tabIndex;
 
   final NextFunc<I, N>? nextFunc;
 
@@ -455,15 +466,24 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       },
     );
 
-    if (widget.nextFunc == null) {
-      return grid;
+    final body = widget.nextFunc == null
+        ? grid
+        : RefreshIndicator(
+            onRefresh: () async {
+              await _updateItems(true);
+            },
+            child: grid,
+          );
+
+    final tab = widget.tabIndex;
+    if (tab == null) {
+      return body;
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await _updateItems(true);
-      },
-      child: grid,
+    return ScrollToTopOnReselect(
+      index: tab,
+      controller: listController,
+      child: body,
     );
   }
 }

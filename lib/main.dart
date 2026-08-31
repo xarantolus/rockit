@@ -33,10 +33,14 @@ void main() async {
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
   }
 
-  // Allow significantly more render image cache. This makes images reload less
-  // It's a bit annoying to reduce the problem like this instead of being able to solve it in a good way.
-  // See https://github.com/flutter/flutter/issues/68700 for more details
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 1000 << 20; // 1GiB
+  // Room to scroll back a good way without decoding anything again, and a
+  // ceiling that actually bites. A full-width launch photo is ~8-10 MB decoded
+  // and a news thumbnail ~1.5 MB, so this holds roughly 25 cards or 170
+  // thumbnails; going past it costs a re-decode from the file already on disk,
+  // never a request. It was 1 GiB, which is not a cache size so much as the
+  // absence of one — and it could not bind anyway while every image was kept
+  // permanently live (see ImageWidget).
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20;
 
   ValueNotifier<String> appPayloadNotifier = ValueNotifier("");
 

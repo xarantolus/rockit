@@ -18,10 +18,15 @@ import 'package:rockit/widgets/addons/columns.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/refreshing_overlay.dart';
+import 'package:rockit/widgets/addons/reselect.dart';
 import 'package:rockit/widgets/article_row.dart';
 
 class ArticleListingPage extends StatefulWidget {
-  ArticleListingPage({super.key});
+  ArticleListingPage({required this.tabIndex, super.key});
+
+  /// Which destination in the bottom bar shows this page, so re-tapping it
+  /// scrolls this list and not one of the others.
+  final int tabIndex;
 
   final service = SpaceFlightNewsAPI();
 
@@ -140,6 +145,7 @@ class _ArticleListingPageState extends State<ArticleListingPage>
       child: NewsList(
         articles,
         widget.service,
+        tabIndex: widget.tabIndex,
         launchesById: _launchesById,
         eventsById: _eventsById,
       ),
@@ -151,10 +157,14 @@ class NewsList extends StatefulWidget {
   const NewsList(
     this.initialArticles,
     this.service, {
+    required this.tabIndex,
     this.launchesById,
     this.eventsById,
     super.key,
   });
+
+  /// See [ArticleListingPage.tabIndex].
+  final int tabIndex;
 
   final List<Article> initialArticles;
   final SpaceFlightNewsAPI service;
@@ -174,6 +184,14 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
 
   /// Whether the user has paged past the first page.
   bool _paged = false;
+
+  final _listController = ScrollController();
+
+  @override
+  void dispose() {
+    _listController.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(NewsList oldWidget) {
@@ -285,43 +303,48 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await _updateArticles(true);
-      },
-      child: LoadMore(
-        isFinish: _finished,
-        onLoadMore: _loadMore,
-        textBuilder: _buildLoadingText,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = columnsForWidth(constraints.maxWidth);
+    return ScrollToTopOnReselect(
+      index: widget.tabIndex,
+      controller: _listController,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await _updateArticles(true);
+        },
+        child: LoadMore(
+          isFinish: _finished,
+          onLoadMore: _loadMore,
+          textBuilder: _buildLoadingText,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = columnsForWidth(constraints.maxWidth);
 
-            return ListView.builder(
-              scrollCacheExtent: ScrollCacheExtent.pixels(
-                MediaQuery.of(context).size.height * 2,
-              ),
-              physics: const BouncingScrollPhysics(),
-              padding: bottomSystemBarPadding(context),
-              itemCount: ArticleRowGroup.rowCount(articles.length, columns),
-              itemBuilder: (BuildContext context, int row) {
-                final first = row * columns;
-                _loadMoreEarly(first);
+              return ListView.builder(
+                controller: _listController,
+                scrollCacheExtent: ScrollCacheExtent.pixels(
+                  MediaQuery.of(context).size.height * 2,
+                ),
+                physics: const BouncingScrollPhysics(),
+                padding: bottomSystemBarPadding(context),
+                itemCount: ArticleRowGroup.rowCount(articles.length, columns),
+                itemBuilder: (BuildContext context, int row) {
+                  final first = row * columns;
+                  _loadMoreEarly(first);
 
-                return ArticleRowGroup(
-                  columns: columns,
-                  children: [
-                    for (
-                      var i = first;
-                      i < first + columns && i < articles.length;
-                      i++
-                    )
-                      _row(articles[i]),
-                  ],
-                );
-              },
-            );
-          },
+                  return ArticleRowGroup(
+                    columns: columns,
+                    children: [
+                      for (
+                        var i = first;
+                        i < first + columns && i < articles.length;
+                        i++
+                      )
+                        _row(articles[i]),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

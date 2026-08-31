@@ -20,11 +20,20 @@ class ImageWidget extends StatefulWidget {
   State<ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends State<ImageWidget>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+/// Deliberately not an [AutomaticKeepAliveClientMixin] client.
+///
+/// It used to be, and that quietly disabled the image cache: Flutter never
+/// evicts a *live* image, and keeping every row mounted keeps every image it
+/// ever built live. Measured while scrolling, `liveImageCount` equalled the
+/// whole cache — 36 images and 283 MB with nothing evictable, growing with how
+/// far you had scrolled. Letting rows recycle moves an off-screen decode into
+/// the evictable half of the cache, where the byte budget can bound it.
+///
+/// Scrolling back does not refetch: the bytes are still in
+/// `flutter_cache_manager` for days, so the worst case is decoding a local
+/// file again, and the budget is sized so that normally does not happen
+/// either.
+class _ImageWidgetState extends State<ImageWidget> {
   /// How large this may be decoded, in physical pixels, or null for an
   /// unbounded box.
   ///
@@ -134,8 +143,6 @@ class _ImageWidgetState extends State<ImageWidget>
   // No Hero here: SharedImageHero flies the whole image-and-overlay block.
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return LayoutBuilder(
       builder: (context, constraints) => _image(
         context,

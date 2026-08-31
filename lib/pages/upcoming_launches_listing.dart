@@ -9,7 +9,11 @@ import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingLaunchesPage extends StatefulWidget {
-  UpcomingLaunchesPage({super.key});
+  UpcomingLaunchesPage({required this.tabIndex, super.key});
+
+  /// Which destination in the bottom bar shows this page, so re-tapping it
+  /// scrolls this list back to the top.
+  final int tabIndex;
 
   final service = LaunchLibraryAPI();
 
@@ -47,6 +51,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
           notice: res.error,
         );
       },
+      tabIndex: widget.tabIndex,
       emptyText: AppLocalizations.of(context)!.noLaunches,
     );
   }

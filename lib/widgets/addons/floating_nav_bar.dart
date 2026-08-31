@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:rockit/widgets/addons/reselect.dart';
 
 /// A destination in [FloatingNavBar].
 class NavDestination {
@@ -158,7 +159,21 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
     )!;
 
     return InkWell(
-      onTap: () => _controller?.animateTo(index),
+      onTap: () {
+        final controller = _controller;
+
+        // Tapping the destination already showing is not a no-op: it is how
+        // you get out of a feed you have scrolled a long way down.
+        if (controller != null &&
+            controller.index == index &&
+            !controller.indexIsChanging) {
+          Reselections.of(context)?.reselect(index);
+
+          return;
+        }
+
+        controller?.animateTo(index);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
