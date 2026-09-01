@@ -142,6 +142,78 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
     );
   }
 
+  /// Everyone flying, across every spacecraft on the rocket, commander first.
+  List<CrewMember> get _crew {
+    final crew = [
+      for (final stage
+          in widget.launch.rocket?.spacecraftStage ?? const <SpacecraftStage>[])
+        ...stage.launchCrew,
+    ];
+
+    crew.sort(
+      (a, b) =>
+          (a.role?.priority ?? 1 << 30).compareTo(b.role?.priority ?? 1 << 30),
+    );
+
+    return crew;
+  }
+
+  Widget _crewMember(BuildContext context, CrewMember member) {
+    final astronaut = member.astronaut;
+    if (astronaut?.name == null) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7);
+
+    final subtitle = [
+      member.role?.role,
+      astronaut!.agency?.abbrev ?? astronaut.agency?.name,
+    ].whereType<String>().where((s) => s.isNotEmpty).join(" · ");
+
+    final wiki = astronaut.wiki;
+
+    return InkWell(
+      onTap: (wiki ?? "").isEmpty ? null : () => openCustomTab(context, wiki!),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            ClipOval(
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: ImageWidget(astronaut.image?.urlFor(44 * 3)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    astronaut.name!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _spacecraftStage(BuildContext context, SpacecraftStage spaceCraft) {
     return _titleImageDescription(
       context,
@@ -694,6 +766,17 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
                 DetailCard(
                   title: AppLocalizations.of(context)!.mission,
                   child: _missionDetails(context, widget.launch.mission!),
+                ),
+
+              if (_crew.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.crew,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final member in _crew) _crewMember(context, member),
+                    ],
+                  ),
                 ),
 
               DetailCard(

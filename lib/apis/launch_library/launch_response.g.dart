@@ -119,7 +119,46 @@ SpacecraftStage _$SpacecraftStageFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       description: json['description'] as String?,
       image: ApiImage.fromJsonOrNull(json['image']),
+      launchCrew:
+          (json['launch_crew'] as List<dynamic>?)
+              ?.map((e) => CrewMember.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
+
+CrewMember _$CrewMemberFromJson(Map<String, dynamic> json) => CrewMember(
+  role: json['role'] == null
+      ? null
+      : CrewRole.fromJson(json['role'] as Map<String, dynamic>),
+  astronaut: json['astronaut'] == null
+      ? null
+      : Astronaut.fromJson(json['astronaut'] as Map<String, dynamic>),
+);
+
+CrewRole _$CrewRoleFromJson(Map<String, dynamic> json) => CrewRole(
+  role: json['role'] as String?,
+  priority: (json['priority'] as num?)?.toInt(),
+);
+
+Astronaut _$AstronautFromJson(Map<String, dynamic> json) => Astronaut(
+  id: (json['id'] as num?)?.toInt(),
+  name: json['name'] as String?,
+  image: ApiImage.fromJsonOrNull(json['image']),
+  agency: json['agency'] == null
+      ? null
+      : Agency.fromJson(json['agency'] as Map<String, dynamic>),
+  nationality:
+      (json['nationality'] as List<dynamic>?)
+          ?.map((e) => Nationality.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  wiki: json['wiki'] as String?,
+);
+
+Nationality _$NationalityFromJson(Map<String, dynamic> json) => Nationality(
+  name: json['name'] as String?,
+  nationalityName: json['nationality_name'] as String?,
+);
 
 Rocket _$RocketFromJson(Map<String, dynamic> json) => Rocket(
   id: (json['id'] as num?)?.toInt(),

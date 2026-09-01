@@ -123,24 +123,33 @@ class _ImageWidgetState extends State<ImageWidget> {
     }
   }
 
-  /// Bounded and dimmed: a placeholder, not content. Left alone the asset
-  /// fills whatever box it is given.
+  /// Bounded and dimmed: a placeholder, not content.
+  ///
+  /// Sized from the box rather than fixed at 88px with 24px of padding, which
+  /// collapsed to nothing inside anything small — a 44px avatar or a 96px news
+  /// thumbnail rendered an empty hole where a missing image should be.
   Widget _defaultImage() {
     final light = Theme.of(context).brightness == Brightness.light;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Opacity(
-          opacity: 0.3,
-          child: Image.asset(
-            light ? "assets/rocket-black.png" : "assets/rocket-white.png",
-            width: 88,
-            height: 88,
-            fit: BoxFit.contain,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = min(
+          constraints.hasBoundedWidth ? constraints.maxWidth : 136.0,
+          constraints.hasBoundedHeight ? constraints.maxHeight : 136.0,
+        );
+
+        return Center(
+          child: Opacity(
+            opacity: 0.3,
+            child: Image.asset(
+              light ? "assets/rocket-black.png" : "assets/rocket-white.png",
+              width: side * 0.6,
+              height: side * 0.6,
+              fit: BoxFit.contain,
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
