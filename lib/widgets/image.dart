@@ -167,15 +167,27 @@ class _ImageWidgetState extends State<ImageWidget> {
 }
 
 const _bucket = 256;
-const _maxBound = 2048;
+
+/// The widest a decode ever gets.
+///
+/// A full-width card is about 1100 physical pixels on a phone, and the API's
+/// photos are at most 1920x1280, so a 2048 ceiling meant every card held the
+/// picture at full size: 9.8 MB each, and 45 of them on screen after a detail
+/// page filled the entire image cache. 1280 still covers a full-width box for
+/// anything up to a 16:9 photo, at 4.4 MB.
+const _maxBound = 1280;
 
 /// The decode bound for a box whose longest edge is [physicalPixels].
 ///
-/// Doubled so a fit-inside resize still covers the box at any orientation, and
-/// bucketed so the number holds still while the box moves — it is part of the
+/// Larger than the box because the resize fits the image *inside* a square of
+/// this size while the box is filled with `BoxFit.cover`: a landscape photo
+/// scaled to fit 1000 wide is only 667 tall, so it would be stretched to cover
+/// a 1000x667 box exactly and blurred in anything taller.
+///
+/// Bucketed so the number holds still while the box moves — it is part of the
 /// image cache key, and a hero flight resizes its box every frame.
 int decodeBucketFor(double physicalPixels) {
-  final wanted = physicalPixels * 2;
+  final wanted = physicalPixels * 1.5;
   final rounded = (wanted / _bucket).ceil() * _bucket;
 
   return rounded.clamp(_bucket, _maxBound);

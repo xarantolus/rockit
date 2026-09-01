@@ -10,11 +10,12 @@ void main() {
   int bucket(double px) => decodeBucketFor(px);
 
   group('decode buckets', () {
-    test('a box gets at least twice its longest edge', () {
+    test('a box gets more than its longest edge', () {
       // The bound is a square the image is scaled to fit inside, so the
-      // headroom is what keeps it covering the box afterwards.
+      // headroom is what keeps it covering the box afterwards: a landscape
+      // photo fitted to 1000 wide is only 667 tall.
       for (final px in [100.0, 264.0, 500.0, 700.0]) {
-        expect(bucket(px), greaterThanOrEqualTo(px * 2));
+        expect(bucket(px), greaterThanOrEqualTo(px * 1.5));
       }
     });
 
@@ -30,17 +31,20 @@ void main() {
       expect(bucket(1026), bucket(1081));
     });
 
-    test('a full-width box lands above anything the APIs serve', () {
-      // 1920x1280 is the largest either API returns, so these are never
-      // resized — allowUpscaling is off, so the bound simply does not bite.
-      expect(bucket(1081), greaterThanOrEqualTo(1920));
+    test('a full-width box is bounded well below what the APIs serve', () {
+      // The point of the ceiling: 1920x1280 is the largest either API returns
+      // and holding that costs 9.8 MB a card, which filled the whole image
+      // cache. A full-width phone card is ~1100 physical pixels, so the photo
+      // is stored at a size it can actually be drawn at.
+      expect(bucket(1081), lessThan(1920));
+      expect(bucket(1081), greaterThanOrEqualTo(1081));
     });
 
     test('a small box still gets a real reduction', () {
       // The news row is 96dp, or 264 physical pixels on this emulator. Before
       // bucketing it decoded the full 1920-wide press photo.
       expect(bucket(264), lessThan(1920));
-      expect(bucket(264), greaterThanOrEqualTo(528));
+      expect(bucket(264), greaterThanOrEqualTo(396));
     });
 
     test('is monotonic, so a bigger box never decodes smaller', () {
@@ -56,7 +60,7 @@ void main() {
     test('is bounded at both ends', () {
       expect(bucket(0), greaterThan(0));
       expect(bucket(0.5), greaterThan(0));
-      expect(bucket(100000), 2048);
+      expect(bucket(100000), 1280);
     });
 
     test('only ever returns whole buckets', () {
