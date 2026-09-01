@@ -181,6 +181,14 @@ Future<void>? _inFlight;
 /// Cache only: the widget never causes a request. Everything it shows was
 /// already fetched by the listings or the background jobs.
 Future<void> refreshHomeWidget() {
+  // There is no home screen on the web, and none of the machinery below —
+  // notifications, WorkManager, the widget plugin — exists there either. The
+  // listings call this whenever a first page lands, so without this it would
+  // throw and be swallowed on every refresh.
+  if (kIsWeb) {
+    return Future.value();
+  }
+
   return _inFlight ??= _refreshHomeWidget().whenComplete(() {
     _inFlight = null;
   });

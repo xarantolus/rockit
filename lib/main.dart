@@ -44,11 +44,16 @@ void main() async {
 
   ValueNotifier<String> appPayloadNotifier = ValueNotifier("");
 
-  // Initialize the notification handler to make sure the background handler is initialized
-  final notifs = await NotificationHandler.create(appPayloadNotifier);
-  BackgroundHandler.withNotifications(notifs);
-
   if (!kIsWeb) {
+    // Off the web only: flutter_local_notifications has no web implementation,
+    // so initialising it throws — and this is awaited before runApp, which
+    // means the whole app is a blank page rather than one without reminders.
+    // Everything downstream of it is Android-only anyway: reminders,
+    // WorkManager, the home-screen widget.
+    BackgroundHandler.withNotifications(
+      await NotificationHandler.create(appPayloadNotifier),
+    );
+
     // Initialize background tasks
     Workmanager().initialize(backgroundTaskCallback);
 

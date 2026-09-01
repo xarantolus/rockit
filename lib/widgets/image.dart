@@ -65,8 +65,12 @@ class _ImageWidgetState extends State<ImageWidget> {
     }
 
     try {
+      // Straight to the origin, on the web too. This used to go through a
+      // third-party CORS proxy, which has since stopped resolving at all —
+      // so every picture on the web build was the placeholder. It is not
+      // needed: both image hosts answer with `access-control-allow-origin: *`.
       final ImageProvider source = CachedNetworkImageProvider(
-        kIsWeb ? "https://fuckcors.app/$imageURL" : imageURL,
+        imageURL,
         cacheManager: widget.shortLived ? _articleImageCache : _imageCache,
       );
 
