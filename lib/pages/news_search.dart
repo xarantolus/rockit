@@ -179,14 +179,14 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
       imageUrl: a.imageUrl,
       newsSite: a.newsSite,
       publishDate: a.publishedAt,
-      relatedLaunch: a.launchIds
+      relatedLaunches: a.launchIds
           .map((id) => _launches[id])
           .whereType<Launch>()
-          .firstOrNull,
-      relatedEvent: a.eventIds
+          .toList(),
+      relatedEvents: a.eventIds
           .map((id) => _events[id])
           .whereType<Event>()
-          .firstOrNull,
+          .toList(),
     );
   }
 
