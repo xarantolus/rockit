@@ -31,8 +31,18 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Not in flutter_lints, but the performance guidance is explicit that a
+    # const constructor lets Flutter skip most of the rebuild work.
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    # A State object with nothing in it is an element and an indirection for
+    # nothing; several widgets here had one.
+    - use_setters_to_change_properties
+    - sized_box_for_whitespace
+    - use_colored_box
+    - use_decorated_box
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

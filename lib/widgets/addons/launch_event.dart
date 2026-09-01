@@ -118,7 +118,7 @@ class LaunchEventWidget extends StatelessWidget {
           height: LaunchEventWidget.heightForWidth(available),
           child: Card(
             clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius: LaunchEventWidget.radius,
             ),
             elevation: 2,

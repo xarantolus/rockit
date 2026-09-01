@@ -18,7 +18,7 @@ void main() {
         id: id,
         name: name,
         net: now.add(ahead),
-        netPrecision: DatePrecision(abbrev: 'MIN'),
+        netPrecision: const DatePrecision(abbrev: 'MIN'),
       );
 
   Event event(int id, Duration ahead, {String name = 'An event'}) =>
@@ -91,7 +91,7 @@ void main() {
             name: 'No id',
             net: now.add(const Duration(days: 1)),
           ),
-          Launch(id: 'x', name: 'No date'),
+          const Launch(id: 'x', name: 'No date'),
           launch('ok', const Duration(days: 1)),
         ],
       );
@@ -108,12 +108,12 @@ void main() {
           Launch(
             id: 'a',
             name: 'Falcon 9 Block 5 | Starlink Group 15-23',
-            mission: Mission(name: 'Starlink Group 15-23'),
-            rocket: Rocket(
+            mission: const Mission(name: 'Starlink Group 15-23'),
+            rocket: const Rocket(
               configuration: RocketConfiguration(fullName: 'Falcon 9 Block 5'),
             ),
             net: now.add(const Duration(hours: 1)),
-            netPrecision: DatePrecision(abbrev: 'MIN'),
+            netPrecision: const DatePrecision(abbrev: 'MIN'),
           ),
         ],
       );
