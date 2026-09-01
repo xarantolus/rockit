@@ -61,7 +61,7 @@ class _ImageWidgetState extends State<ImageWidget> {
   /// [ResizeImagePolicy.fit] takes the pair as a bounding box instead.
   Widget _image(BuildContext context, String? imageURL, int? bound) {
     if (imageURL == null) {
-      return _defaultImage();
+      return const ImagePlaceholder();
     }
 
     try {
@@ -114,43 +114,13 @@ class _ImageWidgetState extends State<ImageWidget> {
             ),
           );
         },
-        errorBuilder: (context, error, stackTrace) => _defaultImage(),
+        errorBuilder: (context, error, stackTrace) => const ImagePlaceholder(),
       );
     } catch (e) {
       debugPrint("Error creating cached network image for $imageURL: $e");
 
-      return _defaultImage();
+      return const ImagePlaceholder();
     }
-  }
-
-  /// Bounded and dimmed: a placeholder, not content.
-  ///
-  /// Sized from the box rather than fixed at 88px with 24px of padding, which
-  /// collapsed to nothing inside anything small — a 44px avatar or a 96px news
-  /// thumbnail rendered an empty hole where a missing image should be.
-  Widget _defaultImage() {
-    final light = Theme.of(context).brightness == Brightness.light;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final side = min(
-          constraints.hasBoundedWidth ? constraints.maxWidth : 136.0,
-          constraints.hasBoundedHeight ? constraints.maxHeight : 136.0,
-        );
-
-        return Center(
-          child: Opacity(
-            opacity: 0.3,
-            child: Image.asset(
-              light ? "assets/rocket-black.png" : "assets/rocket-white.png",
-              width: side * 0.6,
-              height: side * 0.6,
-              fit: BoxFit.contain,
-            ),
-          ),
-        );
-      },
-    );
   }
 
   // No Hero here: SharedImageHero flies the whole image-and-overlay block.
@@ -162,6 +132,42 @@ class _ImageWidgetState extends State<ImageWidget> {
         widget.imageURL,
         _decodeBound(constraints, MediaQuery.devicePixelRatioOf(context)),
       ),
+    );
+  }
+}
+
+/// Shown when there is no picture, or the one there is will not load.
+///
+/// Sized from its box rather than fixed at 88px inside 24px of padding, which
+/// collapsed to nothing in anything small: a 44px crew avatar and the 96px
+/// news thumbnails rendered an empty hole where a missing image should be.
+class ImagePlaceholder extends StatelessWidget {
+  const ImagePlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final light = Theme.of(context).brightness == Brightness.light;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = min(
+          constraints.hasBoundedWidth ? constraints.maxWidth : 136.0,
+          constraints.hasBoundedHeight ? constraints.maxHeight : 136.0,
+        );
+
+        return Center(
+          child: Image.asset(
+            light ? "assets/rocket-black.png" : "assets/rocket-white.png",
+            width: side * 0.6,
+            height: side * 0.6,
+            fit: BoxFit.contain,
+            // A dimmed colour rather than an Opacity layer, which the
+            // performance guidance says to avoid for simple content.
+            color: Colors.white.withValues(alpha: 0.3),
+            colorBlendMode: BlendMode.modulate,
+          ),
+        );
+      },
     );
   }
 }

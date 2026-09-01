@@ -8,7 +8,7 @@ import 'package:rockit/apis/paging.dart';
 import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
-class UpcomingLaunchesPage extends StatefulWidget {
+class UpcomingLaunchesPage extends StatelessWidget {
   UpcomingLaunchesPage({required this.tabIndex, super.key});
 
   /// Which destination in the bottom bar shows this page, so re-tapping it
@@ -18,15 +18,10 @@ class UpcomingLaunchesPage extends StatefulWidget {
   final service = LaunchLibraryAPI();
 
   @override
-  State<UpcomingLaunchesPage> createState() => _UpcomingLaunchesPageState();
-}
-
-class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
-  @override
   Widget build(BuildContext context) {
     return LaunchEventListing<Launch, String>(
       cachedFunc: () async {
-        final cached = await widget.service.cachedUpcomingLaunches();
+        final cached = await service.cachedUpcomingLaunches();
         if (cached == null) {
           return null;
         }
@@ -34,7 +29,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
         return NextFuncResult(cached.results, cached.next);
       },
       nextFunc: (nextItemArg, current) async {
-        final res = await widget.service.upcomingLaunches(next: nextItemArg);
+        final res = await service.upcomingLaunches(next: nextItemArg);
 
         // This listing is where the home-screen widget's rows come from, and
         // startup writes the widget before the first one has arrived — so on a
@@ -51,7 +46,7 @@ class _UpcomingLaunchesPageState extends State<UpcomingLaunchesPage> {
           notice: res.error,
         );
       },
-      tabIndex: widget.tabIndex,
+      tabIndex: tabIndex,
       emptyText: AppLocalizations.of(context)!.noLaunches,
     );
   }
