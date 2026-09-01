@@ -30,11 +30,16 @@ void main() {
       expect(launch.status?.name, isNotNull);
     });
 
-    test('parses net as a real DateTime', () {
-      // Parsed once on receive, rather than re-parsed at every use site.
-      for (final launch in res.results) {
-        expect(launch.net, isA<DateTime>());
-      }
+    test('parses net to the instant the fixture states, in UTC', () {
+      // `isA<DateTime>()` would pass on the declared type alone. What can
+      // actually go wrong is the value: a Z-suffixed timestamp read as local
+      // time shifts every countdown and date label by the offset.
+      expect(
+        res.results.first.net,
+        DateTime.utc(2026, 10, 19, 19, 41, 3),
+        reason: 'first launch in the fixture is 2026-10-19T19:41:03Z',
+      );
+      expect(res.results.first.net?.isUtc, isTrue);
     });
 
     test('carries the precision that drives the whole time display', () {
@@ -216,8 +221,12 @@ void main() {
       final articles = SpaceFlightNewsAPI.parseArticles(fixture('articles'));
 
       expect(articles, hasLength(2));
-      expect(articles.first.title, isNotEmpty);
-      expect(articles.first.publishedAt, isA<DateTime>());
+      expect(articles.first.title, startsWith('Watch live: BepiColombo'));
+      expect(
+        articles.first.publishedAt,
+        DateTime.utc(2026, 8, 27, 5, 17),
+        reason: 'first article in the fixture is 2026-08-27T05:17:00Z',
+      );
     });
 
     test('an empty result set parses to an empty list', () {

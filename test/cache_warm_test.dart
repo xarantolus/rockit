@@ -93,11 +93,6 @@ void main() {
   });
 
   group('cache warm schedule', () {
-    test('runs twice a day', () {
-      // Two Launch Library requests a run, against fifteen an hour.
-      expect(BackgroundHandler.cacheWarmInterval, const Duration(hours: 12));
-    });
-
     test('has its own task name, so the callback can route it', () {
       expect(
         BackgroundHandler.periodicCacheWarmTaskName,

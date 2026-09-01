@@ -23,8 +23,23 @@ void main() {
       expect(RockItApp.darkTheme.brightness, Brightness.dark);
     });
 
-    test('the app bar keeps its brand colour in the light theme', () {
-      expect(RockItApp.lightTheme.appBarTheme.backgroundColor, isNotNull);
+    test('white app bar text stays readable on the brand colour', () {
+      // `appBarTheme.backgroundColor, isNotNull` passed on any colour at all,
+      // and only ever looked at the light theme — the dark one does not set it.
+      // What actually decides this is colorScheme.primary: CustomAppBar.create
+      // paints every app bar with it, and main.dart forces the title and the
+      // status bar icons white over the top. Lighten the brand colour and they
+      // disappear, which no other test would notice.
+      for (final theme in [RockItApp.lightTheme, RockItApp.darkTheme]) {
+        final contrast =
+            1.05 / (theme.colorScheme.primary.computeLuminance() + 0.05);
+
+        expect(
+          contrast,
+          greaterThanOrEqualTo(3.0),
+          reason: 'white-on-primary must clear the 3:1 bar for large text',
+        );
+      }
     });
   });
 }
