@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rockit/apis/coalesce.dart';
 import 'package:rockit/apis/error_details.dart';
+import 'package:rockit/apis/response_cache.dart';
 
 class APIClient {
   static final _httpClient = http.Client();
@@ -43,7 +44,7 @@ class APIClient {
   /// listing for ten seconds or more.
   Future<String?> readCache(Uri url) async {
     if (kIsWeb) {
-      return null;
+      return responseCache.read(url);
     }
 
     try {
@@ -67,7 +68,7 @@ class APIClient {
   /// endpoint would return, and the cache is keyed by URL alone.
   Future<void> writeCache(Uri url, String body) async {
     if (kIsWeb) {
-      return;
+      return responseCache.write(url, body);
     }
 
     try {
@@ -131,7 +132,18 @@ class APIClient {
   Future<ErrorDetails<String>> _fetch(Uri url, bool preferCache) async {
     if (preferCache) {
       try {
-        var file = await _cacheManager?.getFileFromCache(url.toString());
+        if (kIsWeb) {
+          final cached = await responseCache.read(url);
+          if (cached != null) {
+            debugPrint("Serving $url from cache because the cache is prefered");
+
+            return ErrorDetails(cached);
+          }
+        }
+
+        var file = kIsWeb
+            ? null
+            : await _cacheManager?.getFileFromCache(url.toString());
         if (file != null) {
           debugPrint("Serving $url from cache because the cache is prefered");
           return ErrorDetails(
@@ -179,7 +191,9 @@ class APIClient {
 
       responseBytes = response.bodyBytes;
 
-      if (!kIsWeb) {
+      if (kIsWeb) {
+        await responseCache.write(url, utf8.decode(responseBytes));
+      } else {
         // If everything worked, we can put the file into the cache. That way, we can
         // access it in case of no internet or a rate limit
         try {
@@ -196,7 +210,15 @@ class APIClient {
       debugPrint("Error fetching ${url.toString()}: $e");
 
       if (kIsWeb) {
-        rethrow;
+        // Same reasoning as below: offline, or the hourly limit is spent.
+        final cached = await responseCache.read(url);
+        if (cached == null) {
+          rethrow;
+        }
+
+        debugPrint("Serving $url from cache because the request didn't work");
+
+        return ErrorDetails(cached, ErrorType.cachedFallback);
       }
 
       // We likely have no internet, or we have hit a rate limit
