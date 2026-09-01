@@ -23,6 +23,15 @@ jobs:
           cache: true
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release') || startsWith(env.COMMIT_MESSAGE, '[Web]')) }}
 
+      # Generated sources are gitignored, and `generate: true` means this is
+      # what writes lib/l10n/app_localizations.dart. Without it `flutter test`
+      # fails to load every test that reaches a localised string — which is
+      # most of them. The Android workflow has always had this step; this one
+      # went straight from the SDK to the tests.
+      - name: Install app dependencies (flutter pub get)
+        run: flutter pub get
+        if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release') || startsWith(env.COMMIT_MESSAGE, '[Web]')) }}
+
       - name: Run tests
         run: flutter test
         if: ${{ env.CURRENT_BRANCH == 'main' && (startsWith(env.COMMIT_MESSAGE, '[Release]') || startsWith(env.COMMIT_MESSAGE, 'Release') || startsWith(env.COMMIT_MESSAGE, '[Web]')) }}
