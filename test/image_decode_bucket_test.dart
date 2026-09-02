@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rockit/widgets/image.dart';
 
@@ -40,6 +42,16 @@ void main() {
       expect(bucket(1081), greaterThanOrEqualTo(1081));
     });
 
+    test('never decodes smaller than the box, at any screen width', () {
+      // The regression a flat ceiling caused, and the reason this is a range
+      // rather than one number: a 1440p phone draws a full-width card into
+      // 1440 physical pixels, so a bound of 1280 upscales the photo into it.
+      // Nothing on a 1080p emulator can show that.
+      for (final px in [1081.0, 1440.0, 1600.0, 2560.0]) {
+        expect(bucket(px), greaterThanOrEqualTo(min(px, 1920.0)));
+      }
+    });
+
     test('a small box still gets a real reduction', () {
       // The news row is 96dp, or 264 physical pixels on this emulator. Before
       // bucketing it decoded the full 1920-wide press photo.
@@ -60,7 +72,7 @@ void main() {
     test('is bounded at both ends', () {
       expect(bucket(0), greaterThan(0));
       expect(bucket(0.5), greaterThan(0));
-      expect(bucket(100000), 1280);
+      expect(bucket(100000), 2048);
     });
 
     test('only ever returns whole buckets', () {

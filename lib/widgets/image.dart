@@ -174,14 +174,17 @@ class ImagePlaceholder extends StatelessWidget {
 
 const _bucket = 256;
 
-/// The widest a decode ever gets.
+/// Where the 1.5x headroom stops growing.
 ///
 /// A full-width card is about 1100 physical pixels on a phone, and the API's
-/// photos are at most 1920x1280, so a 2048 ceiling meant every card held the
-/// picture at full size: 9.8 MB each, and 45 of them on screen after a detail
-/// page filled the entire image cache. 1280 still covers a full-width box for
-/// anything up to a 16:9 photo, at 4.4 MB.
-const _maxBound = 1280;
+/// photos are at most 1920x1280, so 1.5x of that held every card's picture at
+/// full size: 9.8 MB each, and 45 of them on screen after a detail page filled
+/// the entire image cache. Past this the bound follows the box itself.
+const _headroomCeiling = 1280;
+
+/// The hard ceiling. Neither API serves anything wider than 1920, so a bucket
+/// above this is bytes nothing can use.
+const _maxBound = 2048;
 
 /// The decode bound for a box whose longest edge is [physicalPixels].
 ///
@@ -190,10 +193,19 @@ const _maxBound = 1280;
 /// scaled to fit 1000 wide is only 667 tall, so it would be stretched to cover
 /// a 1000x667 box exactly and blurred in anything taller.
 ///
+/// The headroom is what gets capped, never the box. A flat ceiling looks right
+/// on the 1080p emulator and quietly breaks on a 1440p phone, where a
+/// full-width card is 1440 physical pixels: it would decode to 1280 and be
+/// upscaled into the box, which is the exact blurring this function exists to
+/// prevent.
+///
 /// Bucketed so the number holds still while the box moves — it is part of the
 /// image cache key, and a hero flight resizes its box every frame.
 int decodeBucketFor(double physicalPixels) {
-  final wanted = physicalPixels * 1.5;
+  final wanted = min(
+    physicalPixels * 1.5,
+    max(physicalPixels, _headroomCeiling.toDouble()),
+  );
   final rounded = (wanted / _bucket).ceil() * _bucket;
 
   return rounded.clamp(_bucket, _maxBound);
