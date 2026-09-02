@@ -117,6 +117,17 @@
       }
     }
   },
+  "keywordBackfillCountWithExisting": "{count,plural, =1{1 match}other{{count} matches}} · {already} already subscribed",
+  "@keywordBackfillCountWithExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "already": {
+        "type": "int"
+      }
+    }
+  },
   "keywordBackfillAllSubscribed": "{count,plural, =1{Already subscribed to the 1 match}other{Already subscribed to all {count} matches}}",
   "@keywordBackfillAllSubscribed": {
     "placeholders": {

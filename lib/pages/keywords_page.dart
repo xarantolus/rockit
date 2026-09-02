@@ -245,14 +245,24 @@ class _KeywordSheetState extends State<_KeywordSheet> {
     }
   }
 
-  /// Says which kind of nothing it is when there is nothing to take on.
+  /// What the backfill would do, and what it has no work left to do about.
+  ///
+  /// Four states rather than a count, because the count alone misreports three
+  /// of them: zero reads as "this keyword is broken" when the truth is that it
+  /// already ran, and a bare "2 matches" hides that a third launch matched and
+  /// is already subscribed — which is visible on the previous screen, so the
+  /// number looks simply wrong.
   String _countLabel(AppLocalizations localizations) {
-    if (_matches.pending > 0) {
-      return localizations.keywordBackfillCount(_matches.pending);
+    final (:pending, :already) = _matches;
+
+    if (pending > 0) {
+      return already > 0
+          ? localizations.keywordBackfillCountWithExisting(pending, already)
+          : localizations.keywordBackfillCount(pending);
     }
 
-    return _matches.already > 0
-        ? localizations.keywordBackfillAllSubscribed(_matches.already)
+    return already > 0
+        ? localizations.keywordBackfillAllSubscribed(already)
         : localizations.keywordBackfillNone;
   }
 
