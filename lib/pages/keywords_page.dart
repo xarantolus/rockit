@@ -222,19 +222,38 @@ class _KeywordSheetState extends State<_KeywordSheet> {
   /// The full rule, not just the text match: a word can appear in forty launch
   /// names and only a handful of them be inside the window with a date firm
   /// enough to set reminders against.
-  int _matches = 0;
+  ///
+  /// Both halves are kept, because zero to take on means two different things
+  /// and the reader cannot tell them apart from the number alone.
+  ({int pending, int already}) _matches = (pending: 0, already: 0);
 
   Future<void> _countMatches() async {
     final draft = _draft;
-    final count = draft == null
-        ? 0
-        : (await BackgroundHandler().wouldAutoSubscribe(widget.known, [
-            draft,
-          ])).length;
+    final coverage = draft == null
+        ? null
+        : await BackgroundHandler().keywordCoverage(widget.known, [draft]);
 
-    if (mounted && count != _matches) {
-      setState(() => _matches = count);
+    final next = coverage == null
+        ? (pending: 0, already: 0)
+        : (
+            pending: coverage.pending.length,
+            already: coverage.alreadySubscribed,
+          );
+
+    if (mounted && next != _matches) {
+      setState(() => _matches = next);
     }
+  }
+
+  /// Says which kind of nothing it is when there is nothing to take on.
+  String _countLabel(AppLocalizations localizations) {
+    if (_matches.pending > 0) {
+      return localizations.keywordBackfillCount(_matches.pending);
+    }
+
+    return _matches.already > 0
+        ? localizations.keywordBackfillAllSubscribed(_matches.already)
+        : localizations.keywordBackfillNone;
   }
 
   void _submit() {
@@ -302,7 +321,7 @@ class _KeywordSheetState extends State<_KeywordSheet> {
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
             title: Text(localizations.keywordBackfill),
-            subtitle: Text(localizations.keywordBackfillCount(_matches)),
+            subtitle: Text(_countLabel(localizations)),
           ),
           const SizedBox(height: 8),
           FilledButton(

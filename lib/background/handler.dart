@@ -912,20 +912,41 @@ class BackgroundHandler {
 
   Future<List<String>> loadDeclinedLaunchIDs() => _loadIDs(declinedKey);
 
-  /// What a scan would take on right now, without doing it.
+  /// What a scan would take on right now, and what it already has.
   ///
   /// The same rule the scan uses, so the count on the add screen is what
   /// actually happens rather than a text match that ignores the window.
-  Future<List<Launch>> wouldAutoSubscribe(
+  ///
+  /// [alreadySubscribed] is counted separately because it is the difference
+  /// between "this keyword finds nothing" and "this keyword already got them",
+  /// and one number cannot say both — editing a keyword that has been running
+  /// a while normally reports zero to take on, which read as the keyword being
+  /// broken.
+  ///
+  /// A launch the user unsubscribed from counts as neither. It is not pending,
+  /// because the scan will never take it, and it is not theirs, because they
+  /// said no.
+  Future<({List<Launch> pending, int alreadySubscribed})> keywordCoverage(
     List<Launch> launches,
     List<LaunchKeyword> keywords,
   ) async {
-    return launchesToAutoSubscribe(
+    final declined = (await _loadIDs(declinedKey)).toSet();
+    final now = DateTime.now();
+
+    List<Launch> matching(Set<String> subscribed) => launchesToAutoSubscribe(
       launches: launches,
       keywords: keywords,
-      subscribed: (await _loadIDs(launchesKey)).toSet(),
-      declined: (await _loadIDs(declinedKey)).toSet(),
-      now: DateTime.now(),
+      subscribed: subscribed,
+      declined: declined,
+      now: now,
+    );
+
+    final pending = matching((await _loadIDs(launchesKey)).toSet());
+    final eligible = matching(const {});
+
+    return (
+      pending: pending,
+      alreadySubscribed: eligible.length - pending.length,
     );
   }
 
