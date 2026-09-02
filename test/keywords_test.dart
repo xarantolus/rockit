@@ -73,6 +73,55 @@ void main() {
         isFalse,
       );
     });
+
+    test('a multi-word keyword spans the name and the rocket', () {
+      // The reason this shares search's rule instead of doing its own
+      // `contains`: neither field holds the phrase "falcon starlink", so a
+      // single substring test found nothing while typing the same thing into
+      // search found it immediately.
+      final l = launch(
+        id: 'a',
+        name: 'Starlink Group 15-23',
+        rocket: 'Falcon 9 Block 5',
+      );
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'falcon starlink'), l),
+        isTrue,
+      );
+    });
+
+    test('word order does not matter', () {
+      final l = launch(id: 'a', name: 'Starlink Group 15-23');
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'group starlink'), l),
+        isTrue,
+      );
+    });
+
+    test('every word still has to appear', () {
+      // Spanning fields must not turn into matching any one of the words.
+      final l = launch(
+        id: 'a',
+        name: 'Starlink Group 15-23',
+        rocket: 'Falcon 9',
+      );
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'starlink dragon'), l),
+        isFalse,
+      );
+    });
+
+    test('the provider stays out of it however the words are split', () {
+      final l = launch(id: 'a', name: 'Transporter-15', rocket: 'Falcon 9');
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'spacex falcon'), l),
+        isFalse,
+      );
+    });
   });
 
   group('launchesToAutoSubscribe', () {

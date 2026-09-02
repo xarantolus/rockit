@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 
 import 'package:rockit/apis/launch_library/launch_response.dart';
+import 'package:rockit/util/text_match.dart';
 
 /// A word to watch for, and how far ahead to watch.
 class LaunchKeyword {
@@ -87,20 +88,16 @@ class LaunchKeyword {
 /// Whether [launch] is one [keyword] is asking about.
 ///
 /// Name and rocket, never the provider: "spacex" would otherwise mean the
-/// whole listing rather than a watchlist.
+/// whole listing rather than a watchlist. Those two fields are the whole
+/// difference from search, which reads twenty; the *rule* applied to them is
+/// search's, via [matchesAllTerms], so a word behaves the same in both.
 bool keywordMatches(LaunchKeyword keyword, Launch launch) {
-  final needle = keyword.needle;
-  if (needle.isEmpty) {
-    return false;
-  }
+  final haystack = [
+    launch.name,
+    launch.rocketName,
+  ].nonNulls.join("\n").toLowerCase();
 
-  for (final field in [launch.name, launch.rocketName]) {
-    if ((field ?? "").toLowerCase().contains(needle)) {
-      return true;
-    }
-  }
-
-  return false;
+  return matchesAllTerms(haystack, queryTerms(keyword.text));
 }
 
 /// Whether the API knows when this launch is, well enough to act on it: a
