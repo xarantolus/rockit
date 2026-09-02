@@ -486,7 +486,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
     return Container(
       width: double.infinity,
-      color: theme.colorScheme.surfaceContainerHighest,
+      // Not surfaceContainerHighest: main.dart sets it transparent to stop
+      // Material tinting surfaces, so asking for it here drew no band at all
+      // and the notice read as a stray line of text over the results.
+      color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
