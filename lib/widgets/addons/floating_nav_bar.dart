@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:rockit/theme.dart';
 import 'package:rockit/widgets/addons/reselect.dart';
 
 /// A destination in [FloatingNavBar].
@@ -165,7 +166,7 @@ class _NavItem extends StatelessWidget {
     // theme where the blue sits close to the background it is blurring.
     final iconColour = Color.lerp(
       text.withValues(alpha: 0.55),
-      theme.colorScheme.primary,
+      theme.colorScheme.surfaceAccent,
       selectedness,
     )!;
 

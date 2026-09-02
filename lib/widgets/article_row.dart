@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rockit/theme.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/widgets/addons/time_refresh.dart';
@@ -199,7 +200,7 @@ class _RelatedChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: theme.colorScheme.primary),
+            Icon(icon, size: 13, color: theme.colorScheme.surfaceAccent),
             const SizedBox(width: 5),
             Flexible(
               child: Text(
@@ -209,7 +210,7 @@ class _RelatedChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
+                  color: theme.colorScheme.surfaceAccent,
                 ),
               ),
             ),
