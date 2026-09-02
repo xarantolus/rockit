@@ -228,6 +228,78 @@ void main() {
     });
   });
 
+  group('launchesAwaitingFirmDate', () {
+    const starship = LaunchKeyword(text: 'starship');
+
+    List<String> waiting(
+      List<Launch> launches,
+      List<LaunchKeyword> keywords, {
+      Set<String> subscribed = const {},
+      Set<String> declined = const {},
+    }) => launchesAwaitingFirmDate(
+      launches: launches,
+      keywords: keywords,
+      subscribed: subscribed,
+      declined: declined,
+      now: now,
+    ).map((l) => l.id!).toList();
+
+    test('finds the match the API has only dated to the month', () {
+      // The real one: "Starship | Flight 14, NET September 2026" matches, and
+      // reporting it as zero said the keyword was broken when it was working
+      // and waiting.
+      expect(waiting([launch(id: 'a', precision: 'M')], [starship]), ['a']);
+    });
+
+    test('does not double-count one that is ready to subscribe', () {
+      expect(waiting([launch(id: 'a')], [starship]), isEmpty);
+      expect(pick([launch(id: 'a')], [starship]), ['a']);
+    });
+
+    test('an unsubscribed launch is neither waiting nor pending', () {
+      final vague = [launch(id: 'a', precision: 'M')];
+
+      expect(waiting(vague, [starship], declined: {'a'}), isEmpty);
+      expect(pick(vague, [starship], declined: {'a'}), isEmpty);
+    });
+
+    test('one already subscribed is not reported as waiting', () {
+      expect(
+        waiting(
+          [launch(id: 'a', precision: 'M')],
+          [starship],
+          subscribed: {'a'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('still respects the window and the past', () {
+      final far = launch(
+        id: 'a',
+        precision: 'M',
+        ahead: const Duration(days: 200),
+      );
+      final gone = launch(
+        id: 'b',
+        precision: 'M',
+        ahead: const Duration(days: -1),
+      );
+
+      expect(waiting([far, gone], [starship]), isEmpty);
+    });
+
+    test('a word that matches nothing is waiting on nothing', () {
+      expect(
+        waiting(
+          [launch(id: 'a', precision: 'M')],
+          [const LaunchKeyword(text: 'electron')],
+        ),
+        isEmpty,
+      );
+    });
+  });
+
   group('LaunchKeyword storage', () {
     test('survives a round trip', () {
       const keywords = [

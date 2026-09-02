@@ -223,9 +223,13 @@ class _KeywordSheetState extends State<_KeywordSheet> {
   /// names and only a handful of them be inside the window with a date firm
   /// enough to set reminders against.
   ///
-  /// Both halves are kept, because zero to take on means two different things
-  /// and the reader cannot tell them apart from the number alone.
-  ({int pending, int already}) _matches = (pending: 0, already: 0);
+  /// All three counts are kept, because zero to take on means three different
+  /// things and the reader cannot tell them apart from the number alone.
+  ({int pending, int already, int awaiting}) _matches = (
+    pending: 0,
+    already: 0,
+    awaiting: 0,
+  );
 
   Future<void> _countMatches() async {
     final draft = _draft;
@@ -234,10 +238,11 @@ class _KeywordSheetState extends State<_KeywordSheet> {
         : await BackgroundHandler().keywordCoverage(widget.known, [draft]);
 
     final next = coverage == null
-        ? (pending: 0, already: 0)
+        ? (pending: 0, already: 0, awaiting: 0)
         : (
             pending: coverage.pending.length,
             already: coverage.alreadySubscribed,
+            awaiting: coverage.awaitingFirmDate,
           );
 
     if (mounted && next != _matches) {
@@ -245,25 +250,27 @@ class _KeywordSheetState extends State<_KeywordSheet> {
     }
   }
 
-  /// What the backfill would do, and what it has no work left to do about.
+  /// What the backfill would do, what it has no work left to do about, and
+  /// what it is still waiting on.
   ///
-  /// Four states rather than a count, because the count alone misreports three
-  /// of them: zero reads as "this keyword is broken" when the truth is that it
-  /// already ran, and a bare "2 matches" hides that a third launch matched and
-  /// is already subscribed — which is visible on the previous screen, so the
-  /// number looks simply wrong.
+  /// Assembled from whichever parts are non-zero rather than branched on,
+  /// because branching kept losing a case: a bare count called a keyword that
+  /// had already run "No matches yet", then hid the already-subscribed half
+  /// once anything was pending, then said the same "No matches yet" about a
+  /// keyword matching two launches the API had only dated to the month. Every
+  /// non-zero fact appears now, and only genuinely nothing is nothing.
   String _countLabel(AppLocalizations localizations) {
-    final (:pending, :already) = _matches;
+    final (:pending, :already, :awaiting) = _matches;
 
-    if (pending > 0) {
-      return already > 0
-          ? localizations.keywordBackfillCountWithExisting(pending, already)
-          : localizations.keywordBackfillCount(pending);
-    }
+    final parts = [
+      if (pending > 0) localizations.keywordBackfillCount(pending),
+      if (already > 0) localizations.keywordBackfillAlready(already),
+      if (awaiting > 0) localizations.keywordBackfillAwaiting(awaiting),
+    ];
 
-    return already > 0
-        ? localizations.keywordBackfillAllSubscribed(already)
-        : localizations.keywordBackfillNone;
+    return parts.isEmpty
+        ? localizations.keywordBackfillNone
+        : parts.join(" · ");
   }
 
   void _submit() {

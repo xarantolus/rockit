@@ -117,19 +117,16 @@
       }
     }
   },
-  "keywordBackfillCountWithExisting": "{count,plural, =1{1 match}other{{count} matches}} · {already} already subscribed",
-  "@keywordBackfillCountWithExisting": {
+  "keywordBackfillAlready": "{count} already subscribed",
+  "@keywordBackfillAlready": {
     "placeholders": {
       "count": {
-        "type": "int"
-      },
-      "already": {
         "type": "int"
       }
     }
   },
-  "keywordBackfillAllSubscribed": "{count,plural, =1{Already subscribed to the 1 match}other{Already subscribed to all {count} matches}}",
-  "@keywordBackfillAllSubscribed": {
+  "keywordBackfillAwaiting": "{count} waiting for a date",
+  "@keywordBackfillAwaiting": {
     "placeholders": {
       "count": {
         "type": "int"

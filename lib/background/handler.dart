@@ -926,27 +926,32 @@ class BackgroundHandler {
   /// A launch the user unsubscribed from counts as neither. It is not pending,
   /// because the scan will never take it, and it is not theirs, because they
   /// said no.
-  Future<({List<Launch> pending, int alreadySubscribed})> keywordCoverage(
-    List<Launch> launches,
-    List<LaunchKeyword> keywords,
-  ) async {
+  Future<({List<Launch> pending, int alreadySubscribed, int awaitingFirmDate})>
+  keywordCoverage(List<Launch> launches, List<LaunchKeyword> keywords) async {
+    final subscribed = (await _loadIDs(launchesKey)).toSet();
     final declined = (await _loadIDs(declinedKey)).toSet();
     final now = DateTime.now();
 
-    List<Launch> matching(Set<String> subscribed) => launchesToAutoSubscribe(
+    List<Launch> matching(Set<String> ignoring) => launchesToAutoSubscribe(
       launches: launches,
       keywords: keywords,
-      subscribed: subscribed,
+      subscribed: ignoring,
       declined: declined,
       now: now,
     );
 
-    final pending = matching((await _loadIDs(launchesKey)).toSet());
-    final eligible = matching(const {});
+    final pending = matching(subscribed);
 
     return (
       pending: pending,
-      alreadySubscribed: eligible.length - pending.length,
+      alreadySubscribed: matching(const {}).length - pending.length,
+      awaitingFirmDate: launchesAwaitingFirmDate(
+        launches: launches,
+        keywords: keywords,
+        subscribed: subscribed,
+        declined: declined,
+        now: now,
+      ).length,
     );
   }
 
