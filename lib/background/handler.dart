@@ -735,6 +735,20 @@ class BackgroundHandler {
       return true;
     }
 
+    // A failed fetch must leave the reminders alone.
+    //
+    // With no network *and* no cached copy this throws, which aborts before
+    // [processLaunch] — the only thing here that cancels or moves a
+    // notification. So a check that cannot reach the API is a check that does
+    // not happen, and whatever is already scheduled still fires. That is the
+    // right way round: a reminder for a launch that has since slipped is a
+    // small annoyance, a silently cancelled reminder for one that has not is
+    // the whole feature failing.
+    //
+    // Keep it that way. Do not cancel anything before this line, and do not
+    // make the fetch null-tolerant and call [processLaunch] with a stand-in —
+    // both would turn a dropped connection into lost reminders, which nothing
+    // would report.
     return await processLaunch(
       (await LaunchLibraryAPI().launch(launchId)).data,
       launchId,
@@ -1388,6 +1402,8 @@ class BackgroundHandler {
       return true;
     }
 
+    // Throws rather than touching the reminders when it cannot reach the API,
+    // for the reasons spelled out in [handleLaunchUpdatePeriodic].
     return await processEvent(
       (await LaunchLibraryAPI().event(int.parse(eventId))).data,
       eventId,
