@@ -10,6 +10,7 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 import 'package:rockit/util/keyboard.dart';
+import 'package:rockit/util/text_match.dart';
 import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/sort.dart';
@@ -294,20 +295,15 @@ class LaunchEventSearchDelegate extends SearchDelegate {
     );
   }
 
-  static final _bySpace = RegExp(r'\s+');
-
   List<_Entry> _matches(List<_Entry> all) {
-    final term = query.toLowerCase().trim();
-    if (term.isEmpty) {
+    // Split once, not once per entry: this runs over every indexed launch and
+    // event on every keystroke.
+    final terms = queryTerms(query);
+    if (terms.isEmpty) {
       return all;
     }
 
-    final terms = term.split(_bySpace);
-
-    // Every term has to appear somewhere in the entry.
-    return all
-        .where((e) => terms.every((t) => e.haystack.contains(t)))
-        .toList();
+    return all.where((e) => matchesAllTerms(e.haystack, terms)).toList();
   }
 
   String lastTerm = "";
@@ -486,7 +482,10 @@ class LaunchEventSearchDelegate extends SearchDelegate {
 
     return Container(
       width: double.infinity,
-      color: theme.colorScheme.surfaceContainerHighest,
+      // Not surfaceContainerHighest: main.dart sets it transparent to stop
+      // Material tinting surfaces, so asking for it here drew no band at all
+      // and the notice read as a stray line of text over the results.
+      color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [

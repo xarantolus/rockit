@@ -222,19 +222,55 @@ class _KeywordSheetState extends State<_KeywordSheet> {
   /// The full rule, not just the text match: a word can appear in forty launch
   /// names and only a handful of them be inside the window with a date firm
   /// enough to set reminders against.
-  int _matches = 0;
+  ///
+  /// All three counts are kept, because zero to take on means three different
+  /// things and the reader cannot tell them apart from the number alone.
+  ({int pending, int already, int awaiting}) _matches = (
+    pending: 0,
+    already: 0,
+    awaiting: 0,
+  );
 
   Future<void> _countMatches() async {
     final draft = _draft;
-    final count = draft == null
-        ? 0
-        : (await BackgroundHandler().wouldAutoSubscribe(widget.known, [
-            draft,
-          ])).length;
+    final coverage = draft == null
+        ? null
+        : await BackgroundHandler().keywordCoverage(widget.known, [draft]);
 
-    if (mounted && count != _matches) {
-      setState(() => _matches = count);
+    final next = coverage == null
+        ? (pending: 0, already: 0, awaiting: 0)
+        : (
+            pending: coverage.pending.length,
+            already: coverage.alreadySubscribed,
+            awaiting: coverage.awaitingFirmDate,
+          );
+
+    if (mounted && next != _matches) {
+      setState(() => _matches = next);
     }
+  }
+
+  /// What the backfill would do, what it has no work left to do about, and
+  /// what it is still waiting on.
+  ///
+  /// Assembled from whichever parts are non-zero rather than branched on,
+  /// because branching kept losing a case: a bare count called a keyword that
+  /// had already run "No matches yet", then hid the already-subscribed half
+  /// once anything was pending, then said the same "No matches yet" about a
+  /// keyword matching two launches the API had only dated to the month. Every
+  /// non-zero fact appears now, and only genuinely nothing is nothing.
+  String _countLabel(AppLocalizations localizations) {
+    final (:pending, :already, :awaiting) = _matches;
+
+    final parts = [
+      if (pending > 0) localizations.keywordBackfillCount(pending),
+      if (already > 0) localizations.keywordBackfillAlready(already),
+      if (awaiting > 0) localizations.keywordBackfillAwaiting(awaiting),
+    ];
+
+    return parts.isEmpty
+        ? localizations.keywordBackfillNone
+        : parts.join(" · ");
   }
 
   void _submit() {
@@ -302,7 +338,7 @@ class _KeywordSheetState extends State<_KeywordSheet> {
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
             title: Text(localizations.keywordBackfill),
-            subtitle: Text(localizations.keywordBackfillCount(_matches)),
+            subtitle: Text(_countLabel(localizations)),
           ),
           const SizedBox(height: 8),
           FilledButton(

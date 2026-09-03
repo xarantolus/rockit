@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 
 import 'package:rockit/apis/launch_library/launch_response.dart';
+import 'package:rockit/util/text_match.dart';
 
 /// A word to watch for, and how far ahead to watch.
 class LaunchKeyword {
@@ -87,20 +88,16 @@ class LaunchKeyword {
 /// Whether [launch] is one [keyword] is asking about.
 ///
 /// Name and rocket, never the provider: "spacex" would otherwise mean the
-/// whole listing rather than a watchlist.
+/// whole listing rather than a watchlist. Those two fields are the whole
+/// difference from search, which reads twenty; the *rule* applied to them is
+/// search's, via [matchesAllTerms], so a word behaves the same in both.
 bool keywordMatches(LaunchKeyword keyword, Launch launch) {
-  final needle = keyword.needle;
-  if (needle.isEmpty) {
-    return false;
-  }
+  final haystack = [
+    launch.name,
+    launch.rocketName,
+  ].nonNulls.join("\n").toLowerCase();
 
-  for (final field in [launch.name, launch.rocketName]) {
-    if ((field ?? "").toLowerCase().contains(needle)) {
-      return true;
-    }
-  }
-
-  return false;
+  return matchesAllTerms(haystack, queryTerms(keyword.text));
 }
 
 /// Whether the API knows when this launch is, well enough to act on it: a
@@ -129,6 +126,57 @@ List<Launch> launchesToAutoSubscribe({
   required Set<String> subscribed,
   required Set<String> declined,
   required DateTime now,
+}) => _matching(
+  launches: launches,
+  keywords: keywords,
+  subscribed: subscribed,
+  declined: declined,
+  now: now,
+  requireFirmDate: true,
+);
+
+/// The launches a keyword has found and is waiting on, because the API has not
+/// committed to a date yet.
+///
+/// Never subscribed to — that is the point of [_dateIsFirmEnough] — but they
+/// are the difference between a keyword that matches nothing and one that
+/// matches "Starship | Flight 14, NET September 2026". Reporting both as zero
+/// said the keyword was broken when it was working and waiting.
+List<Launch> launchesAwaitingFirmDate({
+  required Iterable<Launch> launches,
+  required Iterable<LaunchKeyword> keywords,
+  required Set<String> subscribed,
+  required Set<String> declined,
+  required DateTime now,
+}) {
+  final firm = launchesToAutoSubscribe(
+    launches: launches,
+    keywords: keywords,
+    subscribed: subscribed,
+    declined: declined,
+    now: now,
+  ).map((l) => l.id).toSet();
+
+  return _matching(
+    launches: launches,
+    keywords: keywords,
+    subscribed: subscribed,
+    declined: declined,
+    now: now,
+    requireFirmDate: false,
+  ).where((l) => !firm.contains(l.id)).toList();
+}
+
+/// [requireFirmDate] is false only to *count* what a keyword is waiting on.
+/// Nothing that decides a subscription may pass false: reminders against "NET
+/// September" would fire at an arbitrary moment inside the month.
+List<Launch> _matching({
+  required Iterable<Launch> launches,
+  required Iterable<LaunchKeyword> keywords,
+  required Set<String> subscribed,
+  required Set<String> declined,
+  required DateTime now,
+  required bool requireFirmDate,
 }) {
   final usable = keywords.where((k) => k.isUsable).toList();
   if (usable.isEmpty) {
@@ -147,7 +195,7 @@ List<Launch> launchesToAutoSubscribe({
         subscribed.contains(id) ||
         declined.contains(id) ||
         seen.contains(id) ||
-        !_dateIsFirmEnough(launch.netPrecision) ||
+        (requireFirmDate && !_dateIsFirmEnough(launch.netPrecision)) ||
         !net.isAfter(now)) {
       continue;
     }

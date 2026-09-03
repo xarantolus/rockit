@@ -38,7 +38,7 @@ void main() {
     test('a larger budget scales', () {
       // The live endpoint has reported other limits than 15 before.
       expect(
-        ApiThrottle(
+        const ApiThrottle(
           yourRequestLimit: 210,
           currentUse: 33,
         ).requestsUntilHalfSpent,

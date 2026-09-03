@@ -34,7 +34,7 @@ void main() {
     });
 
     test('the cap starts exactly where the ratio reaches it', () {
-      final cutoff =
+      const cutoff =
           LaunchEventWidget.maxHeight * LaunchEventWidget.aspectRatio + 20;
 
       expect(cardOnly(cutoff - 1), lessThan(LaunchEventWidget.maxHeight));

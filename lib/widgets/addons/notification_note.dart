@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rockit/theme.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 
@@ -67,14 +68,14 @@ class _NotificationNoteState extends State<NotificationNote> {
                     Icon(
                       Icons.schedule_outlined,
                       size: 18,
-                      color: theme.colorScheme.primary,
+                      color: theme.colorScheme.surfaceAccent,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         AppLocalizations.of(context)!.remindersMayBeLate,
                         style: TextStyle(
-                          color: theme.colorScheme.primary,
+                          color: theme.colorScheme.surfaceAccent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

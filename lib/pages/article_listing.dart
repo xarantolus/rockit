@@ -357,18 +357,14 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
       imageUrl: a.imageUrl,
       newsSite: a.newsSite,
       publishDate: a.publishedAt,
-      relatedLaunch: widget.launchesById == null
-          ? null
-          : a.launchIds
-                .map((id) => widget.launchesById![id])
-                .whereType<Launch>()
-                .firstOrNull,
-      relatedEvent: widget.eventsById == null
-          ? null
-          : a.eventIds
-                .map((id) => widget.eventsById![id])
-                .whereType<Event>()
-                .firstOrNull,
+      relatedLaunches: a.launchIds
+          .map((id) => widget.launchesById?[id])
+          .whereType<Launch>()
+          .toList(),
+      relatedEvents: a.eventIds
+          .map((id) => widget.eventsById?[id])
+          .whereType<Event>()
+          .toList(),
     );
   }
 }

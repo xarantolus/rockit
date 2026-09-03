@@ -268,7 +268,13 @@ class LauncherStage {
 
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class SpacecraftStage {
-  const SpacecraftStage({this.id, this.name, this.description, this.image});
+  const SpacecraftStage({
+    this.id,
+    this.name,
+    this.description,
+    this.image,
+    this.launchCrew = const [],
+  });
 
   final int? id;
   final String? name;
@@ -277,8 +283,79 @@ class SpacecraftStage {
   @JsonKey(fromJson: ApiImage.fromJsonOrNull)
   final ApiImage? image;
 
+  /// Who is flying it. Present in the listing already, so showing the crew
+  /// costs no request.
+  final List<CrewMember> launchCrew;
+
   factory SpacecraftStage.fromJson(Map<String, dynamic> json) =>
       _$SpacecraftStageFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class CrewMember {
+  const CrewMember({this.role, this.astronaut});
+
+  final CrewRole? role;
+  final Astronaut? astronaut;
+
+  factory CrewMember.fromJson(Map<String, dynamic> json) =>
+      _$CrewMemberFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class CrewRole {
+  const CrewRole({this.role, this.priority});
+
+  final String? role;
+
+  /// Lower comes first: the commander is 1.
+  final int? priority;
+
+  factory CrewRole.fromJson(Map<String, dynamic> json) =>
+      _$CrewRoleFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Astronaut {
+  const Astronaut({
+    this.id,
+    this.name,
+    this.image,
+    this.agency,
+    this.nationality = const [],
+    this.wiki,
+  });
+
+  final int? id;
+  final String? name;
+
+  @JsonKey(fromJson: ApiImage.fromJsonOrNull)
+  final ApiImage? image;
+
+  final Agency? agency;
+
+  final List<Nationality> nationality;
+
+  final String? wiki;
+
+  String? get demonym =>
+      nationality.map((n) => n.nationalityName).whereType<String>().firstOrNull;
+
+  factory Astronaut.fromJson(Map<String, dynamic> json) =>
+      _$AstronautFromJson(json);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class Nationality {
+  const Nationality({this.name, this.nationalityName});
+
+  final String? name;
+
+  /// "American" rather than "United States of America".
+  final String? nationalityName;
+
+  factory Nationality.fromJson(Map<String, dynamic> json) =>
+      _$NationalityFromJson(json);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)

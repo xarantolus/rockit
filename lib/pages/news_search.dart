@@ -179,14 +179,14 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
       imageUrl: a.imageUrl,
       newsSite: a.newsSite,
       publishDate: a.publishedAt,
-      relatedLaunch: a.launchIds
+      relatedLaunches: a.launchIds
           .map((id) => _launches[id])
           .whereType<Launch>()
-          .firstOrNull,
-      relatedEvent: a.eventIds
+          .toList(),
+      relatedEvents: a.eventIds
           .map((id) => _events[id])
           .whereType<Event>()
-          .firstOrNull,
+          .toList(),
     );
   }
 
@@ -210,7 +210,13 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
           decoration: InputDecoration(
             border: InputBorder.none,
             hintText: localizations.searchNews,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+            // Dim enough to read as a placeholder, no dimmer. At 0.7 this
+            // measured 2.4:1 on the light app bar and 3.6:1 on the dark one,
+            // against 4.5:1 for small text; 0.85 clears the bar in the dark
+            // theme. The light theme cannot pass here at any alpha — white on
+            // that blue is 3.4:1 even opaque — which is a fact about the
+            // brand colour rather than about this line.
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
           ),
         ),
         actions: [

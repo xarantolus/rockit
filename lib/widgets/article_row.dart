@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rockit/theme.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/widgets/addons/time_refresh.dart';
@@ -22,8 +23,8 @@ class ArticleRow extends StatelessWidget
     this.imageUrl,
     this.newsSite,
     this.publishDate,
-    this.relatedLaunch,
-    this.relatedEvent,
+    this.relatedLaunches = const [],
+    this.relatedEvents = const [],
     super.key,
   });
 
@@ -33,12 +34,14 @@ class ArticleRow extends StatelessWidget
   final String? newsSite;
   final DateTime? publishDate;
 
-  /// Set only when the article names a launch we already hold in the cache, so
-  /// showing it never costs an API request.
-  final Launch? relatedLaunch;
+  /// The launches this article names that are already in the cache, so showing
+  /// them never costs an API request. An article can name several — a launch
+  /// roundup names every launch of the week — and showing only the first made
+  /// it look like it was about that one.
+  final List<Launch> relatedLaunches;
 
-  /// Same, for an event it names.
-  final Event? relatedEvent;
+  /// Same, for the events it names.
+  final List<Event> relatedEvents;
 
   static const _imageSize = 96.0;
 
@@ -124,31 +127,38 @@ class ArticleRow extends StatelessWidget
                         );
                       },
                     ),
-                    if (relatedLaunch != null) ...[
+                    if (relatedLaunches.isNotEmpty ||
+                        relatedEvents.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      _RelatedChip(
-                        icon: Icons.rocket_launch,
-                        label:
-                            relatedLaunch!.name ??
-                            AppLocalizations.of(context)!.relatedLaunch,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => LaunchDetailsPage(relatedLaunch!),
-                          ),
-                        ),
-                      ),
-                    ] else if (relatedEvent != null) ...[
-                      const SizedBox(height: 6),
-                      _RelatedChip(
-                        icon: Icons.event,
-                        label:
-                            relatedEvent!.name ??
-                            AppLocalizations.of(context)!.relatedLaunch,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => EventDetailsPage(relatedEvent!),
-                          ),
-                        ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final launch in relatedLaunches)
+                            _RelatedChip(
+                              icon: Icons.rocket_launch,
+                              label:
+                                  launch.name ??
+                                  AppLocalizations.of(context)!.relatedLaunch,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => LaunchDetailsPage(launch),
+                                ),
+                              ),
+                            ),
+                          for (final event in relatedEvents)
+                            _RelatedChip(
+                              icon: Icons.event,
+                              label:
+                                  event.name ??
+                                  AppLocalizations.of(context)!.relatedLaunch,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => EventDetailsPage(event),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ],
@@ -190,7 +200,7 @@ class _RelatedChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: theme.colorScheme.primary),
+            Icon(icon, size: 13, color: theme.colorScheme.surfaceAccent),
             const SizedBox(width: 5),
             Flexible(
               child: Text(
@@ -200,7 +210,7 @@ class _RelatedChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
+                  color: theme.colorScheme.surfaceAccent,
                 ),
               ),
             ),

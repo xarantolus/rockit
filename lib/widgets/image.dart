@@ -61,7 +61,7 @@ class _ImageWidgetState extends State<ImageWidget> {
   /// [ResizeImagePolicy.fit] takes the pair as a bounding box instead.
   Widget _image(BuildContext context, String? imageURL, int? bound) {
     if (imageURL == null) {
-      return _defaultImage();
+      return const ImagePlaceholder();
     }
 
     try {
@@ -114,34 +114,13 @@ class _ImageWidgetState extends State<ImageWidget> {
             ),
           );
         },
-        errorBuilder: (context, error, stackTrace) => _defaultImage(),
+        errorBuilder: (context, error, stackTrace) => const ImagePlaceholder(),
       );
     } catch (e) {
       debugPrint("Error creating cached network image for $imageURL: $e");
 
-      return _defaultImage();
+      return const ImagePlaceholder();
     }
-  }
-
-  /// Bounded and dimmed: a placeholder, not content. Left alone the asset
-  /// fills whatever box it is given.
-  Widget _defaultImage() {
-    final light = Theme.of(context).brightness == Brightness.light;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Opacity(
-          opacity: 0.3,
-          child: Image.asset(
-            light ? "assets/rocket-black.png" : "assets/rocket-white.png",
-            width: 88,
-            height: 88,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
-    );
   }
 
   // No Hero here: SharedImageHero flies the whole image-and-overlay block.
@@ -157,16 +136,76 @@ class _ImageWidgetState extends State<ImageWidget> {
   }
 }
 
+/// Shown when there is no picture, or the one there is will not load.
+///
+/// Sized from its box rather than fixed at 88px inside 24px of padding, which
+/// collapsed to nothing in anything small: a 44px crew avatar and the 96px
+/// news thumbnails rendered an empty hole where a missing image should be.
+class ImagePlaceholder extends StatelessWidget {
+  const ImagePlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final light = Theme.of(context).brightness == Brightness.light;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = min(
+          constraints.hasBoundedWidth ? constraints.maxWidth : 136.0,
+          constraints.hasBoundedHeight ? constraints.maxHeight : 136.0,
+        );
+
+        return Center(
+          child: Image.asset(
+            light ? "assets/rocket-black.png" : "assets/rocket-white.png",
+            width: side * 0.6,
+            height: side * 0.6,
+            fit: BoxFit.contain,
+            // A dimmed colour rather than an Opacity layer, which the
+            // performance guidance says to avoid for simple content.
+            color: Colors.white.withValues(alpha: 0.3),
+            colorBlendMode: BlendMode.modulate,
+          ),
+        );
+      },
+    );
+  }
+}
+
 const _bucket = 256;
+
+/// Where the 1.5x headroom stops growing.
+///
+/// A full-width card is about 1100 physical pixels on a phone, and the API's
+/// photos are at most 1920x1280, so 1.5x of that held every card's picture at
+/// full size: 9.8 MB each, and 45 of them on screen after a detail page filled
+/// the entire image cache. Past this the bound follows the box itself.
+const _headroomCeiling = 1280;
+
+/// The hard ceiling. Neither API serves anything wider than 1920, so a bucket
+/// above this is bytes nothing can use.
 const _maxBound = 2048;
 
 /// The decode bound for a box whose longest edge is [physicalPixels].
 ///
-/// Doubled so a fit-inside resize still covers the box at any orientation, and
-/// bucketed so the number holds still while the box moves — it is part of the
+/// Larger than the box because the resize fits the image *inside* a square of
+/// this size while the box is filled with `BoxFit.cover`: a landscape photo
+/// scaled to fit 1000 wide is only 667 tall, so it would be stretched to cover
+/// a 1000x667 box exactly and blurred in anything taller.
+///
+/// The headroom is what gets capped, never the box. A flat ceiling looks right
+/// on the 1080p emulator and quietly breaks on a 1440p phone, where a
+/// full-width card is 1440 physical pixels: it would decode to 1280 and be
+/// upscaled into the box, which is the exact blurring this function exists to
+/// prevent.
+///
+/// Bucketed so the number holds still while the box moves — it is part of the
 /// image cache key, and a hero flight resizes its box every frame.
 int decodeBucketFor(double physicalPixels) {
-  final wanted = physicalPixels * 2;
+  final wanted = min(
+    physicalPixels * 1.5,
+    max(physicalPixels, _headroomCeiling.toDouble()),
+  );
   final rounded = (wanted / _bucket).ceil() * _bucket;
 
   return rounded.clamp(_bucket, _maxBound);

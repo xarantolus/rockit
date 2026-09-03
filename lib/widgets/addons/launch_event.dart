@@ -14,7 +14,7 @@ import 'package:rockit/widgets/image.dart';
 /// The image runs to the edges under a gradient scrim rather than a flat bar,
 /// and the status and a [precision]-aware date together answer "is this
 /// happening, and when".
-class LaunchEventWidget extends StatefulWidget {
+class LaunchEventWidget extends StatelessWidget {
   const LaunchEventWidget({
     required this.title,
     required this.subtitle,
@@ -95,21 +95,78 @@ class LaunchEventWidget extends StatefulWidget {
     return columnsFor(_getWidth(context));
   }
 
-  @override
-  State<LaunchEventWidget> createState() => _LaunchEventWidgetState();
-}
-
-class _LaunchEventWidgetState extends State<LaunchEventWidget> {
   /// The card is full width and a third of the screen tall, so it always wants
   /// the full image — a 256px thumbnail would upscale into mush here.
   String? _imageUrl(BuildContext context) {
     final media = MediaQuery.of(context);
     final widthPixels = media.size.width * media.devicePixelRatio;
 
-    return widget.image?.urlFor(widthPixels);
+    return image?.urlFor(widthPixels);
   }
 
-  Widget _scrim() {
+  @override
+  Widget build(BuildContext context) {
+    // LayoutBuilder rather than the screen width: in a landscape grid the card
+    // only gets half of it, and the card should size to what it actually has.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : LaunchEventWidget._getWidth(context);
+
+        return SizedBox(
+          height: LaunchEventWidget.heightForWidth(available),
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            shape: const RoundedRectangleBorder(
+              borderRadius: LaunchEventWidget.radius,
+            ),
+            elevation: 2,
+            margin: LaunchEventWidget.margin,
+            // The whole block flies to the detail page, image and overlay
+            // together, so nothing on either end is hidden behind it.
+            child: SharedImageHero(
+              tag: heroTag == null || heroId == null
+                  ? null
+                  : "$heroTag-$heroId",
+              borderRadius: LaunchEventWidget.radius,
+              image: ImageWidget(_imageUrl(context)),
+              overlay: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const Positioned.fill(child: _CardScrim()),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: _CardInfo(
+                      title: title,
+                      subtitle: subtitle,
+                      date: date,
+                      precision: precision,
+                    ),
+                  ),
+                  if (status != null)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: StatusPill(status, compact: true),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The same gradient on every card, so it is built once and reused rather than
+/// rebuilt per item.
+class _CardScrim extends StatelessWidget {
+  const _CardScrim();
+
+  @override
+  Widget build(BuildContext context) {
     return const DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -126,8 +183,23 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
       ),
     );
   }
+}
 
-  Widget _info(BuildContext context) {
+class _CardInfo extends StatelessWidget {
+  const _CardInfo({
+    required this.title,
+    required this.subtitle,
+    required this.date,
+    required this.precision,
+  });
+
+  final String title;
+  final String? subtitle;
+  final DateTime? date;
+  final DatePrecision? precision;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       child: Column(
@@ -135,7 +207,7 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.title,
+            title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -149,10 +221,10 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
           Row(
             children: [
               Expanded(
-                child: widget.subtitle == null
+                child: subtitle == null
                     ? const SizedBox.shrink()
                     : Text(
-                        widget.subtitle!,
+                        subtitle!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -163,8 +235,8 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
               ),
               const SizedBox(width: 10),
               PrecisionTimeText(
-                date: widget.date,
-                precision: widget.precision,
+                date: date,
+                precision: precision,
                 // A local time reads better than a wall of ticking clocks;
                 // the countdown is on the page you open.
                 showCountdown: false,
@@ -177,55 +249,6 @@ class _LaunchEventWidgetState extends State<LaunchEventWidget> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // LayoutBuilder rather than the screen width: in a landscape grid the card
-    // only gets half of it, and the card should size to what it actually has.
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final available = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : LaunchEventWidget._getWidth(context);
-
-        return SizedBox(
-          height: LaunchEventWidget.heightForWidth(available),
-          child: _card(context),
-        );
-      },
-    );
-  }
-
-  Widget _card(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: LaunchEventWidget.radius),
-      elevation: 2,
-      margin: LaunchEventWidget.margin,
-      // The whole block flies to the detail page, image and overlay together,
-      // so nothing on either end is hidden behind it on the way.
-      child: SharedImageHero(
-        tag: widget.heroTag == null || widget.heroId == null
-            ? null
-            : "${widget.heroTag}-${widget.heroId}",
-        borderRadius: LaunchEventWidget.radius,
-        image: ImageWidget(_imageUrl(context)),
-        overlay: Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned.fill(child: _scrim()),
-            Align(alignment: Alignment.bottomLeft, child: _info(context)),
-            if (widget.status != null)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: StatusPill(widget.status, compact: true),
-              ),
-          ],
-        ),
       ),
     );
   }

@@ -87,6 +87,15 @@ android {
             shrinkResources true
             minifyEnabled true
         }
+        // Profile is the only build worth reading frame times from, so it has
+        // to actually build: without a label the manifest merger fails.
+        profile {
+            applicationIdSuffix ".profile"
+            versionNameSuffix "-profile"
+            manifestPlaceholders = [ applicationLabel: "Rock It! (profile)" ]
+
+            signingConfig signingConfigs.debug
+        }
     }
 }
 

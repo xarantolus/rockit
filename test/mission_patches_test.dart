@@ -26,7 +26,7 @@ void main() {
 
     test('drops patches whose image carries no url', () {
       final patches = LaunchDetailsPage.renderablePatches([
-        MissionPatch(name: 'Patch', image: const ApiImage(thumbnailUrl: null)),
+        const MissionPatch(name: 'Patch', image: ApiImage(thumbnailUrl: null)),
       ]);
 
       expect(patches, isEmpty);

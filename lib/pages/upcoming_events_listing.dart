@@ -8,7 +8,7 @@ import 'package:rockit/apis/paging.dart';
 import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
-class UpcomingEventsPage extends StatefulWidget {
+class UpcomingEventsPage extends StatelessWidget {
   UpcomingEventsPage({required this.tabIndex, super.key});
 
   /// Which destination in the bottom bar shows this page, so re-tapping it
@@ -18,15 +18,10 @@ class UpcomingEventsPage extends StatefulWidget {
   final service = LaunchLibraryAPI();
 
   @override
-  State<UpcomingEventsPage> createState() => _UpcomingEventsPageState();
-}
-
-class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
-  @override
   Widget build(BuildContext context) {
     return LaunchEventListing<Event, String>(
       cachedFunc: () async {
-        final cached = await widget.service.cachedUpcomingEvents();
+        final cached = await service.cachedUpcomingEvents();
         if (cached == null) {
           return null;
         }
@@ -34,7 +29,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
         return NextFuncResult(cached.results, cached.next);
       },
       nextFunc: (nextItemArg, current) async {
-        final res = await widget.service.upcomingEvents(next: nextItemArg);
+        final res = await service.upcomingEvents(next: nextItemArg);
 
         // Subscribed events are resolved out of the per-event cache this
         // listing seeds, so the widget can only show them once it has landed.
@@ -48,7 +43,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
           notice: res.error,
         );
       },
-      tabIndex: widget.tabIndex,
+      tabIndex: tabIndex,
       emptyText: AppLocalizations.of(context)!.noEvents,
     );
   }

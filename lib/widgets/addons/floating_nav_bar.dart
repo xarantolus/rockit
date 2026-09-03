@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:rockit/theme.dart';
 import 'package:rockit/widgets/addons/reselect.dart';
 
 /// A destination in [FloatingNavBar].
@@ -41,58 +42,13 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final controller = DefaultTabController.of(context);
-    if (controller == _controller) {
-      return;
-    }
-
-    _detach();
-    _controller = controller
-      ..animation?.addListener(_onMoved)
-      ..addListener(_onMoved);
+    _controller = DefaultTabController.of(context);
   }
-
-  void _detach() {
-    _controller?.animation?.removeListener(_onMoved);
-    _controller?.removeListener(_onMoved);
-  }
-
-  @override
-  void dispose() {
-    _detach();
-    super.dispose();
-  }
-
-  void _onMoved() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  /// Where the selection is right now, as a fraction between destinations.
-  ///
-  /// The controller's `index` only moves once a swipe has committed, which made
-  /// the bar look like it was lagging a page behind the content. Its
-  /// `animation` tracks the drag itself, so the label can grow and the tint can
-  /// cross over while the finger is still down.
-  double get _position =>
-      _controller?.animation?.value ?? _controller?.index.toDouble() ?? 0;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final position = _position;
-
-    final items = [
-      for (var i = 0; i < widget.destinations.length; i++)
-        _item(
-          context,
-          widget.destinations[i],
-          i,
-          // 1 on this destination, 0 once a whole page away.
-          (1 - (position - i).abs()).clamp(0.0, 1.0),
-        ),
-    ];
+    final controller = _controller;
 
     return SafeArea(
       top: false,
@@ -127,7 +83,32 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
                   color: theme.colorScheme.surface.withValues(alpha: 0.45),
                   child: SizedBox(
                     height: FloatingNavBar._height,
-                    child: Row(mainAxisSize: MainAxisSize.min, children: items),
+                    // Only the row of items depends on the tab animation. The
+                    // blur and the material above it are built once and handed
+                    // in, rather than rebuilt on every tick of a swipe.
+                    child: controller == null
+                        ? const SizedBox.shrink()
+                        : ListenableBuilder(
+                            listenable: Listenable.merge([
+                              controller,
+                              controller.animation,
+                            ]),
+                            builder: (context, _) => Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (
+                                  var i = 0;
+                                  i < widget.destinations.length;
+                                  i++
+                                )
+                                  _NavItem(
+                                    destination: widget.destinations[i],
+                                    index: i,
+                                    controller: controller,
+                                  ),
+                              ],
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -137,43 +118,60 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
       ),
     );
   }
+}
 
-  /// [selectedness] is 1 on the destination being shown and 0 a page away, so
-  /// everything about the item can be interpolated rather than switched.
-  Widget _item(
-    BuildContext context,
-    NavDestination destination,
-    int index,
-    double selectedness,
-  ) {
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.destination,
+    required this.index,
+    required this.controller,
+  });
+
+  final NavDestination destination;
+  final int index;
+  final TabController controller;
+
+  /// 1 on the destination being shown and 0 a page away, so everything about
+  /// the item can be interpolated rather than switched.
+  ///
+  /// Read from `animation` rather than `index`, which only moves once a swipe
+  /// has committed: the bar looked like it was lagging a page behind the
+  /// content. This tracks the drag itself.
+  double get _selectedness {
+    final position = controller.animation?.value ?? controller.index.toDouble();
+
+    return (1 - (position - index).abs()).clamp(0.0, 1.0);
+  }
+
+  void _onTap(BuildContext context) {
+    // Tapping the destination already showing is not a no-op: it is how you
+    // get out of a feed you have scrolled a long way down.
+    if (controller.index == index && !controller.indexIsChanging) {
+      Reselections.of(context)?.reselect(index);
+
+      return;
+    }
+
+    controller.animateTo(index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = theme.textTheme.bodyMedium?.color ?? Colors.black;
+    final selectedness = _selectedness;
 
     // Only the icon takes the accent. The label stays in the normal text
     // colour: accent-on-translucent was hard to read, especially in the dark
     // theme where the blue sits close to the background it is blurring.
     final iconColour = Color.lerp(
       text.withValues(alpha: 0.55),
-      theme.colorScheme.primary,
+      theme.colorScheme.surfaceAccent,
       selectedness,
     )!;
 
     return InkWell(
-      onTap: () {
-        final controller = _controller;
-
-        // Tapping the destination already showing is not a no-op: it is how
-        // you get out of a feed you have scrolled a long way down.
-        if (controller != null &&
-            controller.index == index &&
-            !controller.indexIsChanging) {
-          Reselections.of(context)?.reselect(index);
-
-          return;
-        }
-
-        controller?.animateTo(index);
-      },
+      onTap: () => _onTap(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
@@ -189,21 +187,21 @@ class _FloatingNavBarState extends State<FloatingNavBar> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 widthFactor: selectedness,
-                child: Opacity(
-                  // Fades on the back half of the growth, so the text is never
-                  // squeezed and faint at the same time.
-                  opacity: max(0, selectedness * 2 - 1),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      destination.label,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: TextStyle(
-                        color: text,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    destination.label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      // Fades on the back half of the growth, so the text is
+                      // never squeezed and faint at the same time. A colour
+                      // alpha rather than an Opacity layer.
+                      color: text.withValues(
+                        alpha: max(0, selectedness * 2 - 1),
                       ),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
                 ),

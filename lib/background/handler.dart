@@ -735,6 +735,20 @@ class BackgroundHandler {
       return true;
     }
 
+    // A failed fetch must leave the reminders alone.
+    //
+    // With no network *and* no cached copy this throws, which aborts before
+    // [processLaunch] — the only thing here that cancels or moves a
+    // notification. So a check that cannot reach the API is a check that does
+    // not happen, and whatever is already scheduled still fires. That is the
+    // right way round: a reminder for a launch that has since slipped is a
+    // small annoyance, a silently cancelled reminder for one that has not is
+    // the whole feature failing.
+    //
+    // Keep it that way. Do not cancel anything before this line, and do not
+    // make the fetch null-tolerant and call [processLaunch] with a stand-in —
+    // both would turn a dropped connection into lost reminders, which nothing
+    // would report.
     return await processLaunch(
       (await LaunchLibraryAPI().launch(launchId)).data,
       launchId,
@@ -912,20 +926,46 @@ class BackgroundHandler {
 
   Future<List<String>> loadDeclinedLaunchIDs() => _loadIDs(declinedKey);
 
-  /// What a scan would take on right now, without doing it.
+  /// What a scan would take on right now, and what it already has.
   ///
   /// The same rule the scan uses, so the count on the add screen is what
   /// actually happens rather than a text match that ignores the window.
-  Future<List<Launch>> wouldAutoSubscribe(
-    List<Launch> launches,
-    List<LaunchKeyword> keywords,
-  ) async {
-    return launchesToAutoSubscribe(
+  ///
+  /// [alreadySubscribed] is counted separately because it is the difference
+  /// between "this keyword finds nothing" and "this keyword already got them",
+  /// and one number cannot say both — editing a keyword that has been running
+  /// a while normally reports zero to take on, which read as the keyword being
+  /// broken.
+  ///
+  /// A launch the user unsubscribed from counts as neither. It is not pending,
+  /// because the scan will never take it, and it is not theirs, because they
+  /// said no.
+  Future<({List<Launch> pending, int alreadySubscribed, int awaitingFirmDate})>
+  keywordCoverage(List<Launch> launches, List<LaunchKeyword> keywords) async {
+    final subscribed = (await _loadIDs(launchesKey)).toSet();
+    final declined = (await _loadIDs(declinedKey)).toSet();
+    final now = DateTime.now();
+
+    List<Launch> matching(Set<String> ignoring) => launchesToAutoSubscribe(
       launches: launches,
       keywords: keywords,
-      subscribed: (await _loadIDs(launchesKey)).toSet(),
-      declined: (await _loadIDs(declinedKey)).toSet(),
-      now: DateTime.now(),
+      subscribed: ignoring,
+      declined: declined,
+      now: now,
+    );
+
+    final pending = matching(subscribed);
+
+    return (
+      pending: pending,
+      alreadySubscribed: matching(const {}).length - pending.length,
+      awaitingFirmDate: launchesAwaitingFirmDate(
+        launches: launches,
+        keywords: keywords,
+        subscribed: subscribed,
+        declined: declined,
+        now: now,
+      ).length,
     );
   }
 
@@ -1362,6 +1402,8 @@ class BackgroundHandler {
       return true;
     }
 
+    // Throws rather than touching the reminders when it cannot reach the API,
+    // for the reasons spelled out in [handleLaunchUpdatePeriodic].
     return await processEvent(
       (await LaunchLibraryAPI().event(int.parse(eventId))).data,
       eventId,

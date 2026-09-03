@@ -73,6 +73,55 @@ void main() {
         isFalse,
       );
     });
+
+    test('a multi-word keyword spans the name and the rocket', () {
+      // The reason this shares search's rule instead of doing its own
+      // `contains`: neither field holds the phrase "falcon starlink", so a
+      // single substring test found nothing while typing the same thing into
+      // search found it immediately.
+      final l = launch(
+        id: 'a',
+        name: 'Starlink Group 15-23',
+        rocket: 'Falcon 9 Block 5',
+      );
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'falcon starlink'), l),
+        isTrue,
+      );
+    });
+
+    test('word order does not matter', () {
+      final l = launch(id: 'a', name: 'Starlink Group 15-23');
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'group starlink'), l),
+        isTrue,
+      );
+    });
+
+    test('every word still has to appear', () {
+      // Spanning fields must not turn into matching any one of the words.
+      final l = launch(
+        id: 'a',
+        name: 'Starlink Group 15-23',
+        rocket: 'Falcon 9',
+      );
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'starlink dragon'), l),
+        isFalse,
+      );
+    });
+
+    test('the provider stays out of it however the words are split', () {
+      final l = launch(id: 'a', name: 'Transporter-15', rocket: 'Falcon 9');
+
+      expect(
+        keywordMatches(const LaunchKeyword(text: 'spacex falcon'), l),
+        isFalse,
+      );
+    });
   });
 
   group('launchesToAutoSubscribe', () {
@@ -176,6 +225,78 @@ void main() {
 
       expect(pick(launches, [starship]), ['a']);
       expect(pick(launches, [const LaunchKeyword(text: 'falcon')]), ['b']);
+    });
+  });
+
+  group('launchesAwaitingFirmDate', () {
+    const starship = LaunchKeyword(text: 'starship');
+
+    List<String> waiting(
+      List<Launch> launches,
+      List<LaunchKeyword> keywords, {
+      Set<String> subscribed = const {},
+      Set<String> declined = const {},
+    }) => launchesAwaitingFirmDate(
+      launches: launches,
+      keywords: keywords,
+      subscribed: subscribed,
+      declined: declined,
+      now: now,
+    ).map((l) => l.id!).toList();
+
+    test('finds the match the API has only dated to the month', () {
+      // The real one: "Starship | Flight 14, NET September 2026" matches, and
+      // reporting it as zero said the keyword was broken when it was working
+      // and waiting.
+      expect(waiting([launch(id: 'a', precision: 'M')], [starship]), ['a']);
+    });
+
+    test('does not double-count one that is ready to subscribe', () {
+      expect(waiting([launch(id: 'a')], [starship]), isEmpty);
+      expect(pick([launch(id: 'a')], [starship]), ['a']);
+    });
+
+    test('an unsubscribed launch is neither waiting nor pending', () {
+      final vague = [launch(id: 'a', precision: 'M')];
+
+      expect(waiting(vague, [starship], declined: {'a'}), isEmpty);
+      expect(pick(vague, [starship], declined: {'a'}), isEmpty);
+    });
+
+    test('one already subscribed is not reported as waiting', () {
+      expect(
+        waiting(
+          [launch(id: 'a', precision: 'M')],
+          [starship],
+          subscribed: {'a'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('still respects the window and the past', () {
+      final far = launch(
+        id: 'a',
+        precision: 'M',
+        ahead: const Duration(days: 200),
+      );
+      final gone = launch(
+        id: 'b',
+        precision: 'M',
+        ahead: const Duration(days: -1),
+      );
+
+      expect(waiting([far, gone], [starship]), isEmpty);
+    });
+
+    test('a word that matches nothing is waiting on nothing', () {
+      expect(
+        waiting(
+          [launch(id: 'a', precision: 'M')],
+          [const LaunchKeyword(text: 'electron')],
+        ),
+        isEmpty,
+      );
     });
   });
 
