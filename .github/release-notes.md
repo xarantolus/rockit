@@ -1,9 +1,0 @@
-Changes:
-
-- Crewed launches now show who is flying, with photo, role and agency
-- Articles list every launch they are about, not just the first one
-- Missing images no longer leave an empty gap in small thumbnails
-- The web version works again, and loads images
-- The web version now keeps its data between visits, so it opens instantly and survives being offline
-- Tapping the tab you are already on scrolls back to the top
-- Much lower memory use while scrolling long lists
