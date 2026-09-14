@@ -12,6 +12,22 @@ import 'package:rockit/apis/response_cache.dart';
 class APIClient {
   static final _httpClient = http.Client();
 
+  /// `http.Client.get` has no timeout of its own, so without this a request
+  /// waits however long the platform's own connection/DNS logic takes to give
+  /// up — which is not a fixed number. It depends on *how* the device is
+  /// offline: disabling every network interface fails a DNS lookup in
+  /// milliseconds (`SocketException: Failed host lookup`, verified on the
+  /// emulator), but a stale DNS server, a captive portal or a dropped
+  /// handshake mid-connection can sit for a long time before the OS decides
+  /// to report failure — which is what made "the app takes a while to notice
+  /// it's offline" hard to pin down to one cause.
+  ///
+  /// 30 s is generous enough not to fail a slow-but-working `lldev` request —
+  /// "It is also very slow: a simple request can take 10 seconds or more" is
+  /// already true today — while still bounding the worst case to something
+  /// the user is not left staring at indefinitely.
+  static const _requestTimeout = Duration(seconds: 30);
+
   static const _key = 'http-cache';
 
   static final CacheManager? _cacheManager = () {
@@ -171,15 +187,17 @@ class APIClient {
 
     try {
       // At first, we try to get the response by fetching it from the web server
-      var response = await _httpClient.get(
-        url,
-        headers: {
-          "Accept": "application/json",
-          if (!kIsWeb)
-            "User-Agent":
-                "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
-        },
-      );
+      var response = await _httpClient
+          .get(
+            url,
+            headers: {
+              "Accept": "application/json",
+              if (!kIsWeb)
+                "User-Agent":
+                    "RockItApp (${packageInfo?.packageName ?? 'Unknown'} ${packageInfo?.version ?? 'version unknown'} ${kDebugMode ? 'DEBUG' : 'RELEASE'})",
+            },
+          )
+          .timeout(_requestTimeout);
 
       debugPrint(
         "Got response for ${url.toString()}: status ${response.statusCode}",
