@@ -423,7 +423,9 @@ class BackgroundHandler {
     return results.any((ok) => ok);
   }
 
-  /// Reads further into both listings with whatever budget is spare.
+  /// Reads further into both listings with whatever budget is spare, plus a
+  /// few more pages of news — which has no budget to spend, so it runs
+  /// whatever the Launch Library allowance is.
   ///
   /// Deepens the search corpus, and files more launches under their own URLs
   /// for everything that looks one up by id — an event's attached launch, a
@@ -432,46 +434,89 @@ class BackgroundHandler {
     final api = LaunchLibraryAPI();
 
     var allowance = await _spendableRequests();
-    if (allowance <= 0) {
-      return true;
-    }
-
-    String? launchNext;
-    String? eventNext;
     var pages = 0;
 
-    try {
-      // Sequential: each page's `next` only exists once the one before it has
-      // come back. Launches first, since there are far more of them.
-      // Scanned as well as cached: a keyword's match is often further down
-      // the listing than the first page, and these pages are already paid for.
-      final first = (await api.upcomingLaunches()).data;
-      await scanForKeywordMatches(first.results);
-      launchNext = first.next;
-      allowance--;
+    if (allowance > 0) {
+      String? launchNext;
+      String? eventNext;
 
-      while (allowance-- > 0 && launchNext != null) {
-        final page = (await api.upcomingLaunches(next: launchNext)).data;
-        await scanForKeywordMatches(page.results);
-        launchNext = page.next;
-        pages++;
-      }
+      try {
+        // Sequential: each page's `next` only exists once the one before it
+        // has come back. Launches first, since there are far more of them.
+        // Scanned as well as cached: a keyword's match is often further down
+        // the listing than the first page, and these pages are already paid
+        // for.
+        final first = (await api.upcomingLaunches()).data;
+        await scanForKeywordMatches(first.results);
+        launchNext = first.next;
+        allowance--;
 
-      if (allowance > 0) {
-        eventNext = (await api.upcomingEvents()).data.next;
-        while (allowance-- > 0 && eventNext != null) {
-          eventNext = (await api.upcomingEvents(next: eventNext)).data.next;
+        while (allowance-- > 0 && launchNext != null) {
+          final page = (await api.upcomingLaunches(next: launchNext)).data;
+          await scanForKeywordMatches(page.results);
+          launchNext = page.next;
           pages++;
         }
+
+        if (allowance > 0) {
+          eventNext = (await api.upcomingEvents()).data.next;
+          while (allowance-- > 0 && eventNext != null) {
+            eventNext = (await api.upcomingEvents(next: eventNext)).data.next;
+            pages++;
+          }
+        }
+      } catch (err) {
+        debugPrint("Could not read further into the listings: $err");
       }
-    } catch (err) {
-      debugPrint("Could not read further into the listings: $err");
     }
 
-    debugPrint("Read $pages extra listing page(s)");
+    final newsPages = await _deepenNews();
+
+    debugPrint(
+      "Read $pages extra listing page(s), $newsPages extra news page(s)",
+    );
     await _letTheCacheIndexSettle();
 
     return true;
+  }
+
+  /// How many pages past the first to cache for news, beyond what
+  /// [handleCacheWarm] already keeps fresh. Capped rather than tied to a
+  /// budget: the SpaceFlightNews API has no rate limit to protect, but a
+  /// background job still should not page it forever.
+  static const _newsDeepenPages = 3;
+
+  /// The first page is kept current by [handleCacheWarm] every run; this digs
+  /// further in, the same way [handleCacheDeepen] does for launches and
+  /// events, so scrolling the news feed finds more of it already cached.
+  ///
+  /// Stops early on a short page — one with fewer than a full page of
+  /// results — since that means the feed has run out, the same signal
+  /// [NewsList] itself uses to stop paging.
+  Future<int> _deepenNews() async {
+    final api = SpaceFlightNewsAPI();
+    var offset = SpaceFlightNewsAPI.pageSize;
+    var pages = 0;
+
+    try {
+      for (var i = 0; i < _newsDeepenPages; i++) {
+        final page = (await api.articles(offset)).data;
+        if (page.isEmpty) {
+          break;
+        }
+
+        pages++;
+        offset += page.length;
+
+        if (page.length < SpaceFlightNewsAPI.pageSize) {
+          break;
+        }
+      }
+    } catch (err) {
+      debugPrint("Could not read further into the news cache: $err");
+    }
+
+    return pages;
   }
 
   /// How many Launch Library requests this job may spend.
