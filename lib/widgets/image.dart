@@ -249,9 +249,9 @@ final BaseCacheManager? _imageCache = () {
         // means downloading it again — and short of that nothing here goes
         // out of date the way a response does.
         stalePeriod: const Duration(days: 60),
-        // Sized so this, and not CacheJanitor's byte budget, is what usually
+        // Sized so this, and not CacheEviction's byte budget, is what usually
         // bites: images average ~350 KB once bounded, so 300 of them is about
-        // 105 MB against a 128 MB budget. The janitor cannot order by last
+        // 105 MB against a 128 MB budget. CacheEviction cannot order by last
         // use — Android mounts /data `noatime`, so the filesystem never
         // records a read — and falling back to write time would evict a photo
         // that is looked at daily just for being old.

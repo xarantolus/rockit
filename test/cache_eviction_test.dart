@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rockit/apis/cache_janitor.dart';
+import 'package:rockit/apis/cache_eviction.dart';
 
 /// The stores bound themselves by object count and never by bytes, which is
 /// how a cache of 96 dp news thumbnails reached a gigabyte — the originals run
@@ -10,7 +10,7 @@ void main() {
   late Directory dir;
 
   setUp(() {
-    dir = Directory.systemTemp.createTempSync('janitor');
+    dir = Directory.systemTemp.createTempSync('eviction');
   });
 
   tearDown(() {
@@ -39,7 +39,7 @@ void main() {
     write('a', 100, minutesOld: 90);
     write('b', 100, minutesOld: 10);
 
-    expect(await CacheJanitor.trim(dir, 1000), 0);
+    expect(await CacheEviction.trim(dir, 1000), 0);
     expect(dir.listSync().length, 2);
   });
 
@@ -48,7 +48,7 @@ void main() {
     final middle = write('middle', 400, minutesOld: 200);
     final newest = write('newest', 400, minutesOld: 10);
 
-    await CacheJanitor.trim(dir, 800);
+    await CacheEviction.trim(dir, 800);
 
     expect(oldest.existsSync(), isFalse);
     expect(middle.existsSync(), isTrue);
@@ -60,7 +60,7 @@ void main() {
       write('f$i', 100, minutesOld: 100 - i);
     }
 
-    final freed = await CacheJanitor.trim(dir, 600);
+    final freed = await CacheEviction.trim(dir, 600);
 
     expect(totalBytes(), lessThanOrEqualTo(600));
     expect(totalBytes(), greaterThan(0));
@@ -70,7 +70,7 @@ void main() {
   test('one oversized file is removed even when it is the only one', () async {
     write('huge', 5000, minutesOld: 5);
 
-    await CacheJanitor.trim(dir, 1000);
+    await CacheEviction.trim(dir, 1000);
 
     expect(totalBytes(), 0);
   });
@@ -78,7 +78,7 @@ void main() {
   test('a missing directory is not an error', () async {
     final gone = Directory('${dir.path}/nope');
 
-    expect(await CacheJanitor.trim(gone, 100), 0);
+    expect(await CacheEviction.trim(gone, 100), 0);
   });
 
   group('expiry', () {
@@ -87,7 +87,7 @@ void main() {
       final fresh = write('fresh', 10, minutesOld: 60);
 
       // Far under budget: only age can be doing this.
-      await CacheJanitor.trim(dir, 1000, maxAge: const Duration(days: 7));
+      await CacheEviction.trim(dir, 1000, maxAge: const Duration(days: 7));
 
       expect(old.existsSync(), isFalse);
       expect(fresh.existsSync(), isTrue);
@@ -96,7 +96,7 @@ void main() {
     test('keeps everything when nothing has aged out', () async {
       write('a', 10, minutesOld: 60 * 24 * 6);
 
-      final freed = await CacheJanitor.trim(
+      final freed = await CacheEviction.trim(
         dir,
         1000,
         maxAge: const Duration(days: 7),
@@ -109,7 +109,7 @@ void main() {
     test('without an age limit, age alone deletes nothing', () async {
       write('ancient', 10, minutesOld: 60 * 24 * 400);
 
-      expect(await CacheJanitor.trim(dir, 1000), 0);
+      expect(await CacheEviction.trim(dir, 1000), 0);
       expect(dir.listSync().length, 1);
     });
 
@@ -118,7 +118,7 @@ void main() {
       write('big1', 500, minutesOld: 120);
       write('big2', 500, minutesOld: 60);
 
-      await CacheJanitor.trim(dir, 600, maxAge: const Duration(days: 7));
+      await CacheEviction.trim(dir, 600, maxAge: const Duration(days: 7));
 
       // The aged one goes for being old, then one more to fit the budget.
       expect(totalBytes(), lessThanOrEqualTo(600));

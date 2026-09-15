@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:rockit/apis/cache_janitor.dart';
+import 'package:rockit/apis/cache_eviction.dart';
 import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/background/handler.dart';
 import 'package:rockit/notifications/create.dart';
@@ -63,7 +63,7 @@ void main() async {
 
     // Nothing waits on this: it only reads directory entries and deletes, and
     // a start should not be held up to tidy a cache.
-    unawaited(CacheJanitor().sweep());
+    unawaited(CacheEviction().prune());
 
     // Not awaited: this ends in a channel round-trip and a cache read, and
     // holding the first frame for them buys nothing. A payload that arrives

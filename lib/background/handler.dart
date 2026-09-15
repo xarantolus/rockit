@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:rockit/apis/cache_janitor.dart';
+import 'package:rockit/apis/cache_eviction.dart';
 import 'package:rockit/apis/launch_library/api.dart';
 import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/background/imminent_check.dart';
@@ -128,8 +128,15 @@ class BackgroundHandler {
   /// warm above because it wants a different constraint: this is bulk data
   /// nobody asked for, so it waits for an unmetered connection, which is the
   /// usual treatment for background prefetch of any size.
-  static const periodicCacheDeepenTaskName = "cache:deepen:periodic";
-  static const _cacheDeepenTaskId = "cache-deepen";
+  static const periodicCacheFetchMoreTaskName = "cache:fetch-more:periodic";
+  static const _cacheFetchMoreTaskId = "cache-fetch-more";
+
+  /// The unique id this task registered under before it was renamed from
+  /// "deepen" to "fetch more". Cancelling an id that no longer exists is a
+  /// no-op, so this can run unconditionally on every start rather than
+  /// needing a "did we already do this" flag — unlike [_retirePerItemTasks],
+  /// which cancels a whole list and is worth gating.
+  static const _legacyCacheDeepenTaskId = "cache-deepen";
 
   /// Twice a day. The cost is two Launch Library requests per run against a
   /// budget of fifteen an hour, and its data barely moves faster than that;
@@ -184,8 +191,8 @@ class BackgroundHandler {
           return true;
         case periodicCacheWarmTaskName:
           return await handleCacheWarm();
-        case periodicCacheDeepenTaskName:
-          return await handleCacheDeepen();
+        case periodicCacheFetchMoreTaskName:
+          return await handleCacheFetchMore();
         default:
           throw FormatException(
             "Expected task name to be for event or update, but got \"$task\"",
@@ -213,12 +220,14 @@ class BackgroundHandler {
       );
 
       await Workmanager().registerPeriodicTask(
-        _cacheDeepenTaskId,
-        periodicCacheDeepenTaskName,
+        _cacheFetchMoreTaskId,
+        periodicCacheFetchMoreTaskName,
         frequency: cacheWarmInterval,
         existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
         constraints: Constraints(networkType: NetworkType.unmetered),
       );
+
+      await Workmanager().cancelByUniqueName(_legacyCacheDeepenTaskId);
 
       // Registered unconditionally, like the warmers. With nothing subscribed
       // it reads two preference keys and returns, which is cheaper than
@@ -412,8 +421,8 @@ class BackgroundHandler {
     await _letTheCacheIndexSettle();
 
     // After the writes, so what this run just stored counts towards the budget
-    // rather than being swept on the next one.
-    await CacheJanitor().sweep();
+    // rather than being pruned on the next one.
+    await CacheEviction().prune();
 
     // The listing it just refreshed is what the widget reads.
     await refreshHomeWidget();
@@ -427,10 +436,10 @@ class BackgroundHandler {
   /// few more pages of news — which has no budget to spend, so it runs
   /// whatever the Launch Library allowance is.
   ///
-  /// Deepens the search corpus, and files more launches under their own URLs
+  /// Fills out the search corpus, and files more launches under their own URLs
   /// for everything that looks one up by id — an event's attached launch, a
   /// notification tap, the subscriptions page.
-  Future<bool> handleCacheDeepen() async {
+  Future<bool> handleCacheFetchMore() async {
     final api = LaunchLibraryAPI();
 
     var allowance = await _spendableRequests();
@@ -470,7 +479,7 @@ class BackgroundHandler {
       }
     }
 
-    final newsPages = await _deepenNews();
+    final newsPages = await _fetchMoreNews();
 
     debugPrint(
       "Read $pages extra listing page(s), $newsPages extra news page(s)",
@@ -484,22 +493,23 @@ class BackgroundHandler {
   /// [handleCacheWarm] already keeps fresh. Capped rather than tied to a
   /// budget: the SpaceFlightNews API has no rate limit to protect, but a
   /// background job still should not page it forever.
-  static const _newsDeepenPages = 3;
+  static const _newsFetchMorePages = 3;
 
-  /// The first page is kept current by [handleCacheWarm] every run; this digs
-  /// further in, the same way [handleCacheDeepen] does for launches and
-  /// events, so scrolling the news feed finds more of it already cached.
+  /// The first page is kept current by [handleCacheWarm] every run; this
+  /// fetches further pages, the same way [handleCacheFetchMore] does for
+  /// launches and events, so scrolling the news feed finds more of it already
+  /// cached.
   ///
   /// Stops early on a short page — one with fewer than a full page of
   /// results — since that means the feed has run out, the same signal
   /// [NewsList] itself uses to stop paging.
-  Future<int> _deepenNews() async {
+  Future<int> _fetchMoreNews() async {
     final api = SpaceFlightNewsAPI();
     var offset = SpaceFlightNewsAPI.pageSize;
     var pages = 0;
 
     try {
-      for (var i = 0; i < _newsDeepenPages; i++) {
+      for (var i = 0; i < _newsFetchMorePages; i++) {
         final page = (await api.articles(offset)).data;
         if (page.isEmpty) {
           break;

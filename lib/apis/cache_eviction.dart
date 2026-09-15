@@ -9,10 +9,10 @@ import 'package:path_provider/path_provider.dart';
 /// It also collects the files the stores cannot. Cleanup only deletes what the
 /// index lists, and that index is a debounced whole-file write both isolates
 /// rewrite, so anything one of them loses is unreachable *and* undeletable.
-/// Sweeping by mtime catches both without reading either index — orphans are
+/// Pruning by mtime catches both without reading either index — orphans are
 /// old — and evicting a live file is safe, because the store checks a file
 /// exists before serving it and refetches when it does not.
-class CacheJanitor {
+class CacheEviction {
   /// Both budgets sit above what each store's own object cap allows, so the
   /// stores' least-recently-used eviction bites first and this only ever
   /// catches a runaway. Setting either below its cap hands the eviction back
@@ -47,7 +47,7 @@ class CacheJanitor {
   ///
   /// Never throws: a cache that cannot be tidied is not worth failing a start
   /// over.
-  Future<void> sweep() async {
+  Future<void> prune() async {
     if (kIsWeb) {
       return;
     }
@@ -63,7 +63,7 @@ class CacheJanitor {
         );
       }
     } catch (e) {
-      debugPrint("Could not sweep the caches: $e");
+      debugPrint("Could not prune the caches: $e");
     }
   }
 
@@ -129,7 +129,7 @@ class CacheJanitor {
     }
 
     debugPrint(
-      "Swept ${dir.path}: removed $removed files, "
+      "Pruned ${dir.path}: removed $removed files, "
       "${freed ~/ (1024 * 1024)} MB, leaving ${(total - freed) ~/ (1024 * 1024)} MB",
     );
 

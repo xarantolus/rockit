@@ -20,7 +20,7 @@ class ResponseCache {
   static const _bodyField = 'body';
   static const _writtenField = 'written';
 
-  /// Absolute, by write time, matching `CacheJanitor.maxResponseAge` on
+  /// Absolute, by write time, matching `CacheEviction.maxResponseAge` on
   /// Android. A response that keeps being read is still a response that has
   /// gone stale — a launch that has flown drops out of the listings and would
   /// otherwise say "Go for Launch" for ever.
