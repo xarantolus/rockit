@@ -818,7 +818,7 @@ class BackgroundHandler {
   /// already downloaded as part of the listing, which costs no request at all.
   Future<bool> processLaunch(Launch launch, String launchId) async {
     final launchTitle = launch.name ?? "Unknown";
-    final tag = "update:launch:oneoff:$launchId";
+    final tag = launchReminderTag(launchId);
     final updateKey = _getUpdateKey("launch", launchId);
 
     var launchTime = launch.net;
@@ -890,7 +890,7 @@ class BackgroundHandler {
       tag: tag,
       details: _getLaunchNotifDetails(tag),
       payload: "$actionLaunchDetails::$launchId",
-      idFor: (i) => ((launch.id ?? launchId).hashCode.abs()) + i,
+      idFor: (i) => launchReminderId(launchId, i),
     );
 
     return true;
@@ -902,7 +902,14 @@ class BackgroundHandler {
   /// numbers its notifications, which is why [idFor] is a callback: the two
   /// schemes have to stay distinct or one would cancel the other's.
   ///
-  /// A reminder whose moment has passed is skipped rather than fired late.
+  /// A reminder whose moment has passed is skipped rather than fired late —
+  /// but the id is always cancelled first, whether or not it ends up being
+  /// rescheduled. A launch can move from days out to minutes out between two
+  /// runs (an update correcting a bad estimate, or the net just slipping
+  /// forward a lot), and the 1-hour reminder that was armed for the old,
+  /// far-future time would otherwise never get touched again: the new `when`
+  /// for it is already in the past, so it is skipped, and the *old* alarm
+  /// stays scheduled and fires at the wrong time with stale wording.
   Future<void> _scheduleReminders({
     required DateTime at,
     required String title,
@@ -918,16 +925,16 @@ class BackgroundHandler {
 
     for (var i = 0; i < reminders.length; i++) {
       final when = base.subtract(reminders[i].before);
-      if (when.isBefore(now)) {
-        continue;
-      }
-
       final id = idFor(i);
 
       try {
         await notifications!.cancel(id: id, tag: tag);
       } catch (err) {
         debugPrint("Error cancelling $noun notification $id: $err");
+      }
+
+      if (when.isBefore(now)) {
+        continue;
       }
 
       await _schedule(
@@ -952,6 +959,39 @@ class BackgroundHandler {
     final body = "This $noun will be in $label";
 
     return (where ?? "").trim().isEmpty ? body : "$body · $where";
+  }
+
+  /// The tag and ids a launch's reminders were scheduled under.
+  ///
+  /// Kept in one place — the same reasoning as the reminder *times* living in
+  /// [reminders] rather than three copies of the schedule: [processLaunch]
+  /// needs these to schedule, and [unsubscribeFromLaunch] needs the exact same
+  /// values to cancel. Two independently-written copies of this formula would
+  /// be free to drift apart silently, and cancelling the wrong id is the same
+  /// as not cancelling at all. `static` and public (but not part of the
+  /// documented API) so that invariant is a test, not just a comment.
+  @visibleForTesting
+  static String launchReminderTag(String launchId) =>
+      "update:launch:oneoff:$launchId";
+
+  @visibleForTesting
+  static int launchReminderId(String launchId, int index) =>
+      launchId.hashCode.abs() + index;
+
+  /// The event twin of [launchReminderTag]/[launchReminderId].
+  @visibleForTesting
+  static String eventReminderTag(String eventId) =>
+      "update:event:oneoff:$eventId";
+
+  @visibleForTesting
+  static int eventReminderId(String eventId, int index) {
+    // Only exists to keep an event's reminder ids from colliding with a
+    // launch's — see processEvent's original comment.
+    const eventNotifIDOffset = 0x0F000000;
+
+    return eventNotifIDOffset +
+        (reminders.length * (int.tryParse(eventId) ?? 0)).abs() +
+        index;
   }
 
   Future<void> _saveIDs(String key, List<String> values) async {
@@ -1171,6 +1211,22 @@ class BackgroundHandler {
 
     for (final name in imminentCheckTaskNames(launchId)) {
       await Workmanager().cancelByUniqueName(name);
+    }
+
+    // The reminders themselves: they are real OS-scheduled alarms once armed,
+    // so removing the launch from the subscription list alone does not stop
+    // them firing. Nothing else in this class ever cancels one except as a
+    // prelude to rescheduling the same id, which unsubscribing is not.
+    final tag = launchReminderTag(launchId);
+    for (var i = 0; i < reminders.length; i++) {
+      try {
+        await notifications!.cancel(
+          id: launchReminderId(launchId, i),
+          tag: tag,
+        );
+      } catch (err) {
+        debugPrint("Could not cancel reminder $i for launch $launchId: $err");
+      }
     }
   }
 
@@ -1406,6 +1462,18 @@ class BackgroundHandler {
     // Unsubscribe the recurring task
     await Workmanager().cancelByUniqueName(_taskNameForEvent(eventId));
 
+    // See unsubscribeFromLaunch: the reminders are real OS-scheduled alarms
+    // once armed, and nothing else cancels one except as a prelude to
+    // rescheduling the same id.
+    final tag = eventReminderTag(eventId);
+    for (var i = 0; i < reminders.length; i++) {
+      try {
+        await notifications!.cancel(id: eventReminderId(eventId, i), tag: tag);
+      } catch (err) {
+        debugPrint("Could not cancel reminder $i for event $eventId: $err");
+      }
+    }
+
     await refreshHomeWidget();
   }
 
@@ -1467,11 +1535,8 @@ class BackgroundHandler {
 
   /// The event twin of [processLaunch].
   Future<bool> processEvent(Event event, String eventId) async {
-    // Adding this offset prevents notifications having the same id (as those of the launch notification)
-    const eventNotifIDOffset = 0x0F000000;
-
     final eventTitle = event.name ?? "Unknown";
-    final tag = "update:event:oneoff:$eventId";
+    final tag = eventReminderTag(eventId);
     final updateKey = _getUpdateKey("event", eventId);
 
     var startTime = event.date;
@@ -1543,8 +1608,7 @@ class BackgroundHandler {
       tag: tag,
       details: _getEventNotifDetails(tag),
       payload: "$actionEventDetails::$eventId",
-      idFor: (i) =>
-          eventNotifIDOffset + (reminders.length * (event.id ?? 0)).abs() + i,
+      idFor: (i) => eventReminderId(eventId, i),
     );
 
     return true;
