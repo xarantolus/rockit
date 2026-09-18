@@ -161,7 +161,10 @@ class BackgroundHandler {
     );
   }
 
-  NotificationDetails _getLaunchUpdateNotifDetails(String tag) {
+  NotificationDetails _getLaunchUpdateNotifDetails(
+    String tag, {
+    StyleInformation? style,
+  }) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         'Rocket Launch Updates',
@@ -171,6 +174,7 @@ class BackgroundHandler {
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
+        styleInformation: style,
       ),
     );
   }
@@ -698,24 +702,31 @@ class BackgroundHandler {
   String _getDisplayedTimeKey(String type, String id) =>
       "displaytime:$type:$id";
 
-  /// Notifies when the time a subscriber can see actually changes.
+  /// The line to report when the time a subscriber can see has actually
+  /// changed — null when nothing changed, or there is nothing to compare
+  /// against yet (the first run, which is the moment the user subscribed).
   ///
-  /// Only entries in the API's update feed produce a notification otherwise,
-  /// and the changes that matter most are often not in it: a launch going from
-  /// "NET October" to a real time, or slipping from Tuesday to Thursday.
+  /// Always persists the current key regardless of what it returns, which is
+  /// what makes the *next* call's comparison correct.
+  ///
+  /// Only entries in the API's update feed would otherwise report a change,
+  /// and the changes that matter most are often not in it: a launch going
+  /// from "NET October" to a real time, or slipping from Tuesday to Thursday.
   ///
   /// The test is [displayedTimeKey], not the raw [at]. A launch known only to
   /// the month moves within that month constantly and shows the same "NET
   /// October" throughout, so comparing instants would be pure noise; comparing
   /// what is rendered fires exactly when the screen would look different.
-  Future<void> _notifyIfDisplayedTimeChanged({
+  ///
+  /// [short] picks the wording: a short "New launch time: X" fragment when
+  /// this is about to sit alongside update lines in one bundled notification,
+  /// or the full sentence when it is the only thing being reported.
+  Future<String?> _displayedTimeChangeLine({
     required String type,
     required String id,
-    required String title,
     required DatePrecision? precision,
     required DateTime? at,
-    required NotificationDetails details,
-    required String payload,
+    required bool short,
   }) async {
     final key = _getDisplayedTimeKey(type, id);
     final previous = await _loadString(key);
@@ -723,33 +734,90 @@ class BackgroundHandler {
 
     await _saveString(key, current ?? "");
 
-    // Nothing to compare against on the first run, which is the moment the
-    // user subscribed. An empty current means the API has no date at all.
     if (previous == null || current == null || at == null) {
-      return;
+      return null;
     }
 
     if (previous == current) {
+      return null;
+    }
+
+    return describeTimeChangeLine(
+      noun: type == "event" ? "event" : "launch",
+      time: _describeTime(at, precision),
+      // A date appearing for the first time is not a change of plan, and the
+      // reminders only start meaning anything here.
+      wasUnknown: previous.isEmpty,
+      short: short,
+    );
+  }
+
+  /// The wording for [_displayedTimeChangeLine], pulled out as a pure
+  /// function of its inputs so the four combinations are a test rather than
+  /// something only checked by reading the code.
+  ///
+  /// The standalone sentence deliberately reads the same way whether the time
+  /// was just learned or just changed — "The launch time is now X" / "The
+  /// launch time changed to X" — rather than the previous "A launch time has
+  /// been set", which described what the *app* had done instead of the thing
+  /// a subscriber actually cares about. And "New launch time: X" is named
+  /// explicitly for the bundled case: sitting next to an update line with no
+  /// other context, a bare "Now: X" does not say what changed.
+  @visibleForTesting
+  static String describeTimeChangeLine({
+    required String noun,
+    required String time,
+    required bool wasUnknown,
+    required bool short,
+  }) {
+    if (short) {
+      return "New $noun time: $time";
+    }
+
+    return wasUnknown
+        ? "The $noun time is now $time"
+        : "The $noun time changed to $time";
+  }
+
+  /// Sends at most one notification per check for everything new about a
+  /// launch/event — update comments and/or a time change — instead of one
+  /// notification per thing.
+  ///
+  /// Two updates plus a time change used to mean three separate
+  /// notifications for what a user reads as a single event. Worse, when two
+  /// or more updates land in the same check there is no reliable way to say
+  /// which one (if any) explains the time change: an [Update] carries only
+  /// free text and a timestamp, nothing that ties it to what changed.
+  /// Bundling sidesteps needing to guess at an attribution the data does not
+  /// support.
+  ///
+  /// [lines] joined with " · " is the collapsed body, which reads fine
+  /// whether it is one line or several; a [BigTextStyleInformation] is only
+  /// attached when there is more than one, so a single-line run still shows
+  /// exactly as a plain notification always has.
+  Future<void> _notifyNews({
+    required String id,
+    required String title,
+    required List<String> lines,
+    required NotificationDetails Function(StyleInformation? style) detailsFor,
+    required String payload,
+  }) async {
+    if (lines.isEmpty) {
       return;
     }
 
-    // A date appearing for the first time is not a change of plan, and the
-    // reminders only start meaning anything here.
-    final wasUnknown = previous.isEmpty;
-    final noun = type == "event" ? "event" : "launch";
-
     try {
       await notifications!.show(
-        id: "time:$id".hashCode.abs(),
+        id: "news:$id".hashCode.abs(),
         title: title,
-        body: wasUnknown
-            ? "A $noun time has been set: ${_describeTime(at, precision)}"
-            : "The $noun time changed to ${_describeTime(at, precision)}",
-        notificationDetails: details,
+        body: lines.join(" · "),
+        notificationDetails: detailsFor(
+          lines.length > 1 ? BigTextStyleInformation(lines.join("\n")) : null,
+        ),
         payload: payload,
       );
     } catch (err) {
-      debugPrint("Could not notify about the new time for $id: $err");
+      debugPrint("Could not notify about news for $id: $err");
     }
   }
 
@@ -827,7 +895,10 @@ class BackgroundHandler {
       return true;
     }
 
-    // If we have any updates, we will send them as notification
+    // Collected rather than shown immediately, so a new update and a time
+    // change in the same check become one notification instead of two.
+    final newsLines = <String>[];
+
     try {
       var lastUpdateTime = await _loadDate(updateKey);
 
@@ -843,13 +914,7 @@ class BackgroundHandler {
 
           if (update.createdOn!.isAfter(lastUpdateTime) &&
               (update.comment ?? "").isNotEmpty) {
-            await notifications!.show(
-              id: update.id ?? (update.hashCode.abs()),
-              title: launchTitle,
-              body: update.comment ?? "No info",
-              notificationDetails: _getLaunchUpdateNotifDetails(launchId),
-              payload: "$actionLaunchUpdate::$launchId",
-            );
+            newsLines.add(update.comment!);
           }
 
           if (oldestUpdateTime == null ||
@@ -864,13 +929,23 @@ class BackgroundHandler {
       debugPrint("Error while processing launch updates: $err");
     }
 
-    await _notifyIfDisplayedTimeChanged(
+    final timeLine = await _displayedTimeChangeLine(
       type: "launch",
       id: launchId,
-      title: launchTitle,
       precision: launch.netPrecision,
       at: launch.net,
-      details: _getLaunchUpdateNotifDetails(launchId),
+      short: newsLines.isNotEmpty,
+    );
+    if (timeLine != null) {
+      newsLines.add(timeLine);
+    }
+
+    await _notifyNews(
+      id: launchId,
+      title: launchTitle,
+      lines: newsLines,
+      detailsFor: (style) =>
+          _getLaunchUpdateNotifDetails(launchId, style: style),
       payload: "$actionLaunchUpdate::$launchId",
     );
 
@@ -1419,7 +1494,10 @@ class BackgroundHandler {
     );
   }
 
-  NotificationDetails _getEventUpdateNotifDetails(String tag) {
+  NotificationDetails _getEventUpdateNotifDetails(
+    String tag, {
+    StyleInformation? style,
+  }) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         'Event Updates',
@@ -1429,6 +1507,7 @@ class BackgroundHandler {
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         tag: tag,
+        styleInformation: style,
       ),
     );
   }
@@ -1545,7 +1624,10 @@ class BackgroundHandler {
       return true;
     }
 
-    // If we have any updates, we will send them as notification
+    // Collected rather than shown immediately, so a new update and a time
+    // change in the same check become one notification instead of two.
+    final newsLines = <String>[];
+
     try {
       var lastUpdateTime = await _loadDate(updateKey);
 
@@ -1561,13 +1643,7 @@ class BackgroundHandler {
 
           if (update.createdOn!.isAfter(lastUpdateTime) &&
               (update.comment ?? "").isNotEmpty) {
-            await notifications!.show(
-              id: update.id ?? update.hashCode,
-              title: eventTitle,
-              body: update.comment ?? "No info",
-              notificationDetails: _getEventUpdateNotifDetails(eventId),
-              payload: "$actionEventUpdate::$eventId",
-            );
+            newsLines.add(update.comment!);
           }
 
           if (oldestUpdateTime == null ||
@@ -1582,13 +1658,22 @@ class BackgroundHandler {
       debugPrint("Error while processing event updates: $err");
     }
 
-    await _notifyIfDisplayedTimeChanged(
+    final timeLine = await _displayedTimeChangeLine(
       type: "event",
       id: eventId,
-      title: eventTitle,
       precision: event.datePrecision,
       at: event.date,
-      details: _getEventUpdateNotifDetails(eventId),
+      short: newsLines.isNotEmpty,
+    );
+    if (timeLine != null) {
+      newsLines.add(timeLine);
+    }
+
+    await _notifyNews(
+      id: eventId,
+      title: eventTitle,
+      lines: newsLines,
+      detailsFor: (style) => _getEventUpdateNotifDetails(eventId, style: style),
       payload: "$actionEventUpdate::$eventId",
     );
 
