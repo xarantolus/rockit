@@ -9,11 +9,14 @@ import 'package:rockit/background/home_screen_widget.dart';
 import 'package:rockit/pages/addons/launch_event_listing.dart';
 
 class UpcomingEventsPage extends StatelessWidget {
-  UpcomingEventsPage({required this.tabIndex, super.key});
+  UpcomingEventsPage({required this.tabIndex, this.revealId, super.key});
 
   /// Which destination in the bottom bar shows this page, so re-tapping it
   /// scrolls this list back to the top.
   final int tabIndex;
+
+  /// See [LaunchEventListing.revealId].
+  final ValueNotifier<String?>? revealId;
 
   final service = LaunchLibraryAPI();
 
@@ -44,6 +47,7 @@ class UpcomingEventsPage extends StatelessWidget {
         );
       },
       tabIndex: tabIndex,
+      revealId: revealId,
       emptyText: AppLocalizations.of(context)!.noEvents,
     );
   }

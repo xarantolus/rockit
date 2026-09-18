@@ -48,8 +48,19 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
   void dispose() {
     widget.appPayload.removeListener(pushPayloadPage);
     _reselections.dispose();
+    _revealLaunch.dispose();
+    _revealEvent.dispose();
     super.dispose();
   }
+
+  /// Carries "a widget row or notification just opened this" down to the
+  /// listing, so it can scroll that item into view behind the detail page.
+  ///
+  /// Tapping a card in the list already scrolls to it on the way out; arriving
+  /// by id did not, so coming back left the list wherever it had been, which
+  /// reads as having scrolled somewhere unrelated.
+  final _revealLaunch = ValueNotifier<String?>(null);
+  final _revealEvent = ValueNotifier<String?>(null);
 
   /// Loads the tabs the user is not looking at yet.
   ///
@@ -107,6 +118,10 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
             return;
           }
 
+          // Before the push, so the list moves behind the arriving page
+          // rather than visibly after it has been dismissed.
+          _revealLaunch.value = data;
+
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) =>
@@ -120,6 +135,8 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
           if (!mounted) {
             return;
           }
+
+          _revealEvent.value = data;
 
           await Navigator.of(context).push(
             MaterialPageRoute(
@@ -340,8 +357,14 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
                 ),
                 child: TabBarView(
                   children: [
-                    UpcomingLaunchesPage(tabIndex: _launchesTab),
-                    UpcomingEventsPage(tabIndex: _eventsTab),
+                    UpcomingLaunchesPage(
+                      tabIndex: _launchesTab,
+                      revealId: _revealLaunch,
+                    ),
+                    UpcomingEventsPage(
+                      tabIndex: _eventsTab,
+                      revealId: _revealEvent,
+                    ),
                     ArticleListingPage(tabIndex: _newsTab),
                   ],
                 ),

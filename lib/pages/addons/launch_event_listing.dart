@@ -50,6 +50,7 @@ class LaunchEventListing<I, N> extends StatefulWidget {
     this.tabIndex,
     this.refreshOnLeave = false,
     this.scrollOffset,
+    this.revealId,
     this.heroPrefix = "",
     super.key,
   }) : assert(initialItems == null || nextFunc == null),
@@ -77,6 +78,15 @@ class LaunchEventListing<I, N> extends StatefulWidget {
   final bool refreshOnLeave;
 
   final ValueNotifier<double>? scrollOffset;
+
+  /// The id of an item to bring into view, set when something *outside* the
+  /// list opened a detail page — a home-screen widget row or a notification.
+  ///
+  /// Tapping a card scrolls the list to it on the way out, so coming back
+  /// lands on what you were just looking at. Arriving by id skipped all of
+  /// that and left the list wherever it happened to be, which reads as having
+  /// scrolled somewhere random.
+  final ValueNotifier<String?>? revealId;
 
   @override
   State<LaunchEventListing<I, N>> createState() =>
@@ -137,6 +147,7 @@ class _LaunchEventListingState<I, N> extends State<LaunchEventListing<I, N>>
       widget.emptyText,
       widget.heroPrefix,
       scrollOffset: widget.scrollOffset,
+      revealId: widget.revealId,
       tabIndex: widget.tabIndex,
     );
   }
@@ -185,6 +196,7 @@ class ItemList<I, N> extends StatefulWidget {
     this.emptyText,
     this.heroPrefix, {
     this.scrollOffset,
+    this.revealId,
     this.tabIndex,
     super.key,
   });
@@ -197,6 +209,9 @@ class ItemList<I, N> extends StatefulWidget {
   final String heroPrefix;
 
   final ValueNotifier<double>? scrollOffset;
+
+  /// See [LaunchEventListing.revealId].
+  final ValueNotifier<String?>? revealId;
 
   /// See [LaunchEventListing.tabIndex].
   final int? tabIndex;
@@ -241,9 +256,65 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    widget.revealId?.addListener(_revealRequested);
+
+    // A tab is only built when it is first shown, so a payload handled before
+    // that already set the value and its notification is long gone.
+    _revealRequested();
+  }
+
+  @override
   void dispose() {
+    widget.revealId?.removeListener(_revealRequested);
     listController.dispose();
     super.dispose();
+  }
+
+  /// The id of [item] as the notification and widget payloads spell it, so a
+  /// payload can be matched against the loaded list.
+  String? _idOf(I item) {
+    if (item is Launch) {
+      return item.id;
+    }
+    if (item is Event) {
+      return item.id?.toString();
+    }
+
+    return null;
+  }
+
+  /// Something outside the list — a widget row, a notification — opened an
+  /// item by id. Bring it into view behind the detail page, so going back
+  /// lands on it the same way it does after tapping a card.
+  ///
+  /// A miss is normal and does nothing: the widget's rows are launches *and*
+  /// subscribed events sorted together, so a row often names something this
+  /// particular list does not hold, or one that is further in than the pages
+  /// loaded so far.
+  void _revealRequested() {
+    final wanted = widget.revealId?.value;
+    if (wanted == null || !mounted) {
+      return;
+    }
+
+    final index = items.indexWhere((item) => _idOf(item) == wanted);
+    if (index < 0) {
+      return;
+    }
+
+    // Cleared once taken, so opening the *same* item from the widget twice
+    // scrolls both times — a ValueNotifier only fires when the value changes.
+    widget.revealId?.value = null;
+
+    // After the frame: the detail page is being pushed in the same tick, and
+    // the list may not have a scroll position to move yet.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _scrollToIndex(context, index, animated: true);
+      }
+    });
   }
 
   Future<bool> _updateItems([bool? refresh]) async {
@@ -300,55 +371,71 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
     }
   }
 
+  /// Scrolls the list so the item at [idx] sits roughly centred.
+  ///
+  /// [fallbackExtent] is the scroll extent measured *before* a detail page was
+  /// pushed: once it is on top, the list may have no clients to ask.
+  void _scrollToIndex(
+    BuildContext context,
+    int idx, {
+    bool animated = false,
+    double? fallbackExtent,
+  }) {
+    // The try is there because MediaQuery is not always available
+    try {
+      // Scroll the list view to the currently viewed launch. If the user now leaves this view
+      // the list will have scrolled to the last viewed item, which is nice
+      int columns = 1;
+      try {
+        columns = LaunchEventWidget.columnsForContext(context);
+      } catch (_) {}
+
+      // The card sizes off its own width, so more columns means shorter
+      // cards — the offset maths has to use the same number.
+      final wheight = LaunchEventWidget.calculateHeight(
+        context,
+        columns: columns,
+      );
+
+      // The row this item is on, roughly centred.
+      final targetOffset = min(
+        max(wheight * (idx ~/ columns) - wheight / 2, 0.0),
+        // Do not scroll further than the list height.
+        // The wheight * items.length is not a very accurate way of
+        // calculating it, but the scroll position is not always available so we do it like that.
+        listController.hasClients
+            ? listController.position.maxScrollExtent
+            : fallbackExtent ?? (wheight * items.length),
+      );
+
+      if (widget.scrollOffset != null) {
+        widget.scrollOffset!.value = targetOffset;
+      } else {
+        if (animated) {
+          listController.animateTo(
+            targetOffset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeIn,
+          );
+        } else {
+          listController.jumpTo(targetOffset);
+        }
+      }
+    } catch (e, trace) {
+      debugPrint("Error while scrolling to the current item: $e\n$trace");
+    }
+  }
+
   void _openItemDetails(BuildContext context, int index) async {
     double? initialListHeight = listController.hasClients
         ? listController.position.maxScrollExtent
         : null;
-    void scrollToIndex(int idx, {bool animated = false}) {
-      // The try is there because MediaQuery is not always available
-      try {
-        // Scroll the list view to the currently viewed launch. If the user now leaves this view
-        // the list will have scrolled to the last viewed item, which is nice
-        int columns = 1;
-        try {
-          columns = LaunchEventWidget.columnsForContext(context);
-        } catch (_) {}
-
-        // The card sizes off its own width, so more columns means shorter
-        // cards — the offset maths has to use the same number.
-        final wheight = LaunchEventWidget.calculateHeight(
-          context,
-          columns: columns,
-        );
-
-        // The row this item is on, roughly centred.
-        final targetOffset = min(
-          max(wheight * (idx ~/ columns) - wheight / 2, 0.0),
-          // Do not scroll further than the list height.
-          // The wheight * items.length is not a very accurate way of
-          // calculating it, but the scroll position is not always available so we do it like that.
-          listController.hasClients
-              ? listController.position.maxScrollExtent
-              : initialListHeight ?? (wheight * items.length),
-        );
-
-        if (widget.scrollOffset != null) {
-          widget.scrollOffset!.value = targetOffset;
-        } else {
-          if (animated) {
-            listController.animateTo(
-              targetOffset,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeIn,
-            );
-          } else {
-            listController.jumpTo(targetOffset);
-          }
-        }
-      } catch (e, trace) {
-        debugPrint("Error while scrolling to the current item: $e\n$trace");
-      }
-    }
+    void scrollToIndex(int idx, {bool animated = false}) => _scrollToIndex(
+      context,
+      idx,
+      animated: animated,
+      fallbackExtent: initialListHeight,
+    );
 
     scrollToIndex(index, animated: true);
 
