@@ -15,7 +15,7 @@ void main() {
       for (final theme in [RockItApp.lightTheme, RockItApp.darkTheme]) {
         expect(
           theme.pageTransitionsTheme.builders[TargetPlatform.android],
-          isA<PredictiveBackPageTransitionsBuilder>(),
+          isA<PredictiveBackFullscreenPageTransitionsBuilder>(),
         );
       }
     });

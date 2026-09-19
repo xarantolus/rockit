@@ -139,22 +139,28 @@ class RockItApp extends StatelessWidget {
   /// Follow the back gesture while it is held, the way Android 14+ does.
   ///
   /// Holding a back swipe part-way should peek at the page behind and settle
-  /// back if you let go without completing it. That is
-  /// [PredictiveBackPageTransitionsBuilder], and the manifest has long
-  /// carried the `enableOnBackInvokedCallback` opt-in it needs.
+  /// back if you let go. Only a predictive builder animates along with a
+  /// gesture in progress; the manifest's `enableOnBackInvokedCallback` opt-in
+  /// is the other half and is no use on its own.
   ///
-  /// **The push animation comes with it, and it is a sideways one.** The
-  /// predictive transition only applies while a pop gesture is in progress;
-  /// pushes and programmatic navigation fall back to
-  /// [FadeForwardsPageTransitionsBuilder], which slides horizontally. This
-  /// used to be [FadeUpwardsPageTransitionsBuilder] precisely to avoid that —
-  /// sideways motion in a vertically scrolled list, fighting the horizontal
-  /// pager between launches — so this is a deliberate reversal, not an
-  /// oversight: the two behaviours are the same setting and the gesture won.
-  /// Going back means giving up the peek, or reimplementing the framework's
-  /// private predictive-back widgets.
+  /// The *fullscreen* variant rather than the plain one, because the push
+  /// animation comes along with the choice and they differ:
+  /// [PredictiveBackPageTransitionsBuilder] falls back to
+  /// [FadeForwardsPageTransitionsBuilder], which slides the outgoing page 25%
+  /// sideways over 450 ms — both slower than the 300 ms default and the
+  /// sideways motion this app had deliberately avoided in a vertically
+  /// scrolled list. This one falls back to [ZoomPageTransitionsBuilder]:
+  /// scale and fade, no horizontal translation at all, at the default
+  /// duration.
+  ///
+  /// **The peek is not guaranteed to be visible.** Android only delivers the
+  /// gesture events when predictive back is actually on, which before
+  /// Android 15 means the "Predictive back animations" developer option. With
+  /// it off the app still pops correctly, just without following the finger.
   static const _pageTransitions = PageTransitionsTheme(
-    builders: {TargetPlatform.android: PredictiveBackPageTransitionsBuilder()},
+    builders: {
+      TargetPlatform.android: PredictiveBackFullscreenPageTransitionsBuilder(),
+    },
   );
 
   static const appName = 'Rock It!';
