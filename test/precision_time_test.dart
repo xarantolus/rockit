@@ -326,13 +326,116 @@ void main() {
       expect(key(at, 'M'), isNot(key(at, 'MIN')));
     });
 
+    test('the same instant keys the same however it is expressed', () {
+      // The key is built in UTC, so the viewer's timezone is not an input.
+      // It used to be, which meant changing timezone re-keyed every
+      // subscription and announced a time change nobody had made.
+      final utc = DateTime.utc(2026, 9, 12, 14, 30);
+
+      expect(key(utc, 'MIN'), key(utc.toLocal(), 'MIN'));
+      expect(key(utc, 'DAY'), key(utc.toLocal(), 'DAY'));
+    });
+  });
+
+  group('comparing two times at a shared precision', () {
+    test('coarserOf picks the less precise of the pair, either way round', () {
+      expect(
+        coarserOf(DatePrecisionKind.minute, DatePrecisionKind.month),
+        DatePrecisionKind.month,
+      );
+      expect(
+        coarserOf(DatePrecisionKind.month, DatePrecisionKind.minute),
+        DatePrecisionKind.month,
+      );
+      expect(
+        coarserOf(DatePrecisionKind.day, DatePrecisionKind.day),
+        DatePrecisionKind.day,
+      );
+    });
+
+    test('an unknown precision is treated as the vaguest of all', () {
+      expect(
+        coarserOf(DatePrecisionKind.decade, DatePrecisionKind.unknown),
+        DatePrecisionKind.unknown,
+      );
+    });
+
+    test('isFinerThan follows the declared order', () {
+      expect(
+        isFinerThan(DatePrecisionKind.minute, DatePrecisionKind.day),
+        isTrue,
+      );
+      expect(
+        isFinerThan(DatePrecisionKind.day, DatePrecisionKind.minute),
+        isFalse,
+      );
+      expect(
+        isFinerThan(DatePrecisionKind.day, DatePrecisionKind.day),
+        isFalse,
+      );
+    });
+
+    test('a missing precision behaves like a clock time', () {
+      // It renders as one, so for "did the card change" it has to rank as
+      // one. Deliberately unlike the keyword rules, where a missing
+      // precision counts as not knowing.
+      expect(effectivePrecision(null), DatePrecisionKind.minute);
+    });
+
+    test('a month-precise launch does not "move" against a minute-precise '
+        'predecessor', () {
+      // The case the whole coarserOf rule exists for: the API going vaguer
+      // lets the instant roam, and comparing at the finer precision would
+      // report a change on every single check.
+      final before = DateTime.utc(2026, 10, 2, 14, 30);
+      final after = DateTime.utc(2026, 10, 27, 3, 15);
+
+      final coarser = coarserOf(
+        DatePrecisionKind.minute,
+        DatePrecisionKind.month,
+      );
+
+      expect(
+        displayedTimeKeyFor(before, coarser),
+        displayedTimeKeyFor(after, coarser),
+      );
+    });
+
+    test('but a real slip into the next month still shows', () {
+      final before = DateTime.utc(2026, 10, 2, 14, 30);
+      final after = DateTime.utc(2026, 11, 2, 14, 30);
+
+      final coarser = coarserOf(
+        DatePrecisionKind.minute,
+        DatePrecisionKind.month,
+      );
+
+      expect(
+        displayedTimeKeyFor(before, coarser),
+        isNot(displayedTimeKeyFor(after, coarser)),
+      );
+    });
+
     test('a week renders as a day, and an unknown precision does too', () {
-      expect(key(at, 'WK'), key(at, 'DAY'));
-      expect(key(at, 'FORTNIGHT'), key(at, 'DAY'));
+      final at = DateTime.utc(2026, 9, 12, 14, 30);
+
+      expect(
+        displayedTimeKey(at, precision('WK')),
+        displayedTimeKey(at, precision('DAY')),
+      );
+      expect(
+        displayedTimeKey(at, precision('FORTNIGHT')),
+        displayedTimeKey(at, precision('DAY')),
+      );
     });
 
     test('a missing precision is treated as a clock time', () {
-      expect(key(at, null), key(at, 'MIN'));
+      final at = DateTime.utc(2026, 9, 12, 14, 30);
+
+      expect(
+        displayedTimeKey(at, null),
+        displayedTimeKey(at, precision('MIN')),
+      );
     });
   });
 

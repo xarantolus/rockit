@@ -696,11 +696,48 @@ class BackgroundHandler {
     }
   }
 
-  /// Not the old `precision:` key. That held a precision abbrev, so reusing it
-  /// would read one as a display key on the first run after an update and
-  /// announce a change that had not happened.
-  String _getDisplayedTimeKey(String type, String id) =>
-      "displaytime:$type:$id";
+  /// Not `displaytime:`, and not the older `precision:` before that.
+  ///
+  /// Each rename is deliberate: this key's *format* changed, so reading a
+  /// value written by an older build would compare two things that are not
+  /// comparable and announce a change on the first run after an update that
+  /// nothing had actually made. A fresh name reads as "nothing stored yet",
+  /// which is already the silent path.
+  String _getDisplayedTimeKey(String type, String id) => "timeseen:$type:$id";
+
+  /// The names this was stored under before, cleared on unsubscribe so an
+  /// upgraded install does not leave them behind.
+  static const _legacyTimeKeyPrefixes = ["displaytime", "precision"];
+
+  /// What the stored value holds: the precision the API stated, and the
+  /// instant itself, so a later run can re-compare the two at *any*
+  /// granularity rather than only the one that was current when it was
+  /// written.
+  static String _encodeSeenTime(DateTime? at, DatePrecision? precision) =>
+      at == null
+      ? ""
+      : "${effectivePrecision(precision).name}|"
+            "${at.toUtc().toIso8601String()}";
+
+  static ({DatePrecisionKind kind, DateTime at})? _decodeSeenTime(String raw) {
+    final parts = raw.split("|");
+    if (parts.length != 2) {
+      return null;
+    }
+
+    final at = DateTime.tryParse(parts[1]);
+    if (at == null) {
+      return null;
+    }
+
+    for (final kind in DatePrecisionKind.values) {
+      if (kind.name == parts[0]) {
+        return (kind: kind, at: at);
+      }
+    }
+
+    return null;
+  }
 
   /// The line to report when the time a subscriber can see has actually
   /// changed — null when nothing changed, or there is nothing to compare
@@ -713,10 +750,10 @@ class BackgroundHandler {
   /// and the changes that matter most are often not in it: a launch going
   /// from "NET October" to a real time, or slipping from Tuesday to Thursday.
   ///
-  /// The test is [displayedTimeKey], not the raw [at]. A launch known only to
-  /// the month moves within that month constantly and shows the same "NET
-  /// October" throughout, so comparing instants would be pure noise; comparing
-  /// what is rendered fires exactly when the screen would look different.
+  /// The comparison is never between two raw instants. A launch the API has
+  /// only dated to a month roams within that month constantly while showing
+  /// the same "NET October" throughout, so the two times are compared at the
+  /// *coarser* of the precisions involved — see [coarserOf].
   ///
   /// [short] picks the wording: a short "New launch time: X" fragment when
   /// this is about to sit alongside update lines in one bundled notification,
@@ -730,26 +767,62 @@ class BackgroundHandler {
   }) async {
     final key = _getDisplayedTimeKey(type, id);
     final previous = await _loadString(key);
-    final current = displayedTimeKey(at, precision);
 
-    await _saveString(key, current ?? "");
+    await _saveString(key, _encodeSeenTime(at, precision));
 
-    if (previous == null || current == null || at == null) {
+    // Nothing to compare against: the first run, which is the moment the user
+    // subscribed. An absent date is nothing to announce either.
+    if (previous == null || at == null) {
       return null;
     }
 
-    if (previous == current) {
+    final noun = type == "event" ? "event" : "launch";
+    final time = _describeTime(at, precision);
+
+    // A date appearing for the first time is not a change of plan, and the
+    // reminders only start meaning anything here.
+    if (previous.isEmpty) {
+      return describeTimeChangeLine(
+        noun: noun,
+        time: time,
+        wasUnknown: true,
+        short: short,
+      );
+    }
+
+    final before = _decodeSeenTime(previous);
+    if (before == null) {
+      // Unreadable, so there is nothing to compare — treat it as the first
+      // run rather than guessing at a change.
       return null;
     }
 
-    return describeTimeChangeLine(
-      noun: type == "event" ? "event" : "launch",
-      time: _describeTime(at, precision),
-      // A date appearing for the first time is not a change of plan, and the
-      // reminders only start meaning anything here.
-      wasUnknown: previous.isEmpty,
-      short: short,
-    );
+    final now = effectivePrecision(precision);
+    final coarser = coarserOf(before.kind, now);
+
+    final moved =
+        displayedTimeKeyFor(before.at, coarser) !=
+        displayedTimeKeyFor(at, coarser);
+
+    if (moved) {
+      return describeTimeChangeLine(
+        noun: noun,
+        time: time,
+        wasUnknown: false,
+        short: short,
+      );
+    }
+
+    // The launch did not move; only how precisely the API states it did.
+    // Firming up is worth saying — it is when reminders start being worth
+    // anything. Going vaguer is not: nothing about the launch changed, and
+    // announcing it as a time change is what made "NET October" and a
+    // confirmed date look like the same event happening twice.
+    if (isFinerThan(now, before.kind)) {
+      return describeTimeConfirmedLine(noun: noun, time: time, short: short);
+    }
+
+    return null;
   }
 
   /// The wording for [_displayedTimeChangeLine], pulled out as a pure
@@ -777,6 +850,67 @@ class BackgroundHandler {
     return wasUnknown
         ? "The $noun time is now $time"
         : "The $noun time changed to $time";
+  }
+
+  /// The launch has not moved; the API has just committed to stating it more
+  /// precisely — "NET October" becoming a real date, or a date becoming a
+  /// time.
+  ///
+  /// Worth its own wording rather than reusing [describeTimeChangeLine]:
+  /// saying the time "changed" when it did not is exactly what made a
+  /// confirmation read as a second, contradictory announcement.
+  @visibleForTesting
+  static String describeTimeConfirmedLine({
+    required String noun,
+    required String time,
+    required bool short,
+  }) {
+    return short
+        ? "$noun time confirmed: $time"
+        : "The $noun time is confirmed: $time";
+  }
+
+  /// What a launch's status is called, for a "this changed" line.
+  ///
+  /// Matched on nothing — the API's own `name` is used verbatim, because the
+  /// ids are the stable part and the names are already what the UI shows.
+  static String? _statusName(LaunchStatus? status) {
+    final name = status?.name?.trim();
+
+    return (name == null || name.isEmpty) ? null : name;
+  }
+
+  String _getStatusKey(String id) => "status:launch:$id";
+
+  /// The line to report when a launch's status changes — "Go for Launch"
+  /// becoming "To Be Determined", or a hold.
+  ///
+  /// Matched by **id**, never the abbreviation: `LaunchStatus.abbrev` is free
+  /// text in the schema while the ids are stable, which is the same rule the
+  /// status pills already follow.
+  Future<String?> _statusChangeLine({
+    required String id,
+    required LaunchStatus? status,
+  }) async {
+    final key = _getStatusKey(id);
+    final previous = await _loadString(key);
+    final current = status?.id;
+
+    await _saveString(key, current == null ? "" : "$current");
+
+    // Nothing stored yet is the moment the user subscribed, and a status the
+    // API does not state is nothing to announce.
+    if (previous == null || previous.isEmpty || current == null) {
+      return null;
+    }
+
+    if (previous == "$current") {
+      return null;
+    }
+
+    final name = _statusName(status);
+
+    return name == null ? null : "Status: $name";
   }
 
   /// Sends at most one notification per check for everything new about a
@@ -927,6 +1061,14 @@ class BackgroundHandler {
       await _saveDate(updateKey, oldestUpdateTime ?? DateTime.now());
     } catch (err) {
       debugPrint("Error while processing launch updates: $err");
+    }
+
+    final statusLine = await _statusChangeLine(
+      id: launchId,
+      status: launch.status,
+    );
+    if (statusLine != null) {
+      newsLines.add(statusLine);
     }
 
     final timeLine = await _displayedTimeChangeLine(
@@ -1274,9 +1416,12 @@ class BackgroundHandler {
     try {
       await _deleteKey(_getUpdateKey("launch", launchId));
       await _deleteKey(_getDisplayedTimeKey("launch", launchId));
-      // The name this used to be stored under, so an install upgraded
+      await _deleteKey(_getStatusKey(launchId));
+      // The names this used to be stored under, so an install upgraded
       // from an older build does not leave one behind.
-      await _deleteKey("precision:launch:$launchId");
+      for (final prefix in _legacyTimeKeyPrefixes) {
+        await _deleteKey("$prefix:launch:$launchId");
+      }
     } catch (err) {
       debugPrint("Deleting update key for launch while unsubscribing: $err");
     }
@@ -1531,9 +1676,11 @@ class BackgroundHandler {
     try {
       await _deleteKey(_getUpdateKey("event", eventId));
       await _deleteKey(_getDisplayedTimeKey("event", eventId));
-      // The name this used to be stored under, so an install upgraded
+      // The names this used to be stored under, so an install upgraded
       // from an older build does not leave one behind.
-      await _deleteKey("precision:event:$eventId");
+      for (final prefix in _legacyTimeKeyPrefixes) {
+        await _deleteKey("$prefix:event:$eventId");
+      }
     } catch (err) {
       debugPrint("Deleting update key for event while unsubscribing: $err");
     }

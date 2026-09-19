@@ -114,29 +114,66 @@ Duration untilNextLocalMidnight(DateTime now) {
   return midnight.difference(local);
 }
 
+/// The precision to reason with when the API states none.
+///
+/// A missing precision *renders* as a clock time (see the `null` case in
+/// [displayedTimeKey]), so for deciding whether the shown time changed it
+/// behaves like minute precision. This is deliberately not the same question
+/// as `_dateIsFirmEnough` in the keyword rules, which treats a missing
+/// precision as not knowing — there the risk is scheduling reminders against
+/// a guess, here it is only what the card says.
+DatePrecisionKind effectivePrecision(DatePrecision? precision) =>
+    precision?.kind ?? DatePrecisionKind.minute;
+
+/// Whether [a] states a time more precisely than [b].
+///
+/// [DatePrecisionKind] is declared finest-first, so a lower index is finer.
+/// `unknown` sits last, which is the safe direction: something the API has
+/// added and we cannot interpret counts as the vaguest thing there is.
+bool isFinerThan(DatePrecisionKind a, DatePrecisionKind b) => a.index < b.index;
+
+/// Whichever of [a] and [b] states a time less precisely.
+///
+/// Comparing two times has to happen at the coarser of the two, or the
+/// comparison invents a difference: a launch the API has only dated to a
+/// month roams within that month constantly, so checking it against a
+/// minute-precise predecessor would report a change every single time.
+DatePrecisionKind coarserOf(DatePrecisionKind a, DatePrecisionKind b) =>
+    a.index >= b.index ? a : b;
+
 /// A stable identity for the time a user actually sees, so a change in this is
 /// exactly a change on screen.
 ///
 /// Not the rendered string, which is relative to *now*: "Tomorrow, 11:26"
-/// becomes "Today, 11:26" overnight with nothing having moved. Local time,
-/// because that is where the viewer's day and month boundaries are.
-String? displayedTimeKey(DateTime? date, DatePrecision? precision) {
+/// becomes "Today, 11:26" overnight with nothing having moved.
+///
+/// **UTC, not local.** The card is rendered in the viewer's timezone, but the
+/// *key* must not be, or the viewer's own clock becomes an input: changing
+/// timezone re-keyed every subscription and announced a time change for a
+/// launch nobody had moved. The trade is that a launch nudged across local —
+/// but not UTC — midnight changes the day on the card without notifying,
+/// which is the better way round to be wrong.
+String? displayedTimeKey(DateTime? date, DatePrecision? precision) =>
+    displayedTimeKeyFor(date, effectivePrecision(precision));
+
+/// [displayedTimeKey] against a precision that has already been resolved, so
+/// two times can be compared at a granularity neither of them states.
+String? displayedTimeKeyFor(DateTime? date, DatePrecisionKind kind) {
   if (date == null) {
     return null;
   }
 
-  final at = date.toLocal();
+  final at = date.toUtc();
   String pad(int value, [int width = 2]) =>
       value.toString().padLeft(width, '0');
 
   final day = "${pad(at.year, 4)}-${pad(at.month)}-${pad(at.day)}";
 
-  switch (precision?.kind) {
+  switch (kind) {
     // A countdown ticks, so anything down to the minute is on screen.
     case DatePrecisionKind.second:
     case DatePrecisionKind.minute:
     case DatePrecisionKind.hour:
-    case null:
       return "$day ${pad(at.hour)}:${pad(at.minute)}";
 
     case DatePrecisionKind.day:

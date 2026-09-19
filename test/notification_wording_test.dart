@@ -63,6 +63,24 @@ void main() {
       );
     });
 
+    test('a confirmation never claims the time changed', () {
+      // The bug this guards: the API stating the same launch more precisely
+      // ("NET October" becoming a real date) went out as "The launch time
+      // changed to ...", so a confirmation read as a second, contradictory
+      // announcement about a launch that had not moved.
+      for (final short in [true, false]) {
+        final line = BackgroundHandler.describeTimeConfirmedLine(
+          noun: 'launch',
+          time: 'Fri, 2 Oct 2026, 14:00',
+          short: short,
+        );
+
+        expect(line, contains('confirmed'));
+        expect(line, isNot(contains('changed')));
+        expect(line, contains('Fri, 2 Oct 2026, 14:00'));
+      }
+    });
+
     test('launch and event use the same wording, only the noun differs', () {
       final launch = BackgroundHandler.describeTimeChangeLine(
         noun: 'launch',
