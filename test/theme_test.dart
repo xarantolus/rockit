@@ -7,14 +7,15 @@ import 'package:rockit/theme.dart';
 
 void main() {
   group('page transitions', () {
-    test('detail pages rise from the bottom on Android', () {
-      // Must not be OpenUpwards: that one reveals the page through a clip
-      // sweeping bottom to top, so the hero at the top is uncovered last and
-      // the text over it snaps in at the end.
+    test('a held back gesture can follow the finger on Android', () {
+      // Only this builder animates along with a back gesture in progress, so
+      // losing it silently gives up the peek-and-settle that Android 14+
+      // users expect. The manifest's enableOnBackInvokedCallback opt-in is
+      // the other half and is no use on its own.
       for (final theme in [RockItApp.lightTheme, RockItApp.darkTheme]) {
         expect(
           theme.pageTransitionsTheme.builders[TargetPlatform.android],
-          isA<FadeUpwardsPageTransitionsBuilder>(),
+          isA<PredictiveBackPageTransitionsBuilder>(),
         );
       }
     });

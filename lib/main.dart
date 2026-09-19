@@ -136,19 +136,25 @@ class RockItApp extends StatelessWidget {
   static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
   static const _secondaryColorDark = Color.fromARGB(255, 58, 111, 207);
 
-  /// Push a detail page up from the bottom, as one piece.
+  /// Follow the back gesture while it is held, the way Android 14+ does.
   ///
-  /// Flutter's current Android default slides in from the side (the
-  /// predictive-back transition), which reads as sideways motion in a list you
-  /// scroll vertically and fights the horizontal pager between launches.
+  /// Holding a back swipe part-way should peek at the page behind and settle
+  /// back if you let go without completing it. That is
+  /// [PredictiveBackPageTransitionsBuilder], and the manifest has long
+  /// carried the `enableOnBackInvokedCallback` opt-in it needs.
   ///
-  /// Fade-upwards and not *open*-upwards: the latter reveals the page through a
-  /// clip rectangle sweeping bottom to top, so the hero at the top of the page
-  /// is uncovered last and its overlaid text snaps in at the very end. This one
-  /// is a plain slide plus fade, so the image and the text on it arrive
-  /// together.
+  /// **The push animation comes with it, and it is a sideways one.** The
+  /// predictive transition only applies while a pop gesture is in progress;
+  /// pushes and programmatic navigation fall back to
+  /// [FadeForwardsPageTransitionsBuilder], which slides horizontally. This
+  /// used to be [FadeUpwardsPageTransitionsBuilder] precisely to avoid that —
+  /// sideways motion in a vertically scrolled list, fighting the horizontal
+  /// pager between launches — so this is a deliberate reversal, not an
+  /// oversight: the two behaviours are the same setting and the gesture won.
+  /// Going back means giving up the peek, or reimplementing the framework's
+  /// private predictive-back widgets.
   static const _pageTransitions = PageTransitionsTheme(
-    builders: {TargetPlatform.android: FadeUpwardsPageTransitionsBuilder()},
+    builders: {TargetPlatform.android: PredictiveBackPageTransitionsBuilder()},
   );
 
   static const appName = 'Rock It!';
