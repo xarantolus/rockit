@@ -136,31 +136,19 @@ class RockItApp extends StatelessWidget {
   static const _themeColorDark = Color.fromRGBO(0x2B, 0x66, 0xBF, 1.0);
   static const _secondaryColorDark = Color.fromARGB(255, 58, 111, 207);
 
-  /// Follow the back gesture while it is held, the way Android 14+ does.
+  /// Push a detail page up from the bottom, as one piece.
   ///
-  /// Holding a back swipe part-way should peek at the page behind and settle
-  /// back if you let go. Only a predictive builder animates along with a
-  /// gesture in progress; the manifest's `enableOnBackInvokedCallback` opt-in
-  /// is the other half and is no use on its own.
+  /// Flutter's current Android default slides in from the side (the
+  /// predictive-back transition), which reads as sideways motion in a list you
+  /// scroll vertically and fights the horizontal pager between launches.
   ///
-  /// The *fullscreen* variant rather than the plain one, because the push
-  /// animation comes along with the choice and they differ:
-  /// [PredictiveBackPageTransitionsBuilder] falls back to
-  /// [FadeForwardsPageTransitionsBuilder], which slides the outgoing page 25%
-  /// sideways over 450 ms — both slower than the 300 ms default and the
-  /// sideways motion this app had deliberately avoided in a vertically
-  /// scrolled list. This one falls back to [ZoomPageTransitionsBuilder]:
-  /// scale and fade, no horizontal translation at all, at the default
-  /// duration.
-  ///
-  /// **The peek is not guaranteed to be visible.** Android only delivers the
-  /// gesture events when predictive back is actually on, which before
-  /// Android 15 means the "Predictive back animations" developer option. With
-  /// it off the app still pops correctly, just without following the finger.
+  /// Fade-upwards and not *open*-upwards: the latter reveals the page through a
+  /// clip rectangle sweeping bottom to top, so the hero at the top of the page
+  /// is uncovered last and its overlaid text snaps in at the very end. This one
+  /// is a plain slide plus fade, so the image and the text on it arrive
+  /// together.
   static const _pageTransitions = PageTransitionsTheme(
-    builders: {
-      TargetPlatform.android: PredictiveBackFullscreenPageTransitionsBuilder(),
-    },
+    builders: {TargetPlatform.android: FadeUpwardsPageTransitionsBuilder()},
   );
 
   static const appName = 'Rock It!';
