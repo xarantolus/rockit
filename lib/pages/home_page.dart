@@ -95,6 +95,13 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
         return;
       }
 
+      // Cleared as soon as it is taken, because a ValueNotifier only fires
+      // when the value *changes*. Opening a launch from the widget, closing
+      // it, and tapping the same row again assigns the identical string, so
+      // without this the app came to the front and nothing happened. Setting
+      // it re-enters here with an empty payload, which returns above.
+      widget.appPayload.value = "";
+
       final splitPayload = payload.split("::");
       if (splitPayload.length < 2) {
         return;
