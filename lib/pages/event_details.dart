@@ -68,10 +68,32 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   /// the better copy is usually a cache read away.
   Map<String, Launch> _fuller = const {};
 
+  /// Anchors the updates card so an update notification can scroll to it.
+  final _updatesKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     unawaited(_loadFullerLaunches());
+
+    if (widget.openUpdates) {
+      // After the first frame, so the card exists and its offset is known.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToUpdates());
+    }
+  }
+
+  void _scrollToUpdates() {
+    final target = _updatesKey.currentContext;
+    if (target == null || !mounted) {
+      return;
+    }
+
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.05,
+    );
   }
 
   Future<void> _loadFullerLaunches() async {
@@ -332,6 +354,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
               if (widget.event.updates.isNotEmpty)
                 DetailCard(
+                  key: _updatesKey,
                   title: AppLocalizations.of(context)!.updates,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

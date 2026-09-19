@@ -173,8 +173,22 @@ Duration nextRefreshDelay(List<WidgetEntry> entries, DateTime now) {
 ///
 /// Startup fires three of these in quick succession — `main`, then each
 /// listing as its first page lands — and each one reads and parses the whole
-/// cached launches page. Joining them means the burst costs one pass.
+/// cached launches page, so a burst should not cost a pass apiece.
+///
+/// But it cannot simply hand a late caller the running future the way
+/// `APIClient.fetch` does. There an identical URL means an identical answer;
+/// here the *inputs change between calls* — the whole point of the events
+/// listing calling this is that it has just cached something the launches
+/// listing's pass could not see. Coalescing dropped that: on a cold start the
+/// events page lands a moment after the launches page, joins the pass that
+/// already read the cache, and the widget is written with no event rows until
+/// an hourly job gets round to it.
+///
+/// So a caller arriving mid-flight asks for one *more* pass instead. A burst
+/// still collapses — to two passes rather than N — and the last caller's data
+/// is always read.
 Future<void>? _inFlight;
+bool _refreshAgain = false;
 
 /// Writes the widget's rows and asks Android to redraw it.
 ///
@@ -189,9 +203,26 @@ Future<void> refreshHomeWidget() {
     return Future.value();
   }
 
-  return _inFlight ??= _refreshHomeWidget().whenComplete(() {
+  if (_inFlight != null) {
+    _refreshAgain = true;
+
+    return _inFlight!;
+  }
+
+  return _inFlight = _refreshUntilSettled();
+}
+
+/// Runs [_refreshHomeWidget] until nobody asked again while it was running.
+Future<void> _refreshUntilSettled() async {
+  try {
+    do {
+      _refreshAgain = false;
+      await _refreshHomeWidget();
+    } while (_refreshAgain);
+  } finally {
     _inFlight = null;
-  });
+    _refreshAgain = false;
+  }
 }
 
 Future<void> _refreshHomeWidget() async {

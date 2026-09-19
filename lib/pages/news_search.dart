@@ -99,10 +99,25 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
     }
   }
 
+  /// Runs the query that failed again, for the "Tap to try again" message.
+  Future<void> _retry() async {
+    final q = _field.text.trim();
+    if (q.isEmpty) {
+      return;
+    }
+
+    _debounce?.cancel();
+    await _run(q);
+  }
+
   /// Waits for a pause in typing before asking.
   void _schedule(String q) {
     final trimmed = q.trim();
-    if (trimmed == _running) {
+    // `!_failed`, because re-entering the query that just failed is a retry
+    // and has to be allowed through. Without it the guard swallowed it —
+    // [_running] is set before the request and is not rolled back when one
+    // fails, so the only way back was to type something else and return.
+    if (trimmed == _running && !_failed) {
       return;
     }
 
@@ -247,7 +262,17 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
         return const Center(child: PlanetLoadingAnimation());
       }
       if (_failed) {
-        return Center(child: Text(localizations.loadingNewsFail));
+        // The string says "Tap to try again", so it has to be tappable.
+        return Center(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => unawaited(_retry()),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(localizations.loadingNewsFail),
+            ),
+          ),
+        );
       }
       if (_searched) {
         return Center(child: Text(localizations.emptyResults));
