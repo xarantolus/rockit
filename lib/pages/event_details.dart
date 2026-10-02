@@ -22,7 +22,6 @@ import 'package:rockit/widgets/addons/launch_hero.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/readable_width.dart';
-import 'package:rockit/widgets/addons/settling_reveal.dart';
 import 'package:rockit/widgets/addons/content_url_card.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/launch.dart';
@@ -32,7 +31,6 @@ class EventDetailsPage extends StatefulWidget {
     this.event, {
     this.heroPrefix = "",
     this.heroEnabled = true,
-    this.openUpdates = false,
     super.key,
   });
 
@@ -42,9 +40,6 @@ class EventDetailsPage extends StatefulWidget {
 
   /// See [LaunchDetailsPage.heroEnabled].
   final bool heroEnabled;
-
-  /// See [LaunchDetailsPage.openUpdates].
-  final bool openUpdates;
 
   @override
   State<EventDetailsPage> createState() => _EventDetailsPageState();
@@ -69,40 +64,10 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   /// the better copy is usually a cache read away.
   Map<String, Launch> _fuller = const {};
 
-  /// Anchors the updates card so an update notification can scroll to it.
-  final _updatesKey = GlobalKey();
-
-  final _scrollController = ScrollController();
-
-  /// Only set when arriving from an update notification; see [SettlingReveal]
-  /// for why one scroll is not enough.
-  SettlingReveal? _reveal;
-
   @override
   void initState() {
     super.initState();
     unawaited(_loadFullerLaunches());
-
-    if (widget.openUpdates) {
-      _reveal = SettlingReveal(
-        controller: _scrollController,
-        targetKey: _updatesKey,
-      );
-
-      // After the first frame, so the card exists and its offset is known.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _reveal!.start();
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _reveal?.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadFullerLaunches() async {
@@ -267,134 +232,119 @@ class _EventDetailsPageState extends State<EventDetailsPage>
         context,
         title: widget.event.name ?? AppLocalizations.of(context)!.unknownEvent,
       ),
-      // See launch_details: a drag of the user's own ends the corrections.
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: (_) {
-          _reveal?.handOverToUser();
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: bottomSystemBarPadding(context),
+        child: ReadableWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LaunchHero(
+                image: widget.event.image,
+                title:
+                    widget.event.name ??
+                    AppLocalizations.of(context)!.unknownEvent,
+                subtitle: widget.event.type ?? widget.event.location,
+                // Events have no launch status, and their dates are never
+                // precise to a time, so this always renders a window.
+                date: widget.event.date,
+                precision: widget.event.datePrecision,
+                heroTag: widget.heroEnabled
+                    ? "${widget.heroPrefix}event-image"
+                    : null,
+                heroId: "${widget.event.id}",
+              ),
 
-          return false;
-        },
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
-          padding: bottomSystemBarPadding(context),
-          child: ReadableWidth(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LaunchHero(
-                  image: widget.event.image,
-                  title:
-                      widget.event.name ??
-                      AppLocalizations.of(context)!.unknownEvent,
-                  subtitle: widget.event.type ?? widget.event.location,
-                  // Events have no launch status, and their dates are never
-                  // precise to a time, so this always renders a window.
-                  date: widget.event.date,
-                  precision: widget.event.datePrecision,
-                  heroTag: widget.heroEnabled
-                      ? "${widget.heroPrefix}event-image"
-                      : null,
-                  heroId: "${widget.event.id}",
+              _quickFacts(context, widget.event),
+
+              if (!kIsWeb) _subscription("${widget.event.id}"),
+
+              DetailCard(
+                title: AppLocalizations.of(context)!.info,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if ((widget.event.description ?? "").isNotEmpty)
+                      _eventDetails(context, widget.event),
+                    if (widget.event.lastUpdated != null)
+                      DetailRow(
+                        label: AppLocalizations.of(context)!.lastUpdate,
+                        value: formatDateTime(
+                          context,
+                          widget.event.lastUpdated!.toLocal(),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
 
-                _quickFacts(context, widget.event),
-
-                if (!kIsWeb) _subscription("${widget.event.id}"),
-
+              // These were being dropped. The page rendered `news_url`, which
+              // 2.3.0 does not have — it moved to the `info_urls` list — so that
+              // button never appeared, and only the first video was ever offered.
+              if (widget.event.vidUrls.isNotEmpty)
                 DetailCard(
-                  title: AppLocalizations.of(context)!.info,
+                  title: AppLocalizations.of(context)!.videos,
+                  padded: false,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if ((widget.event.description ?? "").isNotEmpty)
-                        _eventDetails(context, widget.event),
-                      if (widget.event.lastUpdated != null)
-                        DetailRow(
-                          label: AppLocalizations.of(context)!.lastUpdate,
-                          value: formatDateTime(
-                            context,
-                            widget.event.lastUpdated!.toLocal(),
+                    children: widget.event.vidUrls
+                        .map(
+                          (vid) => ContentUrlCard(
+                            vid,
+                            customTab: false,
+                            icon: const Icon(Icons.play_arrow, size: 72),
                           ),
-                        ),
-                    ],
+                        )
+                        .toList(),
                   ),
                 ),
 
-                // These were being dropped. The page rendered `news_url`, which
-                // 2.3.0 does not have — it moved to the `info_urls` list — so that
-                // button never appeared, and only the first video was ever offered.
-                if (widget.event.vidUrls.isNotEmpty)
-                  DetailCard(
-                    title: AppLocalizations.of(context)!.videos,
-                    padded: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: widget.event.vidUrls
-                          .map(
-                            (vid) => ContentUrlCard(
-                              vid,
-                              customTab: false,
-                              icon: const Icon(Icons.play_arrow, size: 72),
-                            ),
-                          )
-                          .toList(),
-                    ),
+              if (widget.event.infoUrls.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.moreInfo,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.event.infoUrls
+                        .map((info) => ContentUrlCard(info))
+                        .toList(),
                   ),
+                ),
 
-                if (widget.event.infoUrls.isNotEmpty)
-                  DetailCard(
-                    title: AppLocalizations.of(context)!.moreInfo,
-                    padded: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: widget.event.infoUrls
-                          .map((info) => ContentUrlCard(info))
-                          .toList(),
-                    ),
+              // Events often hang off a launch; this is the way through to it.
+              if (widget.event.launches.isNotEmpty)
+                SectionLabel(title: AppLocalizations.of(context)!.launches),
+              ..._renderLaunches(widget.event.launches),
+
+              if (widget.event.spacestations.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.stations,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _renderSpaceStations(widget.event.spacestations),
                   ),
+                ),
 
-                // Events often hang off a launch; this is the way through to it.
-                if (widget.event.launches.isNotEmpty)
-                  SectionLabel(title: AppLocalizations.of(context)!.launches),
-                ..._renderLaunches(widget.event.launches),
-
-                if (widget.event.spacestations.isNotEmpty)
-                  DetailCard(
-                    title: AppLocalizations.of(context)!.stations,
-                    padded: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: _renderSpaceStations(
-                        widget.event.spacestations,
-                      ),
-                    ),
+              if (widget.event.updates.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.updates,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderUpdateList(context, widget.event.updates),
                   ),
+                ),
 
-                if (widget.event.updates.isNotEmpty)
-                  DetailCard(
-                    key: _updatesKey,
-                    title: AppLocalizations.of(context)!.updates,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: renderUpdateList(context, widget.event.updates),
-                    ),
+              if (widget.event.program.isNotEmpty)
+                DetailCard(
+                  title: AppLocalizations.of(context)!.programs,
+                  padded: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: renderProgramInfo(context, widget.event.program),
                   ),
-
-                if (widget.event.program.isNotEmpty)
-                  DetailCard(
-                    title: AppLocalizations.of(context)!.programs,
-                    padded: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: renderProgramInfo(
-                        context,
-                        widget.event.program,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
