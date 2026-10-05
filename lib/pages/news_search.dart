@@ -269,7 +269,7 @@ class _NewsSearchPageState extends State<NewsSearchPage> {
             onTap: () => unawaited(_retry()),
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(localizations.loadingNewsFail),
+              child: Text(localizations.loadingMoreFail),
             ),
           ),
         );

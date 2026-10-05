@@ -289,7 +289,7 @@ class _NewsListState extends State<NewsList> with DateFormatter, UrlLauncher {
   String _buildLoadingText(LoadMoreStatus status) {
     switch (status) {
       case LoadMoreStatus.fail:
-        return AppLocalizations.of(context)!.loadingNewsFail;
+        return AppLocalizations.of(context)!.loadingMoreFail;
       case LoadMoreStatus.idle:
         return AppLocalizations.of(context)!.loadingNewsIdle;
       case LoadMoreStatus.loading:

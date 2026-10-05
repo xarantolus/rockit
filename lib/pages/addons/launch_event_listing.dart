@@ -526,6 +526,16 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
       hasNext: nextItemArg != null,
       nextData: _loadMore,
       loadingWidget: const PlanetLoadingAnimation(),
+      failedBuilder: (retry) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: retry,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Text(AppLocalizations.of(context)!.loadingMoreFail),
+          ),
+        ),
+      ),
       physics: const BouncingScrollPhysics(),
       padding: bottomSystemBarPadding(context),
       controller: listController,
