@@ -4,11 +4,11 @@ import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/l10n/app_localizations.dart';
 import 'package:rockit/widgets/addons/time_refresh.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
-import 'package:rockit/pages/event_details.dart';
-import 'package:rockit/pages/launch_details.dart';
 import 'package:rockit/mixins/date_format.dart';
 import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/url_launcher.dart';
+import 'package:rockit/util/by_date.dart';
+import 'package:rockit/widgets/addons/detail_pager.dart';
 import 'package:rockit/widgets/image.dart';
 
 /// One article in the news feed.
@@ -60,6 +60,17 @@ class ArticleRow extends StatelessWidget
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6);
+
+    // One timeline: the API lists each kind by id, which is not when they
+    // happen.
+    final related = sortedByDate<Object>(
+      [...relatedLaunches, ...relatedEvents],
+      (item) => switch (item) {
+        Launch() => item.net,
+        Event() => item.date,
+        _ => null,
+      },
+    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -127,34 +138,32 @@ class ArticleRow extends StatelessWidget
                         );
                       },
                     ),
-                    if (relatedLaunches.isNotEmpty ||
-                        relatedEvents.isNotEmpty) ...[
+                    if (related.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          for (final launch in relatedLaunches)
+                          for (final (i, item) in related.indexed)
                             _RelatedChip(
-                              icon: Icons.rocket_launch,
+                              icon: item is Launch
+                                  ? Icons.rocket_launch
+                                  : Icons.event,
                               label:
-                                  launch.name ??
+                                  (item is Launch
+                                      ? item.name
+                                      : (item as Event).name) ??
                                   AppLocalizations.of(context)!.relatedLaunch,
+                              // Every chip opens the same pager, so the rest
+                              // are a swipe away.
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => LaunchDetailsPage(launch),
-                                ),
-                              ),
-                            ),
-                          for (final event in relatedEvents)
-                            _RelatedChip(
-                              icon: Icons.event,
-                              label:
-                                  event.name ??
-                                  AppLocalizations.of(context)!.relatedLaunch,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => EventDetailsPage(event),
+                                  builder: (_) => DetailPager(
+                                    itemAt: (idx) => idx < related.length
+                                        ? related[idx]
+                                        : null,
+                                    initialIndex: i,
+                                  ),
                                 ),
                               ),
                             ),

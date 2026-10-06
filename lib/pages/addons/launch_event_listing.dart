@@ -10,8 +10,7 @@ import 'package:rockit/apis/cache_first.dart';
 import 'package:rockit/apis/error_details.dart';
 import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
-import 'package:rockit/pages/event_details.dart';
-import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/detail_pager.dart';
 import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/launch_event.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
@@ -441,63 +440,22 @@ class _ItemListState<I, N> extends State<ItemList<I, N>> {
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) {
-          // Only the page being looked at carries a hero. A PageView builds its
-          // neighbours, and on a pop Flutter flies *every* hero whose tag
-          // matches something in the list — so several images used to sail back
-          // at once. The system back gesture makes it obvious, because it also
-          // drags the PageView a little, leaving two pages partly on screen.
-          var current = index;
+        builder: (context) => DetailPager(
+          // Read through the state, not captured: `items` is replaced when
+          // more pages load while the pager is open.
+          itemAt: (idx) => idx < items.length ? items[idx] : null,
+          initialIndex: index,
+          heroPrefix: widget.heroPrefix,
+          onPageChanged: (idx) {
+            // Always adjust the current scroll position of the list
+            scrollToIndex(idx);
 
-          // Built once, outside the StatefulBuilder: rebuilding it on every
-          // page change would hand the PageView a fresh controller and snap it
-          // back to the page it started on.
-          final pageController = PageController(initialPage: index);
-
-          return StatefulBuilder(
-            builder: (context, setPagerState) {
-              return PageView.custom(
-                physics: const BouncingScrollPhysics(),
-                childrenDelegate: SliverChildBuilderDelegate((context, idx) {
-                  if (idx >= items.length) {
-                    return null;
-                  }
-                  if (items[idx] is Launch) {
-                    return LaunchDetailsPage(
-                      items[idx] as Launch,
-                      heroPrefix: widget.heroPrefix,
-                      heroEnabled: idx == current,
-                    );
-                  } else if (items[idx] is Event) {
-                    return EventDetailsPage(
-                      items[idx] as Event,
-                      heroPrefix: widget.heroPrefix,
-                      heroEnabled: idx == current,
-                    );
-                  } else {
-                    throw Exception(
-                      "Invalid data type ${items[idx].runtimeType} in launch/event pageview",
-                    );
-                  }
-                }),
-                controller: pageController,
-                onPageChanged: (idx) async {
-                  // Settles only once a swipe finishes, so a back gesture that
-                  // merely nudges the PageView leaves the hero where it was.
-                  setPagerState(() => current = idx);
-
-                  // Always adjust the current scroll position of the list
-                  scrollToIndex(idx);
-
-                  // If we are close to the end of currently loaded events, we load the next ones
-                  if (nextItemArg != null && idx > items.length - 10) {
-                    await _loadMore();
-                  }
-                },
-              );
-            },
-          );
-        },
+            // If we are close to the end of currently loaded events, we load the next ones
+            if (nextItemArg != null && idx > items.length - 10) {
+              unawaited(_loadMore());
+            }
+          },
+        ),
       ),
     );
 
