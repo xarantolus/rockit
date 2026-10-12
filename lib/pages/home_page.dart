@@ -11,8 +11,7 @@ import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/article_listing.dart';
 import 'package:rockit/pages/credits_page.dart';
 import 'package:rockit/pages/news_search.dart';
-import 'package:rockit/pages/event_details.dart';
-import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/detail_pager.dart';
 import 'package:rockit/pages/subscription_listing.dart';
 import 'package:rockit/pages/upcoming_events_listing.dart';
 import 'package:rockit/pages/upcoming_launches_listing.dart';
@@ -125,7 +124,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => LaunchDetailsPage(launch.data),
+              builder: (context) => DetailPager.single(launch.data),
             ),
           );
           break;
@@ -140,7 +139,7 @@ class _RockItHomePageState extends State<RockItHomePage> with UrlLauncher {
 
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => EventDetailsPage(event.data),
+              builder: (context) => DetailPager.single(event.data),
             ),
           );
           break;

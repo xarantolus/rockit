@@ -37,11 +37,15 @@ class CustomAppBar {
     TextStyle? titleStyle,
     List<Widget>? actions,
     Widget? icon,
+    bool staticBar = false,
   }) {
     var barColor = Theme.of(context).colorScheme.primary;
 
     return AppBar(
       backgroundColor: barColor,
+      // A bar that content never moves under must not tint when a scrollable
+      // below it happens to be scrolled.
+      scrolledUnderElevation: staticBar ? 0 : null,
       iconTheme: IconTheme.of(context).copyWith(color: Colors.white),
       centerTitle: true,
       systemOverlayStyle: systemOverlayStyle(context),

@@ -15,7 +15,6 @@ import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
 import 'package:rockit/pages/launch_details.dart';
-import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/notification_note.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
@@ -23,6 +22,7 @@ import 'package:rockit/widgets/addons/insets.dart';
 import 'package:rockit/widgets/addons/planet_loading_animation.dart';
 import 'package:rockit/widgets/addons/readable_width.dart';
 import 'package:rockit/widgets/addons/content_url_card.dart';
+import 'package:rockit/widgets/addons/detail_pager.dart';
 import 'package:rockit/widgets/article.dart';
 import 'package:rockit/widgets/launch.dart';
 
@@ -147,7 +147,7 @@ class _EventDetailsPageState extends State<EventDetailsPage>
 
   Future<void> _openLaunch(Launch launch) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (ctx) => LaunchDetailsPage(_best(launch))),
+      MaterialPageRoute(builder: (ctx) => DetailPager.single(_best(launch))),
     );
   }
 
@@ -228,10 +228,6 @@ class _EventDetailsPageState extends State<EventDetailsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.create(
-        context,
-        title: widget.event.name ?? AppLocalizations.of(context)!.unknownEvent,
-      ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),

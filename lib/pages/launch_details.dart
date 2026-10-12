@@ -9,7 +9,6 @@ import 'package:rockit/mixins/link_copy.dart';
 import 'package:rockit/mixins/program_renderer.dart';
 import 'package:rockit/mixins/update_renderer.dart';
 import 'package:rockit/mixins/url_launcher.dart';
-import 'package:rockit/widgets/addons/app_bar.dart';
 import 'package:rockit/widgets/addons/notification_note.dart';
 import 'package:rockit/widgets/addons/detail_section.dart';
 import 'package:rockit/widgets/addons/launch_hero.dart';
@@ -688,15 +687,11 @@ class _LaunchDetailsPageState extends State<LaunchDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-    final launchName =
-        widget.launch.name ?? AppLocalizations.of(context)!.unknownLaunch;
-
     final patches = LaunchDetailsPage.renderablePatches(
       widget.launch.missionPatches,
     );
 
     return Scaffold(
-      appBar: CustomAppBar.create(context, title: launchName),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: bottomSystemBarPadding(context),

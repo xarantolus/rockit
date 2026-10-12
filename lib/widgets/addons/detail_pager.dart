@@ -3,6 +3,7 @@ import 'package:rockit/apis/launch_library/events_response.dart';
 import 'package:rockit/apis/launch_library/launch_response.dart';
 import 'package:rockit/pages/event_details.dart';
 import 'package:rockit/pages/launch_details.dart';
+import 'package:rockit/widgets/addons/app_bar.dart';
 
 /// Launch and event detail pages that can be swiped through left and right.
 class DetailPager extends StatefulWidget {
@@ -13,6 +14,13 @@ class DetailPager extends StatefulWidget {
     this.onPageChanged,
     super.key,
   });
+
+  /// A pager over one [Launch] or [Event], for callers with nothing to swipe to.
+  DetailPager.single(Object item, {super.key})
+    : itemAt = ((idx) => idx == 0 ? item : null),
+      initialIndex = 0,
+      heroPrefix = "",
+      onPageChanged = null;
 
   /// The [Launch] or [Event] at an index, or null past the end. Read as pages
   /// are built, so a list that grows while the pager is open shows the new
@@ -45,6 +53,15 @@ class _DetailPagerState extends State<DetailPager> {
 
   @override
   Widget build(BuildContext context) {
+    // One bar for the whole pager, so a swipe moves the pages and not it.
+    // The title is left out: the hero already carries the name.
+    return Scaffold(
+      appBar: CustomAppBar.create(context, staticBar: true),
+      body: _pages(),
+    );
+  }
+
+  Widget _pages() {
     return PageView.custom(
       physics: const BouncingScrollPhysics(),
       controller: _controller,
